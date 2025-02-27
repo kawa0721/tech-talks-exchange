@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { MessageSquare, ThumbsUp, Share, TrendingUp, Star, Twitter } from "lucide-react";
+import { MessageSquare, ThumbsUp, Share, TrendingUp, Star, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -192,7 +192,7 @@ const PostCard = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem onClick={shareToX} className="flex items-center gap-2 cursor-pointer">
-              <Twitter className="h-4 w-4 text-blue-500" />
+              <X className="h-4 w-4 text-black dark:text-white" />
               <span>Xでシェア</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
