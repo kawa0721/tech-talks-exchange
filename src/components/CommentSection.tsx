@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { ThumbsUp, Reply, MoreHorizontal } from "lucide-react";
+import { ThumbsUp, Reply, MoreHorizontal, Edit2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface CommentSectionProps {
   postId: string;
@@ -26,12 +27,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editContent, setEditContent] = useState<Record<string, string>>({});
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newComment.trim()) {
-      toast.error("Please enter a comment");
+      toast.error("コメントを入力してください");
       return;
     }
 
@@ -57,13 +59,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       setComments([newCommentObj, ...comments]);
       setNewComment("");
       setSubmitting(false);
-      toast.success("Comment posted successfully!");
+      toast.success("コメントが投稿されました");
     }, 500);
   };
 
   const handleSubmitReply = (parentId: string) => {
     if (!replyContent.trim()) {
-      toast.error("Please enter a reply");
+      toast.error("返信を入力してください");
       return;
     }
 
@@ -99,7 +101,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       setReplyTo(null);
       setReplyContent("");
       setSubmitting(false);
-      toast.success("Reply posted successfully!");
+      toast.success("返信が投稿されました");
     }, 500);
   };
 
@@ -155,12 +157,125 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       setComments(comments.filter(comment => comment.id !== commentId));
     }
     
-    toast.success("Comment deleted successfully!");
+    toast.success("コメントが削除されました");
+  };
+
+  const startEditing = (commentId: string, isReply = false, parentId?: string) => {
+    let currentContent = "";
+    
+    // Find the content of the comment to be edited
+    if (isReply && parentId) {
+      const parentComment = comments.find(c => c.id === parentId);
+      const reply = parentComment?.replies?.find(r => r.id === commentId);
+      if (reply) currentContent = reply.content;
+    } else {
+      const comment = comments.find(c => c.id === commentId);
+      if (comment) currentContent = comment.content;
+    }
+    
+    // Set the edit content and mark the comment as being edited
+    setEditContent({ ...editContent, [commentId]: currentContent });
+    
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        return { ...comment, isEditing: true };
+      }
+      
+      if (comment.replies) {
+        const updatedReplies = comment.replies.map(reply => {
+          if (reply.id === commentId) {
+            return { ...reply, isEditing: true };
+          }
+          return reply;
+        });
+        
+        return { ...comment, replies: updatedReplies };
+      }
+      
+      return comment;
+    });
+    
+    setComments(updatedComments);
+  };
+
+  const cancelEditing = (commentId: string) => {
+    // Remove the editing content and mark the comment as not being edited
+    const newEditContent = { ...editContent };
+    delete newEditContent[commentId];
+    setEditContent(newEditContent);
+    
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        return { ...comment, isEditing: false };
+      }
+      
+      if (comment.replies) {
+        const updatedReplies = comment.replies.map(reply => {
+          if (reply.id === commentId) {
+            return { ...reply, isEditing: false };
+          }
+          return reply;
+        });
+        
+        return { ...comment, replies: updatedReplies };
+      }
+      
+      return comment;
+    });
+    
+    setComments(updatedComments);
+  };
+
+  const saveEdit = (commentId: string, isReply = false, parentId?: string) => {
+    const newContent = editContent[commentId];
+    
+    if (!newContent || !newContent.trim()) {
+      toast.error("コメントを入力してください");
+      return;
+    }
+    
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        return { 
+          ...comment, 
+          content: newContent, 
+          isEditing: false,
+          updatedAt: new Date()
+        };
+      }
+      
+      if (comment.replies && (isReply || parentId === comment.id)) {
+        const updatedReplies = comment.replies.map(reply => {
+          if (reply.id === commentId) {
+            return { 
+              ...reply, 
+              content: newContent, 
+              isEditing: false,
+              updatedAt: new Date()
+            };
+          }
+          return reply;
+        });
+        
+        return { ...comment, replies: updatedReplies };
+      }
+      
+      return comment;
+    });
+    
+    setComments(updatedComments);
+    
+    // Remove the editing content
+    const newEditContent = { ...editContent };
+    delete newEditContent[commentId];
+    setEditContent(newEditContent);
+    
+    toast.success("コメントが更新されました");
   };
 
   return (
     <div className="mt-6">
-      <h3 className="font-semibold text-xl mb-4">Comments</h3>
+      <h3 className="font-semibold text-xl mb-4">コメント</h3>
       
       <form onSubmit={handleSubmitComment} className="mb-6">
         <div className="flex items-start gap-3">
@@ -170,13 +285,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
           </Avatar>
           <div className="flex-1">
             <Textarea
-              placeholder="Add a comment..."
+              placeholder="コメントを追加..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               className="mb-2 min-h-[80px]"
             />
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Posting..." : "Post Comment"}
+              {submitting ? "投稿中..." : "コメントを投稿"}
             </Button>
           </div>
         </div>
@@ -186,7 +301,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       
       <div className="space-y-6">
         {comments.length === 0 ? (
-          <p className="text-center text-muted-foreground py-6">No comments yet. Be the first to comment!</p>
+          <p className="text-center text-muted-foreground py-6">まだコメントがありません。最初のコメントを投稿しましょう！</p>
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="space-y-4">
@@ -198,9 +313,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-medium">{comment.user.name}</span>
+                      <Link to={`/user/${comment.user.id}`} className="font-medium hover:underline">
+                        {comment.user.name}
+                      </Link>
                       <span className="text-xs text-muted-foreground ml-2">
                         {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
+                        {comment.updatedAt && comment.updatedAt > comment.createdAt && 
+                          " (編集済み)"}
                       </span>
                     </div>
                     <DropdownMenu>
@@ -211,39 +330,76 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => deleteComment(comment.id)}>
-                          Delete
+                          削除
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Report</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => startEditing(comment.id)}>
+                          編集
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          報告
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <p className="mt-1 text-sm">{comment.content}</p>
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`px-2 py-1 h-auto text-xs ${comment.liked ? "text-blue-500" : ""}`}
-                      onClick={() => toggleLike(comment.id)}
-                    >
-                      <ThumbsUp className="h-3 w-3 mr-1" />
-                      {comment.likesCount > 0 && comment.likesCount}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="px-2 py-1 h-auto text-xs"
-                      onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-                    >
-                      <Reply className="h-3 w-3 mr-1" />
-                      Reply
-                    </Button>
-                  </div>
+                  
+                  {comment.isEditing ? (
+                    <div className="mt-1">
+                      <Textarea
+                        value={editContent[comment.id] || ""}
+                        onChange={(e) => setEditContent({ ...editContent, [comment.id]: e.target.value })}
+                        className="min-h-[80px] mb-2"
+                      />
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => saveEdit(comment.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Check className="h-4 w-4" />
+                          保存
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => cancelEditing(comment.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <X className="h-4 w-4" />
+                          キャンセル
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm">{comment.content}</p>
+                  )}
+                  
+                  {!comment.isEditing && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`px-2 py-1 h-auto text-xs ${comment.liked ? "text-blue-500" : ""}`}
+                        onClick={() => toggleLike(comment.id)}
+                      >
+                        <ThumbsUp className="h-3 w-3 mr-1" />
+                        {comment.likesCount > 0 && comment.likesCount}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="px-2 py-1 h-auto text-xs"
+                        onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
+                      >
+                        <Reply className="h-3 w-3 mr-1" />
+                        返信
+                      </Button>
+                    </div>
+                  )}
                   
                   {replyTo === comment.id && (
                     <div className="mt-3">
                       <Textarea
-                        placeholder={`Reply to ${comment.user.name}...`}
+                        placeholder={`${comment.user.name}さんに返信...`}
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         className="min-h-[60px] text-sm mb-2"
@@ -254,14 +410,14 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                           onClick={() => handleSubmitReply(comment.id)}
                           disabled={submitting}
                         >
-                          {submitting ? "Posting..." : "Reply"}
+                          {submitting ? "投稿中..." : "返信"}
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => setReplyTo(null)}
                         >
-                          Cancel
+                          キャンセル
                         </Button>
                       </div>
                     </div>
@@ -279,9 +435,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
                               <div>
-                                <span className="font-medium text-sm">{reply.user.name}</span>
+                                <Link to={`/user/${reply.user.id}`} className="font-medium text-sm hover:underline">
+                                  {reply.user.name}
+                                </Link>
                                 <span className="text-xs text-muted-foreground ml-2">
                                   {formatDistanceToNow(reply.createdAt, { addSuffix: true })}
+                                  {reply.updatedAt && reply.updatedAt > reply.createdAt && 
+                                    " (編集済み)"}
                                 </span>
                               </div>
                               <DropdownMenu>
@@ -292,23 +452,60 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => deleteComment(reply.id, true, comment.id)}>
-                                    Delete
+                                    削除
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                                  <DropdownMenuItem>Report</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => startEditing(reply.id, true, comment.id)}>
+                                    編集
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    報告
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
-                            <p className="mt-1 text-xs">{reply.content}</p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={`px-2 py-0 h-auto text-xs mt-1 ${reply.liked ? "text-blue-500" : ""}`}
-                              onClick={() => toggleLike(reply.id)}
-                            >
-                              <ThumbsUp className="h-3 w-3 mr-1" />
-                              {reply.likesCount > 0 && reply.likesCount}
-                            </Button>
+                            
+                            {reply.isEditing ? (
+                              <div className="mt-1">
+                                <Textarea
+                                  value={editContent[reply.id] || ""}
+                                  onChange={(e) => setEditContent({ ...editContent, [reply.id]: e.target.value })}
+                                  className="min-h-[60px] mb-2 text-sm"
+                                />
+                                <div className="flex gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => saveEdit(reply.id, true, comment.id)}
+                                    className="h-7 px-2 text-xs flex items-center gap-1"
+                                  >
+                                    <Check className="h-3 w-3" />
+                                    保存
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => cancelEditing(reply.id)}
+                                    className="h-7 px-2 text-xs flex items-center gap-1"
+                                  >
+                                    <X className="h-3 w-3" />
+                                    キャンセル
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="mt-1 text-xs">{reply.content}</p>
+                            )}
+                            
+                            {!reply.isEditing && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`px-2 py-0 h-auto text-xs mt-1 ${reply.liked ? "text-blue-500" : ""}`}
+                                onClick={() => toggleLike(reply.id)}
+                              >
+                                <ThumbsUp className="h-3 w-3 mr-1" />
+                                {reply.likesCount > 0 && reply.likesCount}
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}

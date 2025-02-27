@@ -25,6 +25,7 @@ export type Comment = {
   replies?: Comment[];
   likesCount: number;
   liked?: boolean;
+  isEditing?: boolean;
 };
 
 export type Post = {
