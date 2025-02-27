@@ -66,6 +66,17 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
     }, 1000);
   };
 
+  // 書き込みエリアの高さを取得するためのref
+  const getEditorHeight = () => {
+    if (content.split('\n').length < 5) {
+      return 'min-h-[150px]';
+    } else if (content.split('\n').length < 10) {
+      return 'min-h-[200px]';
+    } else {
+      return 'min-h-[300px]';
+    }
+  };
+
   return (
     <Card className="mb-6">
       <form onSubmit={handleSubmit}>
@@ -84,27 +95,31 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
           </div>
         </CardHeader>
         <CardContent className="pb-2">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "write" | "preview")}>
-            <TabsList className="mb-2">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => setActiveTab(value as "write" | "preview")}
+            className="w-full"
+          >
+            <TabsList className="mb-2 w-full grid grid-cols-2">
               <TabsTrigger value="write">書く</TabsTrigger>
               <TabsTrigger value="preview">プレビュー</TabsTrigger>
             </TabsList>
-            <TabsContent value="write">
+            <TabsContent value="write" className="mt-0">
               <Textarea
                 placeholder="マークダウン形式で書くことができます..."
-                className="min-h-[100px] resize-none font-mono"
+                className={`resize-y font-mono w-full ${getEditorHeight()}`}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
             </TabsContent>
-            <TabsContent value="preview" className="min-h-[100px]">
-              <div className="rounded-md border p-4 prose prose-sm dark:prose-invert max-w-none">
-                {content ? (
+            <TabsContent value="preview" className={`mt-0 w-full ${getEditorHeight()} overflow-auto border rounded-md p-4`}>
+              {content ? (
+                <div className="prose prose-sm dark:prose-invert w-full max-w-none">
                   <ReactMarkdown>{content}</ReactMarkdown>
-                ) : (
-                  <p className="text-muted-foreground">プレビューする内容がありません</p>
-                )}
-              </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">プレビューする内容がありません</p>
+              )}
             </TabsContent>
           </Tabs>
           
