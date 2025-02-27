@@ -15,12 +15,12 @@ interface ChannelListProps {
 
 const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => {
   return (
-    <div className="py-2">
-      <div className="px-3 py-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">チャンネル</h2>
+    <div className="py-4 h-full">
+      <div className="px-4 py-3">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-semibold tracking-tight">チャンネル</h2>
           <Button variant="ghost" size="icon">
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
             <span className="sr-only">チャンネルを追加</span>
           </Button>
         </div>
@@ -28,15 +28,15 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
           テックコミュニティに参加して、学び、共有しましょう
         </p>
       </div>
-      <Separator className="my-2" />
-      <ScrollArea className="h-[calc(100vh-10rem)] px-1">
-        <div className="space-y-1 p-2">
+      <Separator className="my-3" />
+      <ScrollArea className="h-[calc(100vh-11rem)] px-2">
+        <div className="space-y-1.5 p-2">
           <Button
             variant={!selectedChannel ? "secondary" : "ghost"}
-            className="w-full justify-start font-normal"
+            className="w-full justify-start font-normal text-base py-5"
             onClick={() => onSelectChannel(null)}
           >
-            <Hash className="mr-2 h-4 w-4" />
+            <Hash className="mr-2 h-5 w-5" />
             すべてのチャンネル
           </Button>
           {channels.map((channel) => (
@@ -64,12 +64,12 @@ const ChannelButton = ({ channel, isSelected, onClick }: ChannelButtonProps) => 
     <Button
       variant={isSelected ? "secondary" : "ghost"}
       className={cn(
-        "w-full justify-start font-normal transition-all",
+        "w-full justify-start font-normal text-base py-5 transition-all",
         isSelected ? "bg-secondary" : "hover:bg-secondary/50"
       )}
       onClick={onClick}
     >
-      <span className="mr-2">{channel.icon}</span>
+      <span className="mr-3 text-lg">{channel.icon}</span>
       {channel.name}
     </Button>
   );
