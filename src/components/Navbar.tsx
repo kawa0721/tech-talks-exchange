@@ -46,7 +46,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
           onClick={onToggleSidebar}
         >
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle sidebar</span>
+          <span className="sr-only">サイドバーを切り替え</span>
         </Button>
         
         <div className="flex items-center gap-2">
@@ -54,7 +54,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             <div className="rounded-md bg-primary p-1">
               <MessageSquare className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="hidden font-bold sm:inline-block">Tech Talks</span>
+            <span className="hidden font-bold sm:inline-block">テックトーク</span>
           </Link>
         </div>
 
@@ -63,7 +63,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search topics..."
+              placeholder="トピックを検索..."
               className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
             />
           </form>
@@ -73,7 +73,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-destructive"></span>
-                <span className="sr-only">Notifications</span>
+                <span className="sr-only">通知</span>
               </Button>
               
               <DropdownMenu>
@@ -88,7 +88,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">TechGuru42</p>
+                      <p className="text-sm font-medium leading-none">テックグル42</p>
                       <p className="text-xs leading-none text-muted-foreground">
                         techguru@example.com
                       </p>
@@ -96,14 +96,14 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Link to="/profile" className="flex w-full">Profile</Link>
+                    <Link to="/profile" className="flex w-full">プロフィール</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link to="/settings" className="flex w-full">Settings</Link>
+                    <Link to="/settings" className="flex w-full">設定</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
-                    Log out
+                    ログアウト
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -111,10 +111,10 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleLogin}>
-                Log in
+                ログイン
               </Button>
               <Button onClick={handleLogin}>
-                Sign up
+                新規登録
               </Button>
             </div>
           )}

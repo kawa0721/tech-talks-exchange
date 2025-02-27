@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { ja } from "date-fns/locale";
 import { MessageSquare, ThumbsUp, Share } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,14 +60,14 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
-                {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: ja })}
               </div>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">メニューを開く</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -84,8 +85,8 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Save</DropdownMenuItem>
-              <DropdownMenuItem>Report</DropdownMenuItem>
+              <DropdownMenuItem>保存</DropdownMenuItem>
+              <DropdownMenuItem>報告</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -99,7 +100,7 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
             <div className="rounded-md overflow-hidden my-2">
               <img 
                 src={post.images[0]} 
-                alt="Post attachment" 
+                alt="投稿添付ファイル" 
                 className="w-full object-cover" 
                 style={{ maxHeight: "300px" }}
               />
@@ -130,7 +131,7 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
         </Button>
         <Button variant="ghost" size="sm" className="flex gap-1">
           <Share className="h-4 w-4" /> 
-          <span>Share</span>
+          <span>共有</span>
         </Button>
       </CardFooter>
     </Card>

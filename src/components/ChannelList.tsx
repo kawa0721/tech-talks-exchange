@@ -18,14 +18,14 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
     <div className="py-2">
       <div className="px-3 py-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Channels</h2>
+          <h2 className="text-lg font-semibold tracking-tight">チャンネル</h2>
           <Button variant="ghost" size="icon">
             <Plus className="h-4 w-4" />
-            <span className="sr-only">Add channel</span>
+            <span className="sr-only">チャンネルを追加</span>
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Join tech communities to learn and share
+          テックコミュニティに参加して、学び、共有しましょう
         </p>
       </div>
       <Separator className="my-2" />
@@ -37,7 +37,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
             onClick={() => onSelectChannel(null)}
           >
             <Hash className="mr-2 h-4 w-4" />
-            All Channels
+            すべてのチャンネル
           </Button>
           {channels.map((channel) => (
             <ChannelButton

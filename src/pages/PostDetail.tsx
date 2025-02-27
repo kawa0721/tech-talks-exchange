@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { Post } from "@/types";
 import { channels, posts, getCommentsForPost } from "@/lib/dummyData";
 import { formatDistanceToNow } from "date-fns";
+import { ja } from "date-fns/locale";
 import PostCard from "@/components/PostCard";
 import CommentSection from "@/components/CommentSection";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ const PostDetail = () => {
         setPost(foundPost);
         setError(null);
       } else {
-        setError("Post not found");
+        setError("投稿が見つかりません");
       }
       setLoading(false);
     }, 500);
@@ -36,7 +37,7 @@ const PostDetail = () => {
   // Find channel name by ID
   const getChannelName = (channelId: string): string => {
     const channel = channels.find((c) => c.id === channelId);
-    return channel ? channel.name : "Unknown Channel";
+    return channel ? channel.name : "不明なチャンネル";
   };
 
   if (loading) {
@@ -56,9 +57,9 @@ const PostDetail = () => {
         <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4 text-destructive">{error}</h1>
-          <p className="mb-6">The post you're looking for doesn't exist or has been removed.</p>
+          <p className="mb-6">お探しの投稿は存在しないか、削除されました。</p>
           <Button asChild>
-            <Link to="/">Back to home</Link>
+            <Link to="/">ホームに戻る</Link>
           </Button>
         </div>
       </div>
@@ -74,7 +75,7 @@ const PostDetail = () => {
             <Button variant="ghost" asChild className="mb-4">
               <Link to="/" className="flex items-center">
                 <ChevronLeft className="mr-1 h-4 w-4" />
-                Back to discussions
+                ディスカッションに戻る
               </Link>
             </Button>
             

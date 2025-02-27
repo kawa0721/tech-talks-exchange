@@ -44,12 +44,12 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
     e.preventDefault();
     
     if (!title.trim()) {
-      toast.error("Please add a title to your post");
+      toast.error("タイトルを入力してください");
       return;
     }
 
     if (!content.trim()) {
-      toast.error("Please add some content to your post");
+      toast.error("内容を入力してください");
       return;
     }
 
@@ -58,7 +58,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
     // Simulate API call
     setTimeout(() => {
       // In a real app, you would post to an API
-      toast.success("Post created successfully!");
+      toast.success("投稿が作成されました！");
       setTitle("");
       setContent("");
       setImages([]);
@@ -77,7 +77,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
             <Input
-              placeholder="Title"
+              placeholder="タイトル"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="font-medium"
@@ -86,7 +86,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
         </CardHeader>
         <CardContent className="pb-2">
           <Textarea
-            placeholder="Share your thoughts, code, or questions..."
+            placeholder="あなたの考え、コード、または質問を共有しましょう..."
             className="min-h-[100px] resize-none"
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -96,7 +96,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
             <div className="grid grid-cols-3 gap-2 mt-3">
               {images.map((src, index) => (
                 <div key={index} className="relative rounded-md overflow-hidden">
-                  <img src={src} alt="Upload preview" className="h-24 w-full object-cover" />
+                  <img src={src} alt="アップロードプレビュー" className="h-24 w-full object-cover" />
                   <Button
                     variant="destructive"
                     size="icon"
@@ -121,7 +121,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
               onClick={() => document.getElementById("image-upload")?.click()}
             >
               <Upload className="h-4 w-4" />
-              <span>Upload</span>
+              <span>アップロード</span>
               <input
                 id="image-upload"
                 type="file"
@@ -133,7 +133,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
             </Button>
           </div>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Posting..." : "Post"}
+            {isSubmitting ? "投稿中..." : "投稿"}
           </Button>
         </CardFooter>
       </form>

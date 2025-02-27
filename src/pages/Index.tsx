@@ -36,7 +36,7 @@ const Index = () => {
   // Find channel name by ID
   const getChannelName = (channelId: string): string => {
     const channel = channels.find((c) => c.id === channelId);
-    return channel ? channel.name : "Unknown Channel";
+    return channel ? channel.name : "不明なチャンネル";
   };
 
   return (
@@ -69,13 +69,13 @@ const Index = () => {
             <div className="mb-8">
               <h1 className="text-3xl font-bold">
                 {selectedChannel 
-                  ? `${getChannelName(selectedChannel)} Discussions` 
-                  : "All Discussions"}
+                  ? `${getChannelName(selectedChannel)} ディスカッション` 
+                  : "すべてのディスカッション"}
               </h1>
               <p className="text-muted-foreground mt-2">
                 {selectedChannel
                   ? channels.find(c => c.id === selectedChannel)?.description
-                  : "Join the conversation across all tech channels"}
+                  : "全てのテックチャンネルでの会話に参加しましょう"}
               </p>
             </div>
 
@@ -101,9 +101,9 @@ const Index = () => {
               </div>
             ) : (
               <div className="text-center py-12 border rounded-lg bg-muted/20">
-                <h3 className="text-xl font-medium mb-2">No posts yet</h3>
+                <h3 className="text-xl font-medium mb-2">まだ投稿がありません</h3>
                 <p className="text-muted-foreground">
-                  Be the first one to start a discussion in this channel!
+                  このチャンネルで最初のディスカッションを始めましょう！
                 </p>
               </div>
             )}
