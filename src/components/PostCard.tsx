@@ -95,7 +95,7 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
       <Link to={`/post/${post.id}`}>
         <CardContent className="pb-2">
           <h3 className="text-xl font-semibold mb-2 text-left">{post.title}</h3>
-          <div className="prose dark:prose-invert max-w-none text-left mb-4">
+          <div className="prose prose-sm dark:prose-invert max-w-none text-left mb-4">
             <ReactMarkdown>{post.content}</ReactMarkdown>
           </div>
           

@@ -97,8 +97,8 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
                 onChange={(e) => setContent(e.target.value)}
               />
             </TabsContent>
-            <TabsContent value="preview" className="min-h-[100px] prose dark:prose-invert max-w-none">
-              <div className="rounded-md border p-4">
+            <TabsContent value="preview" className="min-h-[100px]">
+              <div className="rounded-md border p-4 prose prose-sm dark:prose-invert max-w-none">
                 {content ? (
                   <ReactMarkdown>{content}</ReactMarkdown>
                 ) : (
