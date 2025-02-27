@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { MessageSquare, ThumbsUp, Share, TrendingUp, Star } from "lucide-react";
+import { MessageSquare, ThumbsUp, Share, TrendingUp, Star, Twitter } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,9 +14,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface PostCardProps {
   post: Post;
@@ -43,6 +45,35 @@ const PostCard = ({
       setLikesCount(likesCount + 1);
     }
     setLiked(!liked);
+  };
+
+  const shareToX = () => {
+    // 現在のURLを取得
+    const currentUrl = window.location.origin + `/post/${post.id}`;
+    
+    // ツイート内容を生成
+    const tweetText = encodeURIComponent(`${post.title} | Tech Talk`);
+    const tweetUrl = encodeURIComponent(currentUrl);
+    
+    // Xのシェアリンクを生成
+    const xShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
+    
+    // 新しいウィンドウでXのシェアページを開く
+    window.open(xShareUrl, '_blank', 'width=550,height=420');
+    
+    // シェアしたことをトースト通知
+    toast.success("Xでの共有リンクを開きました");
+  };
+
+  const copyLinkToClipboard = () => {
+    const url = window.location.origin + `/post/${post.id}`;
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        toast.success("リンクをクリップボードにコピーしました");
+      })
+      .catch(() => {
+        toast.error("リンクのコピーに失敗しました");
+      });
   };
 
   return (
@@ -152,10 +183,24 @@ const PostCard = ({
           <ThumbsUp className="h-4 w-4" /> 
           <span>{likesCount}</span>
         </Button>
-        <Button variant="ghost" size="sm" className="flex gap-1">
-          <Share className="h-4 w-4" /> 
-          <span>共有</span>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="flex gap-1">
+              <Share className="h-4 w-4" /> 
+              <span>共有</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={shareToX} className="flex items-center gap-2 cursor-pointer">
+              <Twitter className="h-4 w-4 text-blue-500" />
+              <span>Xでシェア</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={copyLinkToClipboard} className="cursor-pointer">
+              リンクをコピー
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardFooter>
     </Card>
   );
