@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { MessageSquare, ThumbsUp, Share } from "lucide-react";
+import { MessageSquare, ThumbsUp, Share, TrendingUp, Star } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,9 +22,17 @@ interface PostCardProps {
   post: Post;
   channelName?: string;
   showChannel?: boolean;
+  isTrending?: boolean;
+  isPopular?: boolean;
 }
 
-const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => {
+const PostCard = ({ 
+  post, 
+  channelName, 
+  showChannel = false, 
+  isTrending = false,
+  isPopular = false
+}: PostCardProps) => {
   const [liked, setLiked] = useState(post.liked || false);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
@@ -38,7 +46,7 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
   };
 
   return (
-    <Card className="mb-4 overflow-hidden card-hover">
+    <Card className={`mb-4 overflow-hidden card-hover ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
       <CardHeader className="pb-3 pt-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -58,6 +66,18 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
                       {channelName}
                     </Badge>
                   </>
+                )}
+                {isTrending && (
+                  <Badge className="ml-1 bg-blue-500 hover:bg-blue-600">
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                    トレンド
+                  </Badge>
+                )}
+                {isPopular && (
+                  <Badge className="ml-1 bg-amber-500 hover:bg-amber-600">
+                    <Star className="mr-1 h-3 w-3" />
+                    人気
+                  </Badge>
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
