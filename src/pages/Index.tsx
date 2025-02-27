@@ -42,7 +42,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="container flex">
+      <div className="flex min-h-[calc(100vh-4rem)]">
         {/* Sidebar */}
         <aside
           className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r bg-background pt-16 transition-transform duration-300 lg:static lg:translate-x-0 ${
@@ -64,7 +64,11 @@ const Index = () => {
         )}
 
         {/* Main content */}
-        <main className={`flex-1 px-4 pb-12 pt-16 ${sidebarOpen ? "lg:pl-64" : ""}`}>
+        <main 
+          className={`w-full flex-grow px-4 pb-12 pt-16 transition-all duration-300 ${
+            sidebarOpen ? "lg:ml-64" : ""
+          }`}
+        >
           <div className="mx-auto max-w-3xl fade-in">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">
