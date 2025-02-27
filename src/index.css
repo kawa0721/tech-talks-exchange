@@ -95,6 +95,22 @@
   }
 }
 
+/* レイアウトに関するカスタムスタイル */
+@layer components {
+  .layout-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .sidebar {
+    @apply bg-background border-r border-border;
+    box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .main-content {
+    @apply pt-16 pb-12;
+  }
+}
+
 /* Custom animation for page transitions */
 .fade-in {
   animation: fadeIn 0.4s ease-in-out;
@@ -123,7 +139,7 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -132,9 +148,37 @@
 
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted));
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
+}
+
+/* チャンネルボタンのアニメーション */
+.channel-btn {
+  transition: all 0.2s ease;
+}
+
+.channel-btn:hover {
+  padding-left: 1rem;
+  background-color: hsl(var(--secondary));
+}
+
+/* ナビゲーション項目の間隔調整 */
+.nav-spacing > * + * {
+  margin-left: 1rem;
+}
+
+/* メインコンテンツのコンテナ */
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (min-width: 1024px) {
+  .content-container {
+    padding: 0 32px;
+  }
 }
