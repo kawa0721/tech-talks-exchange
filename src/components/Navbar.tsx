@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavbarProps {
   onToggleSidebar: () => void;
@@ -67,6 +68,8 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
               className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
             />
           </form>
+
+          <ThemeToggle />
 
           {isLoggedIn ? (
             <div className="flex items-center gap-2">
