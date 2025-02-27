@@ -40,12 +40,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-1 relative">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r bg-background pt-16 transition-transform duration-300 lg:static lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-30 w-64 flex flex-col border-r bg-background pt-16 transition-transform duration-300 lg:relative lg:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -65,8 +65,8 @@ const Index = () => {
 
         {/* Main content */}
         <main 
-          className={`w-full flex-grow px-4 pb-12 pt-16 transition-all duration-300 ${
-            sidebarOpen ? "lg:ml-64" : ""
+          className={`flex-1 px-4 pb-12 pt-16 ${
+            sidebarOpen ? "lg:pl-0" : ""
           }`}
         >
           <div className="mx-auto max-w-3xl fade-in">
