@@ -1,12 +1,14 @@
 
 import { useState, ChangeEvent } from "react";
 import { Upload, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CreatePostFormProps {
   channelId: string | null;
@@ -18,14 +20,13 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
   const [content, setContent] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // In a real app, you would upload the file to a server
-      // For demo purposes, we'll just use a placeholder
       const newImages = [...images];
       for (let i = 0; i < e.target.files.length; i++) {
-        if (newImages.length < 3) { // Limit to 3 images
+        if (newImages.length < 3) {
           const file = e.target.files[i];
           newImages.push(URL.createObjectURL(file));
         }
@@ -55,9 +56,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
     setTimeout(() => {
-      // In a real app, you would post to an API
       toast.success("投稿が作成されました！");
       setTitle("");
       setContent("");
@@ -85,12 +84,29 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
           </div>
         </CardHeader>
         <CardContent className="pb-2">
-          <Textarea
-            placeholder="あなたの考え、コード、または質問を共有しましょう..."
-            className="min-h-[100px] resize-none"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "write" | "preview")}>
+            <TabsList className="mb-2">
+              <TabsTrigger value="write">書く</TabsTrigger>
+              <TabsTrigger value="preview">プレビュー</TabsTrigger>
+            </TabsList>
+            <TabsContent value="write">
+              <Textarea
+                placeholder="マークダウン形式で書くことができます..."
+                className="min-h-[100px] resize-none font-mono"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </TabsContent>
+            <TabsContent value="preview" className="min-h-[100px] prose dark:prose-invert max-w-none">
+              <div className="rounded-md border p-4">
+                {content ? (
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                ) : (
+                  <p className="text-muted-foreground">プレビューする内容がありません</p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
           
           {images.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mt-3">

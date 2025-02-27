@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { MessageSquare, ThumbsUp, Share } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -94,7 +95,9 @@ const PostCard = ({ post, channelName, showChannel = false }: PostCardProps) => 
       <Link to={`/post/${post.id}`}>
         <CardContent className="pb-2">
           <h3 className="text-xl font-semibold mb-2 text-left">{post.title}</h3>
-          <p className="text-sm text-left mb-4">{post.content}</p>
+          <div className="prose dark:prose-invert max-w-none text-left mb-4">
+            <ReactMarkdown>{post.content}</ReactMarkdown>
+          </div>
           
           {post.images && post.images.length > 0 && (
             <div className="rounded-md overflow-hidden my-2">
