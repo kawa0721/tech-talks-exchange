@@ -1,6 +1,6 @@
 
-import { useState, ChangeEvent } from "react";
-import { Upload, X } from "lucide-react";
+import { useState, ChangeEvent, useEffect } from "react";
+import { Upload, X, Code, MousePointer } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,18 +9,50 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RichTextEditor from "./RichTextEditor";
+import { convertHtmlToMarkdown, convertMarkdownToHtml } from "@/lib/markdownUtils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface CreatePostFormProps {
   channelId: string | null;
   onPostCreated: () => void;
 }
 
+type EditorMode = "markdown" | "richtext";
+type PreviewTab = "write" | "preview";
+
 const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [htmlContent, setHtmlContent] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
+  const [activeTab, setActiveTab] = useState<PreviewTab>("write");
+  const [editorMode, setEditorMode] = useState<EditorMode>("markdown");
+
+  // マークダウンとHTMLコンテンツの同期
+  useEffect(() => {
+    if (editorMode === "markdown") {
+      // マークダウンからHTMLに変換
+      setHtmlContent(convertMarkdownToHtml(content));
+    }
+  }, [content, editorMode]);
+
+  // エディタモード切替時のコンテンツ変換
+  const handleEditorModeChange = (mode: EditorMode) => {
+    if (mode === editorMode) return;
+
+    if (mode === "markdown") {
+      // リッチテキストからマークダウンに変換
+      setContent(convertHtmlToMarkdown(htmlContent));
+    } else {
+      // マークダウンからリッチテキストに変換
+      setHtmlContent(convertMarkdownToHtml(content));
+    }
+
+    setEditorMode(mode);
+    setActiveTab("write"); // モード切替時は編集タブに戻す
+  };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -49,7 +81,8 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
       return;
     }
 
-    if (!content.trim()) {
+    const contentToCheck = editorMode === "markdown" ? content : htmlContent;
+    if (!contentToCheck.trim()) {
       toast.error("内容を入力してください");
       return;
     }
@@ -60,6 +93,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
       toast.success("投稿が作成されました！");
       setTitle("");
       setContent("");
+      setHtmlContent("");
       setImages([]);
       setIsSubmitting(false);
       onPostCreated();
@@ -93,35 +127,57 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
               className="font-medium"
             />
           </div>
+          <div className="flex justify-end mt-2">
+            <ToggleGroup type="single" value={editorMode} onValueChange={(value) => handleEditorModeChange(value as EditorMode)}>
+              <ToggleGroupItem value="markdown" aria-label="マークダウンモード">
+                <Code className="h-4 w-4 mr-2" />
+                マークダウン
+              </ToggleGroupItem>
+              <ToggleGroupItem value="richtext" aria-label="リッチテキストモード">
+                <MousePointer className="h-4 w-4 mr-2" />
+                リッチテキスト
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </CardHeader>
         <CardContent className="pb-2">
-          <Tabs 
-            value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as "write" | "preview")}
-            className="w-full"
-          >
-            <TabsList className="mb-2 w-full grid grid-cols-2">
-              <TabsTrigger value="write">書く</TabsTrigger>
-              <TabsTrigger value="preview">プレビュー</TabsTrigger>
-            </TabsList>
-            <TabsContent value="write" className="mt-0">
-              <Textarea
-                placeholder="マークダウン形式で書くことができます..."
-                className={`resize-y font-mono w-full ${getEditorHeight()}`}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
-            </TabsContent>
-            <TabsContent value="preview" className={`mt-0 w-full ${getEditorHeight()} overflow-auto border rounded-md p-4`}>
-              {content ? (
-                <div className="prose prose-sm dark:prose-invert w-full max-w-none">
-                  <ReactMarkdown>{content}</ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">プレビューする内容がありません</p>
-              )}
-            </TabsContent>
-          </Tabs>
+          {editorMode === "markdown" ? (
+            // マークダウンエディタモード
+            <Tabs 
+              value={activeTab} 
+              onValueChange={(value) => setActiveTab(value as PreviewTab)}
+              className="w-full"
+            >
+              <TabsList className="mb-2 w-full grid grid-cols-2">
+                <TabsTrigger value="write">書く</TabsTrigger>
+                <TabsTrigger value="preview">プレビュー</TabsTrigger>
+              </TabsList>
+              <TabsContent value="write" className="mt-0">
+                <Textarea
+                  placeholder="マークダウン形式で書くことができます..."
+                  className={`resize-y font-mono w-full ${getEditorHeight()}`}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                />
+              </TabsContent>
+              <TabsContent value="preview" className={`mt-0 w-full ${getEditorHeight()} overflow-auto border rounded-md p-4`}>
+                {content ? (
+                  <div className="prose prose-sm dark:prose-invert w-full max-w-none markdown-content">
+                    <ReactMarkdown>{content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">プレビューする内容がありません</p>
+                )}
+              </TabsContent>
+            </Tabs>
+          ) : (
+            // リッチテキストエディタモード
+            <RichTextEditor 
+              value={htmlContent} 
+              onChange={setHtmlContent} 
+              placeholder="リッチテキストで書くことができます..."
+            />
+          )}
           
           {images.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mt-3">
