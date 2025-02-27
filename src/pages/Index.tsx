@@ -43,9 +43,9 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1 relative">
-        {/* Sidebar */}
+        {/* Sidebar - 幅を広げた */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-64 flex flex-col border-r bg-background pt-16 transition-transform duration-300 lg:relative lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-30 w-72 flex flex-col border-r bg-background pt-16 transition-transform duration-300 lg:relative lg:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -63,13 +63,13 @@ const Index = () => {
           />
         )}
 
-        {/* Main content */}
+        {/* Main content - パディングとレイアウトを調整 */}
         <main 
-          className={`flex-1 px-4 pb-12 pt-16 ${
-            sidebarOpen ? "lg:pl-0" : ""
+          className={`flex-1 px-6 pb-12 pt-20 transition-all duration-300 ${
+            sidebarOpen ? "lg:pl-10" : ""
           }`}
         >
-          <div className="mx-auto max-w-3xl fade-in">
+          <div className="mx-auto max-w-4xl fade-in">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">
                 {selectedChannel 
