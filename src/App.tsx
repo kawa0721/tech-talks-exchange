@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import FloatingPostButton from "@/components/FloatingPostButton";
 import Index from "./pages/Index";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/posts" element={<AllPosts />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <FloatingPostButton />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
