@@ -51,6 +51,7 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   const [selectionEmpty, setSelectionEmpty] = useState(true);
   const [showSlashCommands, setShowSlashCommands] = useState(false);
   const [slashCommandPosition, setSlashCommandPosition] = useState({ top: 0, left: 0 });
+  const [slashPosition, setSlashPosition] = useState<{ from: number, to: number } | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   
   const lowlight = createLowlight();
@@ -134,12 +135,19 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
             
             setSlashCommandPosition({ top, left });
             setShowSlashCommands(true);
+            
+            // スラッシュの位置を保存（後で削除するため）
+            setSlashPosition({
+              from: $from.pos - 1,
+              to: $from.pos
+            });
           }
         }
         
         // Escキーでスラッシュコマンドメニューを閉じる
         if (event.key === 'Escape' && showSlashCommands) {
           setShowSlashCommands(false);
+          setSlashPosition(null);
           return true;
         }
 
@@ -279,53 +287,58 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   };
 
   const executeSlashCommand = (command: string) => {
-    if (!editor) return;
+    if (!editor || !slashPosition) return;
+
+    // まずスラッシュを削除
+    editor.commands.deleteRange({
+      from: slashPosition.from,
+      to: slashPosition.to,
+    });
 
     switch (command) {
       case 'heading1':
-        editor.chain().focus().toggleHeading({ level: 1 }).run();
+        // 見出し1の場合は # を挿入
+        editor.chain().focus().insertContent('# ').run();
         break;
       case 'heading2':
-        editor.chain().focus().toggleHeading({ level: 2 }).run();
+        // 見出し2の場合は ## を挿入
+        editor.chain().focus().insertContent('## ').run();
         break;
       case 'heading3':
-        editor.chain().focus().toggleHeading({ level: 3 }).run();
+        // 見出し3の場合は ### を挿入
+        editor.chain().focus().insertContent('### ').run();
         break;
       case 'bulletList':
-        editor.chain().focus().toggleBulletList().run();
+        // 箇条書きリストの場合は - を挿入
+        editor.chain().focus().insertContent('- ').run();
         break;
       case 'orderedList':
-        editor.chain().focus().toggleOrderedList().run();
+        // 番号付きリストの場合は 1. を挿入
+        editor.chain().focus().insertContent('1. ').run();
         break;
       case 'blockquote':
-        editor.chain().focus().toggleBlockquote().run();
+        // 引用の場合は > を挿入
+        editor.chain().focus().insertContent('> ').run();
         break;
       case 'codeBlock':
-        editor.chain().focus().toggleCodeBlock().run();
+        // コードブロックの場合は ``` を挿入
+        editor.chain().focus().insertContent('```\n').run();
         break;
       case 'table':
+        // 表の場合は直接表を挿入
         addTable();
         break;
       case 'image':
+        // 画像の場合は画像挿入ダイアログを表示
         addImage();
         break;
       default:
         break;
     }
-
-    // スラッシュ文字（'/'）を削除
-    const { state } = editor.view;
-    const { selection } = state;
-    const { $from } = selection;
     
-    if ($from.textBefore.endsWith('/')) {
-      editor.commands.deleteRange({
-        from: $from.pos - 1,
-        to: $from.pos,
-      });
-    }
-    
+    // メニューを閉じる
     setShowSlashCommands(false);
+    setSlashPosition(null);
   };
 
   // クリックイベントを処理
@@ -338,6 +351,7 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       
       if (showSlashCommands) {
         setShowSlashCommands(false);
+        setSlashPosition(null);
       }
     };
 
