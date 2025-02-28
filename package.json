@@ -61,6 +61,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.3.0",
+    "highlight.js": "^11.11.1",
     "html-to-markdown": "^1.0.0",
     "input-otp": "^1.2.4",
     "lowlight": "^3.1.0",
