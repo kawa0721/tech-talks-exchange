@@ -1,5 +1,5 @@
 
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@/types";
-import { Camera, User as UserIcon } from "lucide-react";
+import { Camera, User as UserIcon, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -208,6 +208,16 @@ const UserProfile = () => {
   
   return (
     <div className="container max-w-4xl py-8">
+      {/* Back to home button */}
+      <div className="mb-4">
+        <Button variant="ghost" asChild className="flex items-center gap-2 mb-4">
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" />
+            ホームへ戻る
+          </Link>
+        </Button>
+      </div>
+      
       <Card className="profile-card">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="relative group mx-auto sm:mx-0">
