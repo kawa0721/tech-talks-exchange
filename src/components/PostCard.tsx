@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { MessageSquare, ThumbsUp, Share, TrendingUp, Star, X } from "lucide-react";
+import { MessageSquare, ThumbsUp, Share, TrendingUp, Star, X, ChevronDown, ChevronUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +37,15 @@ const PostCard = ({
 }: PostCardProps) => {
   const [liked, setLiked] = useState(post.liked || false);
   const [likesCount, setLikesCount] = useState(post.likesCount);
+  const [showFullContent, setShowFullContent] = useState(false);
+
+  // 投稿内容を一定の長さに制限する
+  const contentPreviewLength = 150; // プレビューの文字制限
+  const contentPreview = post.content.length > contentPreviewLength 
+    ? post.content.substring(0, contentPreviewLength) + '...' 
+    : post.content;
+  
+  const hasLongContent = post.content.length > contentPreviewLength;
 
   const toggleLike = () => {
     if (liked) {
@@ -150,11 +159,11 @@ const PostCard = ({
             {/* カスタムスタイルを適用してマークダウンレンダリングを改善 */}
             <div className="markdown-content">
               <ReactMarkdown>
-                {post.content}
+                {showFullContent ? post.content : contentPreview}
               </ReactMarkdown>
             </div>
           </div>
-          
+
           {post.images && post.images.length > 0 && (
             <div className="rounded-md overflow-hidden my-2">
               <img 
@@ -167,6 +176,32 @@ const PostCard = ({
           )}
         </CardContent>
       </Link>
+      
+      {/* 「全文表示」ボタン - 長い投稿のみ表示 */}
+      {hasLongContent && (
+        <div className="px-6 pb-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full text-muted-foreground" 
+            onClick={(e) => {
+              e.preventDefault(); // リンククリックを防止
+              setShowFullContent(!showFullContent);
+            }}
+          >
+            {showFullContent ? (
+              <span className="flex items-center gap-1">
+                <ChevronUp className="h-4 w-4" /> 折りたたむ
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <ChevronDown className="h-4 w-4" /> 全文を表示
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
+      
       <CardFooter className="flex justify-between border-t p-3">
         <Button 
           variant="ghost" 
