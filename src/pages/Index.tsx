@@ -6,7 +6,7 @@ import ChannelList from "@/components/ChannelList";
 import PostCard from "@/components/PostCard";
 import CreatePostForm from "@/components/CreatePostForm";
 import { Post } from "@/types";
-import { channels, getPostsForChannel } from "@/lib/dummyData";
+import { CHANNELS, getPostsForChannel } from "@/lib/dummyData";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,7 +58,7 @@ const Index = () => {
 
   // Find channel name by ID
   const getChannelName = (channelId: string): string => {
-    const channel = channels.find((c) => c.id === channelId);
+    const channel = CHANNELS.find((c) => c.id === channelId);
     return channel ? channel.name : "不明なチャンネル";
   };
 
@@ -101,7 +101,7 @@ const Index = () => {
               </h1>
               <p className="text-muted-foreground mt-2">
                 {selectedChannel
-                  ? channels.find(c => c.id === selectedChannel)?.description
+                  ? CHANNELS.find(c => c.id === selectedChannel)?.description
                   : "全てのテックチャンネルでの会話に参加しましょう"}
               </p>
             </div>
@@ -179,7 +179,7 @@ const Index = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {channels.slice(0, 3).map((channel) => (
+                      {CHANNELS.slice(0, 3).map((channel) => (
                         <Card 
                           key={channel.id} 
                           className="cursor-pointer hover:bg-muted/50 transition-colors"

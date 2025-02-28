@@ -4,7 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Post } from "@/types";
-import { channels, posts, getCommentsForPost } from "@/lib/dummyData";
+import { CHANNELS, POSTS, getCommentsForPost } from "@/lib/dummyData";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import PostCard from "@/components/PostCard";
@@ -23,7 +23,7 @@ const PostDetail = () => {
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
-      const foundPost = posts.find(p => p.id === postId);
+      const foundPost = POSTS.find(p => p.id === postId);
       if (foundPost) {
         setPost(foundPost);
         setError(null);
@@ -36,7 +36,7 @@ const PostDetail = () => {
 
   // Find channel name by ID
   const getChannelName = (channelId: string): string => {
-    const channel = channels.find((c) => c.id === channelId);
+    const channel = CHANNELS.find((c) => c.id === channelId);
     return channel ? channel.name : "不明なチャンネル";
   };
 
