@@ -108,7 +108,7 @@
   }
   
   .main-content {
-    @apply ml-0 pt-16 pb-12 w-full transition-all duration-300 min-h-screen;
+    @apply ml-0 pt-8 pb-12 w-full transition-all duration-300 min-h-screen;
   }
   
   @media (min-width: 1024px) {
