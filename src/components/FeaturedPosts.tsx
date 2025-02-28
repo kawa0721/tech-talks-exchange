@@ -6,7 +6,6 @@ import PostCard from "@/components/PostCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import CreatePostForm from "@/components/CreatePostForm";
 
 interface FeaturedPostsProps {
   trendingPosts: Post[];
@@ -15,7 +14,6 @@ interface FeaturedPostsProps {
   getChannelName: (channelId: string) => string;
   selectedChannel: string | null;
   loading: boolean;
-  onPostCreated: () => void;
 }
 
 const FeaturedPosts = ({ 
@@ -24,8 +22,7 @@ const FeaturedPosts = ({
   posts,
   getChannelName, 
   selectedChannel,
-  loading,
-  onPostCreated
+  loading
 }: FeaturedPostsProps) => {
   // Generate recent posts - sorted by creation date
   const recentPosts = [...trendingPosts, ...popularPosts]
@@ -101,22 +98,13 @@ const FeaturedPosts = ({
       </TabsContent>
 
       <TabsContent value="recent" className="mt-0">
-        {/* 投稿フォームを「最近の投稿」タブ内に移動 */}
-        <CreatePostForm 
-          channelId={selectedChannel} 
-          onPostCreated={onPostCreated} 
-        />
-
         {/* 通常の投稿一覧を表示 */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : posts.length > 0 ? (
-          <div className="space-y-6 mt-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedChannel ? "チャンネルの投稿" : "最新の投稿"}
-            </h2>
+          <div className="space-y-6">
             {posts.map((post) => (
               <PostCard 
                 key={post.id} 
@@ -127,7 +115,7 @@ const FeaturedPosts = ({
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 border rounded-lg bg-muted/20 mt-8">
+          <div className="text-center py-12 border rounded-lg bg-muted/20">
             <h3 className="text-xl font-medium mb-2">まだ投稿がありません</h3>
             <p className="text-muted-foreground">
               このチャンネルで最初のディスカッションを始めましょう！
