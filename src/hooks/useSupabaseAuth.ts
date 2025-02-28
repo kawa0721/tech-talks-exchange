@@ -14,6 +14,7 @@ export interface AuthActions {
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -117,6 +118,28 @@ export function useSupabaseAuth(): AuthState & AuthActions {
     }
   };
 
+  // GitHubでのサインイン
+  const signInWithGitHub = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      setError(error as Error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // サインアウト
   const signOut = async () => {
     try {
@@ -142,6 +165,7 @@ export function useSupabaseAuth(): AuthState & AuthActions {
     signUp,
     signIn,
     signInWithGoogle,
+    signInWithGitHub,
     signOut
   };
 }

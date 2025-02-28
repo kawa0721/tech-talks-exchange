@@ -11,10 +11,11 @@ import AuthHeader from "@/components/auth/AuthHeader";
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from "@/components/auth/RegisterForm";
 import GoogleSignIn from "@/components/auth/GoogleSignIn";
+import GitHubSignIn from "@/components/auth/GitHubSignIn";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user, loading, signUp, signIn, signInWithGoogle } = useAuth();
+  const { user, loading, signUp, signIn, signInWithGoogle, signInWithGitHub } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
@@ -102,6 +103,23 @@ const Auth = () => {
     }
   };
 
+  const handleGitHubSignIn = async () => {
+    try {
+      setIsSubmitting(true);
+      console.log("GitHub サインイン試行");
+      await signInWithGitHub();
+      // GitHubログインはリダイレクトするので、成功トーストはAuthCallbackで表示
+    } catch (error: any) {
+      console.error("GitHubサインインエラー:", error);
+      toast({
+        title: "エラー",
+        description: "GitHubでのログイン中にエラーが発生しました",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-8">
       <Card className="w-full max-w-md">
@@ -138,9 +156,13 @@ const Auth = () => {
               </div>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
               <GoogleSignIn 
                 onClick={handleGoogleSignIn} 
+                isSubmitting={isSubmitting} 
+              />
+              <GitHubSignIn 
+                onClick={handleGitHubSignIn} 
                 isSubmitting={isSubmitting} 
               />
             </div>
