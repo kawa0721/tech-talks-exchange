@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,11 +17,19 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
 
   // すでにログインしている場合はホームへリダイレクト
   if (user && !loading) {
     return <Navigate to="/" replace />;
   }
+
+  // タブが変更されたときにフォームをリセット
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setEmail("");
+    setPassword("");
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +42,15 @@ const Auth = () => {
       });
       return;
     }
+
+    if (password.length < 8) {
+      toast({
+        title: "パスワードエラー",
+        description: "パスワードは8文字以上で入力してください",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       setIsSubmitting(true);
@@ -42,11 +59,12 @@ const Auth = () => {
         title: "アカウント作成成功",
         description: "アカウントの作成に成功しました。確認メールを確認してください。",
       });
+      console.log("サインアップ成功");
     } catch (error: any) {
       console.error("サインアップエラー:", error);
       let errorMessage = "アカウントの作成中にエラーが発生しました";
       
-      if (error.message.includes("Email already registered")) {
+      if (error.message && error.message.includes("Email already registered")) {
         errorMessage = "このメールアドレスは既に登録されています";
       }
       
@@ -74,17 +92,19 @@ const Auth = () => {
     
     try {
       setIsSubmitting(true);
+      console.log("サインイン試行:", email, password);
       await signIn(email, password);
       toast({
         title: "ログイン成功",
         description: "ログインに成功しました",
       });
+      console.log("サインイン成功");
       navigate("/");
     } catch (error: any) {
       console.error("サインインエラー:", error);
       let errorMessage = "ログイン中にエラーが発生しました";
       
-      if (error.message.includes("Invalid login credentials")) {
+      if (error.message && error.message.includes("Invalid login credentials")) {
         errorMessage = "メールアドレスまたはパスワードが正しくありません";
       }
       
@@ -100,14 +120,18 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsSubmitting(true);
+      console.log("Google サインイン試行");
       await signInWithGoogle();
-    } catch (error) {
+      // Googleログインはリダイレクトするので、成功トーストはAuthCallbackで表示
+    } catch (error: any) {
       console.error("Googleサインインエラー:", error);
       toast({
         title: "エラー",
         description: "Googleでのログイン中にエラーが発生しました",
         variant: "destructive",
       });
+      setIsSubmitting(false);
     }
   };
 
@@ -126,7 +150,7 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue="login" value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">ログイン</TabsTrigger>
               <TabsTrigger value="register">新規登録</TabsTrigger>
@@ -182,7 +206,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isSubmitting}
-                    min={8}
+                    minLength={8}
                   />
                 </div>
                 <Button
@@ -214,6 +238,7 @@ const Auth = () => {
                 className="w-full flex items-center justify-center gap-2"
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
+                type="button"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5">
                   <path
@@ -240,7 +265,7 @@ const Auth = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button variant="link" onClick={() => navigate("/")}>
+          <Button variant="link" onClick={() => navigate("/")} type="button">
             ホームに戻る
           </Button>
         </CardFooter>

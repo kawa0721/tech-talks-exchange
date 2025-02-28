@@ -2,29 +2,48 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // OAuthコールバック処理
     const handleAuthCallback = async () => {
       try {
+        console.log("認証コールバック処理開始");
         // URL中のハッシュパラメータを処理
-        const { error } = await supabase.auth.getUser();
+        const { data, error } = await supabase.auth.getSession();
         
-        if (error) throw error;
+        if (error) {
+          console.error("認証セッション取得エラー:", error);
+          throw error;
+        }
+        
+        if (data && data.session) {
+          console.log("認証成功: セッション取得完了");
+          toast({
+            title: "ログイン成功",
+            description: "ログインに成功しました",
+          });
+        }
         
         // 認証成功後にホームページに遷移
         navigate("/", { replace: true });
       } catch (error) {
         console.error("認証コールバックエラー:", error);
+        toast({
+          title: "認証エラー",
+          description: "ログイン処理中にエラーが発生しました",
+          variant: "destructive",
+        });
         navigate("/auth", { replace: true });
       }
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <div className="flex items-center justify-center h-screen">
