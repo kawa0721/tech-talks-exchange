@@ -1,7 +1,7 @@
 
 import { Post, Comment, Channel } from "@/types";
 import { USERS } from "./users";
-import { CHANNELS } from "./channels";
+import { CHANNELS, CHANNEL_CATEGORIES } from "./channels";
 import { POSTS, TRENDING_POSTS, POPULAR_POSTS } from "./posts";
 import { COMMENTS } from "./comments";
 
@@ -21,6 +21,7 @@ export const getCommentsForPost = (postId: string): Comment[] => {
 export {
   USERS,
   CHANNELS,
+  CHANNEL_CATEGORIES,
   POSTS,
   COMMENTS,
   TRENDING_POSTS,

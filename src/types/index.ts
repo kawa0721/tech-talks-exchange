@@ -9,6 +9,7 @@ export type User = {
 export type ChannelCategory = {
   id: string;
   name: string;
+  channels: string[]; // channels配列を追加
 };
 
 export type Channel = {
