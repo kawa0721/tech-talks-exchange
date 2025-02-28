@@ -83,9 +83,9 @@ const Index = () => {
           />
         )}
 
-        {/* Main content - メインコンテンツはmain-contentクラスを適用して、CSSの共通スタイルを適用 */}
+        {/* Main content - メインコンテンツの上部に余白を追加 */}
         <main 
-          className={`flex-1 px-6 pb-12 main-content transition-all duration-300 ${
+          className={`flex-1 px-6 pb-12 pt-8 main-content transition-all duration-300 ${
             sidebarOpen ? "lg:pl-10" : ""
           }`}
         >
