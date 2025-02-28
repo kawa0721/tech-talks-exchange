@@ -148,15 +148,15 @@ export const CHANNEL_CATEGORIES: ChannelCategory[] = [
     name: 'エディター拡張機能',
     channels: ['github-copilot', 'cline', 'roo-cline', 'julie']
   },
-  {
-    id: 'others',
-    name: 'その他',
-    channels: ['general']
-  },
-  // カテゴリーは残しておきます（表示されなくなりますが既存データ参照用）
+  // 「プログラミング言語/フレームワーク」を「その他」の前に移動
   {
     id: 'programming-languages-frameworks',
     name: 'プログラミング言語/フレームワーク',
     channels: ['react', 'typescript']
+  },
+  {
+    id: 'others',
+    name: 'その他',
+    channels: ['general']
   }
 ];
