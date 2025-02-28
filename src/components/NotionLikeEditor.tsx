@@ -13,7 +13,7 @@ import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { lowlight } from 'lowlight';
+import { common, createLowlight } from 'lowlight';
 import {
   Bold,
   Italic,
@@ -48,6 +48,7 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   placeholder = "/'を入力して書式を選択するか、マークダウン記法を使用してください..."
 }) => {
   const [selectionEmpty, setSelectionEmpty] = useState(true);
+  const lowlight = createLowlight(common);
 
   const editor = useEditor({
     extensions: [
