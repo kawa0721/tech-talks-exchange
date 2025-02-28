@@ -107,7 +107,7 @@
   }
   
   .main-content {
-    @apply pt-16 pb-12;
+    @apply pt-0 pb-12; /* ここをpt-16からpt-0に変更 */
   }
 
   /* Markdownスタイリングの強化 */
