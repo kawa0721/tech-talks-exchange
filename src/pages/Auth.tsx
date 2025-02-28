@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,10 +15,20 @@ import GitHubSignIn from "@/components/auth/GitHubSignIn";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading, signUp, signIn, signInWithGoogle, signInWithGitHub } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+
+  // URLクエリパラメータからtabの値を取得して初期タブを設定
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'register') {
+      setActiveTab('register');
+    }
+  }, [location.search]);
 
   // すでにログインしている場合はホームへリダイレクト
   if (user && !loading) {
