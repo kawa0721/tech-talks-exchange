@@ -1,5 +1,5 @@
 
-import { TrendingUp, Star, ArrowRight } from "lucide-react";
+import { TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";
 import PostCard from "@/components/PostCard";
@@ -14,6 +14,11 @@ interface FeaturedPostsProps {
 }
 
 const FeaturedPosts = ({ trendingPosts, popularPosts, getChannelName }: FeaturedPostsProps) => {
+  // Generate recent posts - sorted by creation date
+  const recentPosts = [...trendingPosts, ...popularPosts]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 2);
+
   return (
     <Tabs defaultValue="trending" className="w-full">
       <div className="flex items-center justify-between mb-4">
@@ -25,6 +30,10 @@ const FeaturedPosts = ({ trendingPosts, popularPosts, getChannelName }: Featured
           <TabsTrigger value="popular" className="flex items-center gap-1">
             <Star className="h-4 w-4" />
             人気の投稿
+          </TabsTrigger>
+          <TabsTrigger value="recent" className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            最近の投稿
           </TabsTrigger>
         </TabsList>
         <Button variant="link" size="sm" className="text-muted-foreground" asChild>
@@ -73,6 +82,27 @@ const FeaturedPosts = ({ trendingPosts, popularPosts, getChannelName }: Featured
           <Card>
             <CardContent className="py-6 text-center text-muted-foreground">
               人気の投稿はまだありません
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="recent" className="mt-0">
+        {recentPosts.length > 0 ? (
+          <div className="space-y-4">
+            {recentPosts.map((post) => (
+              <PostCard 
+                key={post.id} 
+                post={post} 
+                channelName={getChannelName(post.channelId)}
+                showChannel={true}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-6 text-center text-muted-foreground">
+              最近の投稿はありません
             </CardContent>
           </Card>
         )}
