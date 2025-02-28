@@ -1,273 +1,349 @@
-
-import { User, Channel, Post, Comment, ChannelCategory } from "@/types";
-
-// Sample users
-export const users: User[] = [
+export const USERS = [
   {
-    id: "1",
-    name: "TechGuru42",
-    avatar: "https://i.pravatar.cc/150?img=1",
-    profile: "Full-stack developer with a passion for AI and ML."
+    id: 'user-1',
+    name: '田中 太郎',
+    avatar: 'https://i.pravatar.cc/150?img=1',
   },
   {
-    id: "2",
-    name: "CodeNinja",
-    avatar: "https://i.pravatar.cc/150?img=2",
-    profile: "Backend developer specializing in distributed systems."
+    id: 'user-2',
+    name: '山田 花子',
+    avatar: 'https://i.pravatar.cc/150?img=2',
   },
   {
-    id: "3",
-    name: "DevOpsWizard",
-    avatar: "https://i.pravatar.cc/150?img=3",
-    profile: "DevOps engineer with expertise in cloud infrastructure."
-  },
-];
-
-// Channel categories
-export const channelCategories: ChannelCategory[] = [
-  {
-    id: "1",
-    name: "エディター"
+    id: 'user-3',
+    name: '佐藤 次郎',
+    avatar: 'https://i.pravatar.cc/150?img=3',
   },
   {
-    id: "2",
-    name: "AIコーディングサービス"
+    id: 'user-4',
+    name: '鈴木 さくら',
+    avatar: 'https://i.pravatar.cc/150?img=4',
   },
   {
-    id: "3",
-    name: "エディター拡張機能"
-  }
-];
-
-// Sample channels
-export const channels: Channel[] = [
-  {
-    id: "1",
-    name: "Cursor",
-    description: "Everything about the Cursor code editor and its AI features",
-    icon: "💻",
-    categoryId: "1"
-  },
-  {
-    id: "2",
-    name: "Windsurf",
-    description: "Discussions about Windsurf programming framework",
-    icon: "🏄",
-    categoryId: "1"
-  },
-  {
-    id: "3",
-    name: "Cline",
-    description: "Tips and tricks for Cline terminal tools",
-    icon: "🖥️",
-    categoryId: "3"
-  },
-  {
-    id: "4",
-    name: "React",
-    description: "React.js discussions and resources",
-    icon: "⚛️",
-    categoryId: "1"
-  },
-  {
-    id: "5",
-    name: "TypeScript",
-    description: "TypeScript help, discussions, and best practices",
-    icon: "📘",
-    categoryId: "1"
-  },
-  {
-    id: "6",
-    name: "Void Editor",
-    description: "Discussions about Void Editor",
-    icon: "🌑",
-    categoryId: "1"
-  },
-  {
-    id: "7",
-    name: "IntelliJ",
-    description: "IntelliJ IDEA tips and discussions",
-    icon: "🧠",
-    categoryId: "1"
-  },
-  {
-    id: "8",
-    name: "v0",
-    description: "v0 AI coding assistant discussions",
-    icon: "🤖",
-    categoryId: "2"
-  },
-  {
-    id: "9",
-    name: "Lovable",
-    description: "Lovable AI app development discussions",
-    icon: "❤️",
-    categoryId: "2"
-  },
-  {
-    id: "10",
-    name: "Bolt",
-    description: "Bolt AI assistant discussions",
-    icon: "⚡",
-    categoryId: "2"
-  },
-  {
-    id: "11",
-    name: "Replit",
-    description: "Replit and its AI features",
-    icon: "🔄",
-    categoryId: "2"
-  },
-  {
-    id: "12",
-    name: "Devin",
-    description: "Discussions about Devin AI developer",
-    icon: "👨‍💻",
-    categoryId: "2"
-  },
-  {
-    id: "13",
-    name: "GitHub Copilot",
-    description: "GitHub Copilot tips and discussions",
-    icon: "🚁",
-    categoryId: "3"
-  }
-];
-
-// Sample posts
-export const posts: Post[] = [
-  {
-    id: "1",
-    title: "Best Cursor AI shortcuts you should know",
-    content: "Here are some amazing shortcuts that boost my productivity when using Cursor AI...",
-    userId: "1",
-    user: users[0],
-    channelId: "1",
-    createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
-    commentsCount: 5,
-    likesCount: 24,
-    liked: true
-  },
-  {
-    id: "2",
-    title: "How I migrated a large codebase to TypeScript",
-    content: "Recently completed a migration of our 200k+ LOC JavaScript app to TypeScript. Here's how we approached it...",
-    userId: "2",
-    user: users[1],
-    channelId: "5",
-    createdAt: new Date(Date.now() - 86400000 * 1), // 1 day ago
-    commentsCount: 8,
-    likesCount: 42,
-    liked: false
-  },
-  {
-    id: "3",
-    title: "Windsurf vs. other frameworks - performance comparison",
-    content: "I ran some benchmarks comparing Windsurf to other popular frameworks and the results were surprising...",
-    userId: "3",
-    user: users[2],
-    channelId: "2",
-    createdAt: new Date(Date.now() - 3600000 * 5), // 5 hours ago
-    commentsCount: 12,
-    likesCount: 37,
-    liked: false
-  },
-  {
-    id: "4",
-    title: "Cline workflow that saves me hours every week",
-    content: "After years of tweaking my terminal setup, I've created a Cline workflow that dramatically improves my productivity...",
-    userId: "1",
-    user: users[0],
-    channelId: "3",
-    createdAt: new Date(Date.now() - 3600000 * 2), // 2 hours ago
-    commentsCount: 3,
-    likesCount: 15,
-    liked: true
+    id: 'user-5',
+    name: '高橋 五郎',
+    avatar: 'https://i.pravatar.cc/150?img=5',
   },
 ];
 
-// Sample comments
-export const comments: Comment[] = [
+export const POSTS = [
   {
-    id: "1",
-    postId: "1",
-    userId: "2",
-    user: users[1],
-    content: "Thanks for sharing these shortcuts! The AI code generation one is a game changer.",
-    createdAt: new Date(Date.now() - 86400000 * 1 - 3600000), // 1 day and 1 hour ago
-    likesCount: 7,
+    id: 'post-1',
+    title: 'VSCodeの神拡張機能7選',
+    content: `## VSCodeの神拡張機能7選
+
+VSCodeをより便利にする拡張機能を紹介します。
+
+### 1. [Dracula Official](https://marketplace.visualstudio.com/items?itemName=dracula-theme.theme-dracula)
+
+- おすすめ度: ⭐⭐⭐⭐⭐
+- 特徴: ダークテーマの決定版。目に優しい配色が特徴です。
+
+### 2. [indent-rainbow](https://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow)
+
+- おすすめ度: ⭐⭐⭐⭐
+- 特徴: インデントを色分けして、コードの可読性を向上させます。
+
+### 3.  [Prettier - Code formatter](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+
+- おすすめ度: ⭐⭐⭐⭐⭐
+- 特徴: コードを自動整形して、一貫性のあるコーディングスタイルを保ちます。
+
+### 4. [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+
+- おすすめ度: ⭐⭐⭐⭐
+- 特徴: JavaScript/TypeScriptのコードをチェックして、バグやアンチパターンを検出します。
+
+### 5. [vscode-icons](https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons)
+
+- おすすめ度: ⭐⭐⭐⭐⭐
+- 特徴: ファイルの種類に応じてアイコンを表示して、ファイルを探しやすくします。
+
+### 6. [GitLens — Git supercharged](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
+
+- おすすめ度: ⭐⭐⭐⭐⭐
+- 特徴: Gitの機能を強化して、コードの変更履歴をより詳細に表示します。
+
+### 7. [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
+
+- おすすめ度: ⭐⭐⭐⭐
+- 特徴: コード内のスペルミスをチェックして、typoを減らします。
+
+これらの拡張機能を活用して、VSCodeでの開発をより快適にしましょう！
+`,
+    userId: 'user-1',
+    channelId: 'vscode',
+    createdAt: new Date('2024-04-28T12:00:00Z'),
     liked: true,
+    likesCount: 120,
+    commentsCount: 30,
   },
   {
-    id: "2",
-    postId: "1",
-    userId: "3",
-    user: users[2],
-    content: "I've been using Cursor for about 6 months now, and these shortcuts would have saved me so much time!",
-    createdAt: new Date(Date.now() - 86400000 * 1), // 1 day ago
-    likesCount: 4,
+    id: 'post-2',
+    title: 'React Hooks徹底解説',
+    content: `
+# React Hooks徹底解説
+
+React Hooksは、Reactコンポーネントで状態管理や副作用を扱うための機能です。
+
+## useState
+
+useStateは、関数コンポーネントで状態を管理するためのHookです。
+
+\`\`\`jsx
+import React, { useState } from 'react';
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+\`\`\`
+
+## useEffect
+
+useEffectは、関数コンポーネントで副作用を扱うためのHookです。
+
+\`\`\`jsx
+import React, { useState, useEffect } from 'react';
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = \`You clicked \${count} times\`;
+  }, [count]);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+\`\`\`
+
+## useContext
+
+useContextは、関数コンポーネントでContextの値を利用するためのHookです。
+
+\`\`\`jsx
+import React, { useContext } from 'react';
+
+const MyContext = React.createContext(defaultValue);
+
+function MyComponent() {
+  const value = useContext(MyContext);
+
+  return (
+    <div>
+      {value}
+    </div>
+  );
+}
+\`\`\`
+
+## その他のHooks
+
+- useCallback
+- useMemo
+- useRef
+- useReducer
+- useImperativeHandle
+- useLayoutEffect
+- useDebugValue
+
+これらのHooksを理解して、Reactコンポーネントをより効率的に開発しましょう。
+`,
+    userId: 'user-2',
+    channelId: 'react',
+    createdAt: new Date('2024-04-27T18:30:00Z'),
     liked: false,
+    likesCount: 85,
+    commentsCount: 22,
+    images: [
+      "https://images.unsplash.com/photo-1682685797527-99189425bb5b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ]
   },
   {
-    id: "3",
-    postId: "1",
-    userId: "1",
-    user: users[0],
-    content: "Glad you found it helpful! I'll be posting more tips next week.",
-    createdAt: new Date(Date.now() - 3600000 * 12), // 12 hours ago
-    likesCount: 2,
-    liked: false,
-    parentId: "1",
-  },
-  {
-    id: "4",
-    postId: "2",
-    userId: "3",
-    user: users[2],
-    content: "Did you use any specific tools to help with the migration? I'm about to start a similar project.",
-    createdAt: new Date(Date.now() - 3600000 * 20), // 20 hours ago
-    likesCount: 1,
-    liked: false,
-  },
-  {
-    id: "5",
-    postId: "2",
-    userId: "2",
-    user: users[1],
-    content: "We used the TypeScript compiler's --checkJs option first to identify issues, then gradually converted files starting with the foundational modules.",
-    createdAt: new Date(Date.now() - 3600000 * 18), // 18 hours ago
-    likesCount: 3,
+    id: 'post-3',
+    title: 'GitHub Copilot爆速入門',
+    content: `
+# GitHub Copilot爆速入門
+
+GitHub Copilotは、あなたのコーディングをAIがサポートするツールです。
+
+## GitHub Copilotとは？
+
+GitHub Copilotは、OpenAIとGitHubが共同で開発したAIペアプログラマーです。
+コーディング中にリアルタイムでコードの提案や補完を行い、開発者の生産性を向上させます。
+
+## GitHub Copilotの始め方
+
+1. GitHub Copilotのサブスクリプションに登録します。
+2. VSCodeなどの対応エディタにGitHub Copilot拡張機能をインストールします。
+3. エディタでGitHubにサインインします。
+4. コーディングを開始すると、AIがコードの提案や補完を行います。
+
+## GitHub Copilotの活用例
+
+- コードの自動補完
+- 関数やクラスの自動生成
+- テストコードの自動生成
+- ドキュメントの自動生成
+- コードの改善提案
+
+## GitHub Copilotの注意点
+
+- AIの提案を鵜呑みにせず、コードの内容を理解することが重要です。
+- GitHub Copilotは、まだ完璧ではありません。提案されたコードに誤りがある場合もあります。
+- GitHub Copilotは、あなたのコードを学習します。プライベートなコードは、GitHub Copilotに学習させないように注意しましょう。
+
+GitHub Copilotを使いこなして、爆速コーディングを実現しましょう！
+`,
+    userId: 'user-3',
+    channelId: 'github-copilot',
+    createdAt: new Date('2024-04-26T09:15:00Z'),
     liked: true,
-    parentId: "4",
+    likesCount: 150,
+    commentsCount: 45,
+  },
+  {
+    id: 'post-4',
+    title: 'Amazon CodeWhispererを使ってみた',
+    content: `
+# Amazon CodeWhispererを使ってみた
+
+Amazon CodeWhispererは、AWSが提供するAIコーディングサービスです。
+
+## Amazon CodeWhispererとは？
+
+Amazon CodeWhispererは、AIを活用してコーディングを支援するサービスです。
+コーディング中にリアルタイムでコードの提案や補完を行い、開発者の生産性を向上させます。
+
+## Amazon CodeWhispererの始め方
+
+1. AWSアカウントを作成します。
+2. VSCodeなどの対応エディタにAmazon CodeWhisperer拡張機能をインストールします。
+3. エディタでAWSにサインインします。
+4. コーディングを開始すると、AIがコードの提案や補完を行います。
+
+## Amazon CodeWhispererの活用例
+
+- コードの自動補完
+- 関数やクラスの自動生成
+- テストコードの自動生成
+- ドキュメントの自動生成
+- コードの改善提案
+
+## Amazon CodeWhispererの注意点
+
+- AIの提案を鵜呑みにせず、コードの内容を理解することが重要です。
+- Amazon CodeWhispererは、まだ完璧ではありません。提案されたコードに誤りがある場合もあります。
+- Amazon CodeWhispererは、あなたのコードを学習します。プライベートなコードは、Amazon CodeWhispererに学習させないように注意しましょう。
+
+Amazon CodeWhispererを使いこなして、効率的なコーディングを実現しましょう！
+`,
+    userId: 'user-4',
+    channelId: 'amazon-codewhisperer',
+    createdAt: new Date('2024-04-25T22:00:00Z'),
+    liked: false,
+    likesCount: 70,
+    commentsCount: 18,
+  },
+  {
+    id: 'post-5',
+    title: 'IntelliJ IDEAの便利なショートカット',
+    content: `
+# IntelliJ IDEAの便利なショートカット
+
+IntelliJ IDEAは、Java開発でよく使われるIDE（統合開発環境）です。
+ショートカットキーを使いこなすことで、開発効率を大幅に向上させることができます。
+
+## 基本的なショートカット
+
+- Ctrl + Space: コード補完
+- Ctrl + Shift + Space: スマートコード補完
+- Ctrl + N: クラスの検索
+- Ctrl + Shift + N: ファイルの検索
+- Ctrl + B: 定義へ移動
+- Ctrl + Alt + B: 実装へ移動
+- Ctrl + F: 検索
+- Ctrl + R: 置換
+- Ctrl + Shift + F: プロジェクト内検索
+- Ctrl + Shift + R: プロジェクト内置換
+
+## 編集に関するショートカット
+
+- Ctrl + D: 行の複製
+- Ctrl + Y: 行の削除
+- Ctrl + Shift + J: 行の結合
+- Ctrl + Alt + L: コードの整形
+- Ctrl + /: 行コメント
+- Ctrl + Shift + /: ブロックコメント
+
+## ナビゲーションに関するショートカット
+
+- Alt + Left: 前の編集箇所へ移動
+- Alt + Right: 次の編集箇所へ移動
+- Ctrl + E: 最近使用したファイル
+- Ctrl + Shift + E: 最近編集したファイル
+
+## リファクタリングに関するショートカット
+
+- Shift + F6: 名前の変更
+- Ctrl + Alt + M: メソッドの抽出
+- Ctrl + Alt + V: 変数の抽出
+- Ctrl + Alt + F: フィールドの抽出
+- Ctrl + Alt + C: 定数の抽出
+
+これらのショートカットキーを覚えて、IntelliJ IDEAでの開発をよりスムーズにしましょう。
+`,
+    userId: 'user-5',
+    channelId: 'intellij',
+    createdAt: new Date('2024-04-24T15:45:00Z'),
+    liked: true,
+    likesCount: 95,
+    commentsCount: 25,
   },
 ];
 
-// Helper function to get comments for a post with threaded structure
-export function getCommentsForPost(postId: string): Comment[] {
-  // Filter top-level comments for this post
-  const topLevelComments = comments
-    .filter(comment => comment.postId === postId && !comment.parentId)
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  
-  // Add replies to their parent comments
-  return topLevelComments.map(comment => {
-    const replies = comments
-      .filter(reply => reply.parentId === comment.id)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    
-    return {
-      ...comment,
-      replies: replies.length > 0 ? replies : undefined
-    };
-  });
-}
-
-// Helper function to get posts for a specific channel
-export function getPostsForChannel(channelId: string | null): Post[] {
-  if (!channelId) {
-    return [...posts].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+export const channelCategories = [
+  {
+    id: 'programming-languages-frameworks',
+    name: 'プログラミング言語・フレームワーク',
+    channels: ['react', 'typescript']
+  },
+  {
+    id: 'editors',
+    name: 'エディター',
+    channels: ['vscode', 'intellij', 'vim']
+  },
+  {
+    id: 'ai-coding-services',
+    name: 'AIコーディングサービス',
+    channels: ['github-copilot', 'amazon-codewhisperer', 'codeium']
+  },
+  {
+    id: 'editor-extensions',
+    name: 'エディター拡張機能',
+    channels: ['tabnine', 'kite', 'blackbox']
+  },
+  {
+    id: 'others',
+    name: 'その他',
+    channels: ['general', 'qna']
   }
-  return posts
-    .filter(post => post.channelId === channelId)
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-}
+];
+
+export const trendingPosts = POSTS.slice(0, 3);
+export const popularPosts = POSTS.slice(2, 5);

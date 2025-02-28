@@ -13,7 +13,8 @@ import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { common, createLowlight } from 'lowlight';
+import { createLowlight } from 'lowlight';
+import { common } from 'lowlight/common';
 import {
   Bold,
   Italic,
@@ -348,7 +349,6 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       {/* エディタ本体 */}
       <EditorContent editor={editor} className="notion-like-editor" />
 
-      {/* カスタムスタイル */}
       <style>
         {`
         .notion-like-editor .is-empty:first-child::before {
