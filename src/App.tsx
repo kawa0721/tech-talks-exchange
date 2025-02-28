@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import PostDetail from "./pages/PostDetail";
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
+import AllPosts from "./pages/AllPosts";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,8 @@ const App = () => (
             <Route path="/post/:postId" element={<PostDetail />} />
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/profile" element={<UserProfile />} />
+            <Route path="/posts/:type" element={<AllPosts />} />
+            <Route path="/posts" element={<AllPosts />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

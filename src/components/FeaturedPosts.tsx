@@ -1,5 +1,6 @@
 
 import { TrendingUp, Star, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Post } from "@/types";
 import PostCard from "@/components/PostCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,8 +27,10 @@ const FeaturedPosts = ({ trendingPosts, popularPosts, getChannelName }: Featured
             人気の投稿
           </TabsTrigger>
         </TabsList>
-        <Button variant="link" size="sm" className="text-muted-foreground">
-          すべて見る <ArrowRight className="ml-1 h-4 w-4" />
+        <Button variant="link" size="sm" className="text-muted-foreground" asChild>
+          <Link to="/posts/trending" className="flex items-center">
+            すべて見る <ArrowRight className="ml-1 h-4 w-4" />
+          </Link>
         </Button>
       </div>
       
