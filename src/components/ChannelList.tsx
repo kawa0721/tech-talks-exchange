@@ -64,7 +64,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
             onClick={() => onSelectChannel(null)}
           >
             <Hash className="mr-2 h-5 w-5" />
-            <span className="truncate">すべてのチャンネル</span>
+            すべてのチャンネル
           </Button>
           
           {/* Display channels grouped by category */}
@@ -80,15 +80,15 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
                     variant="ghost"
                     className="w-full justify-between font-medium text-base pl-2 py-2 hover:bg-secondary/50"
                   >
-                    <div className="flex items-center overflow-hidden">
+                    <div className="flex items-center">
                       {expandedCategories[category.id] ? (
-                        <ChevronDown className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <ChevronDown className="h-4 w-4 mr-2" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <ChevronRight className="h-4 w-4 mr-2" />
                       )}
-                      <span className="truncate">{category.name}</span>
+                      {category.name}
                     </div>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                    <span className="text-xs text-muted-foreground">
                       {channels.length}
                     </span>
                   </Button>
@@ -128,8 +128,8 @@ const ChannelButton = ({ channel, isSelected, onClick }: ChannelButtonProps) => 
       )}
       onClick={onClick}
     >
-      <span className="mr-3 text-lg flex-shrink-0">{channel.icon}</span>
-      <span className="truncate">{channel.name}</span>
+      <span className="mr-3 text-lg">{channel.icon}</span>
+      {channel.name}
     </Button>
   );
 };
