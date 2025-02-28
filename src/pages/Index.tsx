@@ -2,12 +2,13 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import ChannelList from "@/components/ChannelList";
-import CreatePostForm from "@/components/CreatePostForm";
 import { Post } from "@/types";
 import { CHANNELS, getPostsForChannel } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import FeaturedPosts from "@/components/FeaturedPosts";
 import RecommendedChannels from "@/components/RecommendedChannels";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
@@ -102,15 +103,9 @@ const Index = () => {
               </p>
             </div>
 
-            {/* 投稿フォームは常に表示 */}
-            <CreatePostForm 
-              channelId={selectedChannel} 
-              onPostCreated={handlePostCreated} 
-            />
-
             {/* ホームページに表示する特集セクション（チャンネルが選択されていない場合のみ表示） */}
             {!selectedChannel && !loading && (
-              <div className="space-y-8 mt-8">
+              <div className="space-y-8">
                 {/* トレンド投稿と人気投稿と最近の投稿のセクション */}
                 <FeaturedPosts 
                   trendingPosts={trendingPosts}
@@ -131,7 +126,7 @@ const Index = () => {
 
             {/* チャンネルが選択されている場合は、タブ付きコンポーネントを表示 */}
             {selectedChannel && (
-              <div className="mt-8">
+              <div>
                 <FeaturedPosts 
                   trendingPosts={trendingPosts}
                   popularPosts={popularPosts}
@@ -145,6 +140,20 @@ const Index = () => {
           </div>
         </main>
       </div>
+
+      {/* 投稿ボタン（右下に固定） */}
+      <Button
+        className="fixed bottom-6 right-6 shadow-lg rounded-full h-14 w-14 p-0"
+        onClick={() => {
+          // 投稿機能を起動する処理
+          toast({
+            title: "投稿作成",
+            description: "投稿フォームを起動します",
+          });
+        }}
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </div>
   );
 };
