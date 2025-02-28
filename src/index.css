@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -94,22 +95,34 @@
   }
 }
 
-/* レイアウトに関するカスタムスタイル */
+/* コンポーネントスタイル */
 @layer components {
-  .layout-container {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
+  /* サイドバー関連のスタイル */
   .sidebar {
-    @apply bg-background border-r border-border;
+    @apply bg-background border-r border-border h-screen fixed left-0 top-0 z-40 w-72;
     box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
   }
   
-  .main-content {
-    @apply pt-0 pb-12; /* CSSクラスはpt-0のままにし、コンポーネント内でpt-8を直接適用 */
+  .sidebar-content {
+    @apply pt-16 h-full overflow-y-auto;
   }
-
-  /* Markdownスタイリングの強化 */
+  
+  .main-content {
+    @apply ml-0 pt-16 pb-12 w-full transition-all duration-300 min-h-screen;
+  }
+  
+  @media (min-width: 1024px) {
+    .main-content {
+      @apply ml-72;
+    }
+  }
+  
+  /* Navbarスタイル */
+  .navbar {
+    @apply fixed top-0 left-0 right-0 z-50 bg-background border-b border-border;
+  }
+  
+  /* Markdownコンテンツスタイル */
   .markdown-content {
     @apply w-full text-foreground;
   }
@@ -183,7 +196,7 @@
   }
 }
 
-/* Custom animation for page transitions */
+/* アニメーション */
 .fade-in {
   animation: fadeIn 0.4s ease-in-out;
 }
@@ -199,7 +212,7 @@
   }
 }
 
-/* Card hover effects */
+/* カードのホバーエフェクト */
 .card-hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -209,7 +222,7 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
-/* Custom scrollbar */
+/* カスタムスクロールバー */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -237,20 +250,7 @@
   background-color: hsl(var(--secondary));
 }
 
-/* ナビゲーション項目の間隔調整 */
-.nav-spacing > * + * {
-  margin-left: 1rem;
-}
-
-/* メインコンテンツのコンテナ */
-.content-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-@media (min-width: 1024px) {
-  .content-container {
-    padding: 0 32px;
-  }
+/* モバイルオーバーレイ */
+.mobile-overlay {
+  @apply fixed inset-0 bg-black/50 z-30 lg:hidden;
 }

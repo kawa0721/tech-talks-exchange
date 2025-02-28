@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { CHANNELS, CHANNEL_CATEGORIES } from "@/lib/dummyData";
-import { Channel, ChannelCategory } from "@/types";
+import { CHANNELS, CHANNEL_CATEGORIES } from "@/lib/data";
+import { Channel } from "@/types";
 
 interface ChannelListProps {
   selectedChannel: string | null;
@@ -42,7 +42,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
   });
 
   return (
-    <div className="py-4 h-full flex flex-col">
+    <div className="h-full flex flex-col">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-semibold tracking-tight">チャンネル</h2>

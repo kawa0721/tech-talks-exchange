@@ -16,7 +16,7 @@ const Index = () => {
   const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch posts based on selected channel
@@ -47,12 +47,6 @@ const Index = () => {
     }, 500);
   }, [selectedChannel]);
 
-  // Handle post creation
-  const handlePostCreated = () => {
-    // Refresh posts
-    setPosts(getPostsForChannel(selectedChannel));
-  };
-
   // Find channel name by ID
   const getChannelName = (channelId: string): string => {
     const channel = CHANNELS.find((c) => c.id === channelId);
@@ -60,36 +54,39 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background">
+      {/* Navbar - 固定ヘッダー */}
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex flex-1 relative">
-        {/* Sidebar - 幅を広げる */}
+      
+      <div className="flex">
+        {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-72 flex flex-col border-r bg-background transition-transform duration-300 lg:relative lg:translate-x-0 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          className={`sidebar ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         >
-          <ChannelList
-            selectedChannel={selectedChannel}
-            onSelectChannel={setSelectedChannel}
-          />
+          <div className="sidebar-content">
+            <ChannelList
+              selectedChannel={selectedChannel}
+              onSelectChannel={(channelId) => {
+                setSelectedChannel(channelId);
+                setSidebarOpen(false);
+              }}
+            />
+          </div>
         </aside>
 
         {/* Overlay for mobile */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+            className="mobile-overlay"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
-        {/* Main content - メインコンテンツの上部に余白を追加 */}
-        <main 
-          className={`flex-1 px-6 pb-12 pt-8 main-content transition-all duration-300 ${
-            sidebarOpen ? "lg:pl-10" : ""
-          }`}
-        >
-          <div className="mx-auto max-w-4xl fade-in">
+        {/* Main content */}
+        <main className="main-content">
+          <div className="px-4 md:px-6 py-8 mx-auto max-w-4xl fade-in">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">
                 {selectedChannel 
@@ -124,7 +121,7 @@ const Index = () => {
               </div>
             )}
 
-            {/* チャンネルが選択されている場合は、タブ付きコンポーネントを表示 */}
+            {/* チャンネルが選択されている場合は、投稿一覧を表示 */}
             {selectedChannel && (
               <div>
                 <FeaturedPosts 
@@ -143,7 +140,7 @@ const Index = () => {
 
       {/* 投稿ボタン（右下に固定） */}
       <Button
-        className="fixed bottom-6 right-6 shadow-lg rounded-full h-14 w-14 p-0"
+        className="fixed bottom-6 right-6 shadow-lg rounded-full h-14 w-14 p-0 z-50"
         onClick={() => {
           // 投稿機能を起動する処理
           toast({
