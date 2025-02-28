@@ -43,12 +43,24 @@ interface NotionLikeEditorProps {
   placeholder?: string;
 }
 
+// スラッシュコマンド機能のカスタム拡張機能
+const SlashCommand = (props: any) => {
+  // 実際のExtensionはここでは実装せず、keyDownHandlerを使って代用します
+  return {
+    name: 'slashCommand',
+    // 他の設定...
+  };
+};
+
 const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   value,
   onChange,
   placeholder = "/'を入力して書式を選択するか、マークダウン記法を使用してください..."
 }) => {
   const [selectionEmpty, setSelectionEmpty] = useState(true);
+  const [showSlashCommands, setShowSlashCommands] = useState(false);
+  const [slashCommandsPosition, setSlashCommandsPosition] = useState({ top: 0, left: 0 });
+  
   const lowlight = createLowlight();
   
   // Register languages for syntax highlighting
@@ -105,6 +117,35 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
         class: 'prose prose-sm dark:prose-invert min-h-[200px] max-w-none p-4 focus:outline-none',
       },
       handleKeyDown: (view, event) => {
+        // スラッシュが押された時、スラッシュコマンドメニューを表示
+        if (event.key === '/') {
+          const { state } = view;
+          const { selection } = state;
+          const { $from, empty } = selection;
+
+          if (!empty) return false;
+
+          // 行の先頭または空白の後の '/' のみ反応するようにする
+          const textBefore = $from.parent.textContent.slice(0, $from.parentOffset);
+          if (textBefore === '' || textBefore.endsWith(' ')) {
+            // スラッシュコマンドメニューを表示する位置を計算
+            const coords = view.coordsAtPos($from.pos);
+            setSlashCommandsPosition({
+              top: coords.bottom,
+              left: coords.left,
+            });
+            
+            setShowSlashCommands(true);
+            return false; // イベントをキャプチャしない（'/'を入力させる）
+          }
+        }
+        
+        // Escキーでスラッシュコマンドメニューを閉じる
+        if (event.key === 'Escape' && showSlashCommands) {
+          setShowSlashCommands(false);
+          return true;
+        }
+
         // スペースキーが押された時、マークダウン記法を変換
         if (event.key === ' ') {
           const { state } = view;
@@ -240,6 +281,70 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     }
   };
 
+  const executeSlashCommand = (command: string) => {
+    if (!editor) return;
+
+    switch (command) {
+      case 'heading1':
+        editor.chain().focus().toggleHeading({ level: 1 }).run();
+        break;
+      case 'heading2':
+        editor.chain().focus().toggleHeading({ level: 2 }).run();
+        break;
+      case 'heading3':
+        editor.chain().focus().toggleHeading({ level: 3 }).run();
+        break;
+      case 'bulletList':
+        editor.chain().focus().toggleBulletList().run();
+        break;
+      case 'orderedList':
+        editor.chain().focus().toggleOrderedList().run();
+        break;
+      case 'blockquote':
+        editor.chain().focus().toggleBlockquote().run();
+        break;
+      case 'codeBlock':
+        editor.chain().focus().toggleCodeBlock().run();
+        break;
+      case 'table':
+        addTable();
+        break;
+      case 'image':
+        addImage();
+        break;
+      default:
+        break;
+    }
+
+    // スラッシュ文字（'/'）を削除
+    const { state } = editor.view;
+    const { selection } = state;
+    const { $from } = selection;
+    
+    if ($from.textBefore.endsWith('/')) {
+      editor.commands.deleteRange({
+        from: $from.pos - 1,
+        to: $from.pos,
+      });
+    }
+    
+    setShowSlashCommands(false);
+  };
+
+  // クリックイベントを処理
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showSlashCommands) {
+        setShowSlashCommands(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showSlashCommands]);
+
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
@@ -251,7 +356,7 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   }
 
   return (
-    <div className="border rounded-md">
+    <div className="border rounded-md relative">
       {/* スラッシュメニュー代わりのドロップダウン */}
       <div className="bg-muted/40 p-1 border-b">
         <DropdownMenu>
@@ -300,6 +405,84 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* スラッシュコマンドメニュー */}
+      {showSlashCommands && editor && (
+        <div 
+          className="absolute z-50 bg-background border rounded-md shadow-md overflow-hidden"
+          style={{
+            top: slashCommandsPosition.top + 'px',
+            left: slashCommandsPosition.left + 'px',
+          }}
+          onClick={(e) => e.stopPropagation()} // クリックイベントの伝播を停止
+        >
+          <div className="py-1">
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('heading1')}
+            >
+              <Heading1 className="h-4 w-4 mr-2" />
+              <span>見出し 1</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('heading2')}
+            >
+              <Heading2 className="h-4 w-4 mr-2" />
+              <span>見出し 2</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('heading3')}
+            >
+              <Heading3 className="h-4 w-4 mr-2" />
+              <span>見出し 3</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('bulletList')}
+            >
+              <List className="h-4 w-4 mr-2" />
+              <span>箇条書きリスト</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('orderedList')}
+            >
+              <ListOrdered className="h-4 w-4 mr-2" />
+              <span>番号付きリスト</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('blockquote')}
+            >
+              <Quote className="h-4 w-4 mr-2" />
+              <span>引用</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('codeBlock')}
+            >
+              <Code className="h-4 w-4 mr-2" />
+              <span>コードブロック</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('table')}
+            >
+              <TableIcon className="h-4 w-4 mr-2" />
+              <span>表</span>
+            </button>
+            <button 
+              className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
+              onClick={() => executeSlashCommand('image')}
+            >
+              <ImageIcon className="h-4 w-4 mr-2" />
+              <span>画像</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* テキスト選択時に表示されるバブルメニュー */}
       {editor && (
