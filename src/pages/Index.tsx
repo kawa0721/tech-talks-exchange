@@ -2,13 +2,11 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import ChannelList from "@/components/ChannelList";
-import CreatePostForm from "@/components/CreatePostForm";
 import { Post } from "@/types";
 import { CHANNELS, getPostsForChannel } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import FeaturedPosts from "@/components/FeaturedPosts";
 import RecommendedChannels from "@/components/RecommendedChannels";
-import PostsList from "@/components/PostsList";
 
 const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
@@ -105,12 +103,16 @@ const Index = () => {
 
             {/* ホームページに表示する特集セクション（チャンネルが選択されていない場合のみ表示） */}
             {!selectedChannel && !loading && (
-              <div className="space-y-8 mb-8">
+              <div className="space-y-8">
                 {/* トレンド投稿と人気投稿と最近の投稿のセクション */}
                 <FeaturedPosts 
                   trendingPosts={trendingPosts}
                   popularPosts={popularPosts}
+                  posts={posts}
                   getChannelName={getChannelName}
+                  selectedChannel={selectedChannel}
+                  loading={loading}
+                  onPostCreated={handlePostCreated}
                 />
                 
                 {/* チャンネル紹介セクション */}
@@ -121,17 +123,18 @@ const Index = () => {
               </div>
             )}
 
-            <CreatePostForm 
-              channelId={selectedChannel} 
-              onPostCreated={handlePostCreated} 
-            />
-
-            <PostsList 
-              posts={posts}
-              loading={loading}
-              selectedChannel={selectedChannel}
-              getChannelName={getChannelName}
-            />
+            {/* チャンネルが選択されている場合は、直接投稿フォームと投稿リストを表示 */}
+            {selectedChannel && (
+              <FeaturedPosts 
+                trendingPosts={trendingPosts}
+                popularPosts={popularPosts}
+                posts={posts}
+                getChannelName={getChannelName}
+                selectedChannel={selectedChannel}
+                loading={loading}
+                onPostCreated={handlePostCreated}
+              />
+            )}
           </div>
         </main>
       </div>
