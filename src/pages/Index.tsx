@@ -63,12 +63,13 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1 relative">
-        {/* Sidebar - 幅を広げた */}
+        {/* Sidebar - 上部の余白を削除 */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-72 flex flex-col border-r bg-background pt-16 transition-transform duration-300 lg:relative lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-30 w-72 flex flex-col border-r bg-background transition-transform duration-300 lg:relative lg:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
+          <div className="h-16"></div> {/* ナビバーの高さ分だけのスペースを確保 */}
           <ChannelList
             selectedChannel={selectedChannel}
             onSelectChannel={setSelectedChannel}
