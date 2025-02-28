@@ -83,9 +83,9 @@ const Index = () => {
           />
         )}
 
-        {/* Main content - パディングとレイアウトを調整 */}
+        {/* Main content - メインコンテンツはmain-contentクラスを適用して、CSSの共通スタイルを適用 */}
         <main 
-          className={`flex-1 px-6 pb-12 pt-6 transition-all duration-300 ${
+          className={`flex-1 px-6 pb-12 main-content transition-all duration-300 ${
             sidebarOpen ? "lg:pl-10" : ""
           }`}
         >
