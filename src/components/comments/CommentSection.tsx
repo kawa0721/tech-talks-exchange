@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Comment } from "@/types";
-import { getCommentsForPost } from "@/lib/dummyData";
+import { COMMENTS } from "@/lib/dummyData";
 import { toast } from "sonner";
 import CommentForm from "./CommentForm";
 import CommentItem from "./CommentItem";
@@ -12,7 +12,9 @@ interface CommentSectionProps {
 }
 
 const CommentSection = ({ postId }: CommentSectionProps) => {
-  const [comments, setComments] = useState<Comment[]>(getCommentsForPost(postId));
+  const [comments, setComments] = useState<Comment[]>(
+    COMMENTS.filter(comment => comment.postId === postId)
+  );
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
