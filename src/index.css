@@ -104,7 +104,7 @@
   }
   
   .sidebar-content {
-    @apply pt-16 h-full overflow-y-auto;
+    @apply h-full overflow-y-auto;
   }
   
   .main-content {
