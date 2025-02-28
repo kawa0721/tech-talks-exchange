@@ -106,7 +106,7 @@ const Index = () => {
             {/* ホームページに表示する特集セクション（チャンネルが選択されていない場合のみ表示） */}
             {!selectedChannel && !loading && (
               <div className="space-y-8 mb-8">
-                {/* トレンド投稿とおすすめ投稿のセクション */}
+                {/* トレンド投稿と人気投稿と最近の投稿のセクション */}
                 <FeaturedPosts 
                   trendingPosts={trendingPosts}
                   popularPosts={popularPosts}
