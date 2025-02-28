@@ -148,9 +148,11 @@ const PostCard = ({
           <h3 className="text-xl font-semibold mb-3 text-left">{post.title}</h3>
           <div className="prose prose-sm dark:prose-invert max-w-none text-left mb-4 overflow-hidden">
             {/* カスタムスタイルを適用してマークダウンレンダリングを改善 */}
-            <ReactMarkdown className="markdown-content">
-              {post.content}
-            </ReactMarkdown>
+            <div className="markdown-content">
+              <ReactMarkdown>
+                {post.content}
+              </ReactMarkdown>
+            </div>
           </div>
           
           {post.images && post.images.length > 0 && (
