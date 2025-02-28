@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { channels, channelCategories } from "@/lib/dummyData";
+import { CHANNELS, CHANNEL_CATEGORIES } from "@/lib/dummyData";
 import { Channel, ChannelCategory } from "@/types";
 
 interface ChannelListProps {
@@ -18,7 +18,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
   // State to track which categories are expanded
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
     // Initially expand all categories
-    return channelCategories.reduce((acc, category) => {
+    return CHANNEL_CATEGORIES.reduce((acc, category) => {
       acc[category.id] = true;
       return acc;
     }, {} as Record<string, boolean>);
@@ -33,8 +33,8 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
   };
 
   // Group channels by category
-  const channelsByCategory = channelCategories.map(category => {
-    const categoryChannels = channels.filter(channel => channel.categoryId === category.id);
+  const channelsByCategory = CHANNEL_CATEGORIES.map(category => {
+    const categoryChannels = CHANNELS.filter(channel => channel.categoryId === category.id);
     return {
       category,
       channels: categoryChannels
