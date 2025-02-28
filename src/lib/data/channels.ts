@@ -2,6 +2,21 @@
 import { Channel, ChannelCategory } from "@/types";
 
 export const CHANNELS: Channel[] = [
+  // エディター
+  {
+    id: 'cursor',
+    name: 'Cursor',
+    description: 'Cursorエディターに関するディスカッション',
+    icon: '🖱️',
+    categoryId: 'editors'
+  },
+  {
+    id: 'windsurf',
+    name: 'Windsurf',
+    description: 'Windsurfエディターに関するディスカッション',
+    icon: '🏄',
+    categoryId: 'editors'
+  },
   {
     id: 'vscode',
     name: 'VSCode',
@@ -9,6 +24,98 @@ export const CHANNELS: Channel[] = [
     icon: '💻',
     categoryId: 'editors'
   },
+  {
+    id: 'void-editor',
+    name: 'Void Editor',
+    description: 'Void Editorに関するディスカッション',
+    icon: '⚫',
+    categoryId: 'editors'
+  },
+  {
+    id: 'intellij-pycharm',
+    name: 'IntelliJ/PyCharm',
+    description: 'IntelliJ IDEAとPyCharmに関するディスカッション',
+    icon: '🧠',
+    categoryId: 'editors'
+  },
+
+  // AIコーディングサービス
+  {
+    id: 'v0',
+    name: 'v0',
+    description: 'v0に関するディスカッション',
+    icon: '🚀',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'bolt-new',
+    name: 'Bolt.new',
+    description: 'Bolt.newに関するディスカッション',
+    icon: '⚡',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'lovable',
+    name: 'Lovable',
+    description: 'Lovableに関するディスカッション',
+    icon: '❤️',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'replit',
+    name: 'Replit',
+    description: 'Replitに関するディスカッション',
+    icon: '🔄',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'devin',
+    name: 'Devin',
+    description: 'Devinに関するディスカッション',
+    icon: '🤖',
+    categoryId: 'ai-coding-services'
+  },
+
+  // エディター拡張機能
+  {
+    id: 'github-copilot',
+    name: 'GitHub Copilot',
+    description: 'GitHub Copilotに関するディスカッション',
+    icon: '👨‍💻',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'cline',
+    name: 'Cline',
+    description: 'Clineに関するディスカッション',
+    icon: '📊',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'roo-cline',
+    name: 'Roo Cline',
+    description: 'Roo Clineに関するディスカッション',
+    icon: '🦘',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'julie',
+    name: 'Julie',
+    description: 'Julie AIに関するディスカッション',
+    icon: '🤖',
+    categoryId: 'editor-extensions'
+  },
+
+  // その他
+  {
+    id: 'general',
+    name: '一般',
+    description: '一般的なトピックに関するディスカッション',
+    icon: '💬',
+    categoryId: 'others'
+  },
+
+  // 以下は表示されなくなりますが、既存のデータ参照のために残しておきます
   {
     id: 'react',
     name: 'React',
@@ -22,117 +129,34 @@ export const CHANNELS: Channel[] = [
     description: 'TypeScriptに関するディスカッション',
     icon: '📘',
     categoryId: 'programming-languages-frameworks'
-  },
-  {
-    id: 'intellij',
-    name: 'IntelliJ IDEA',
-    description: 'IntelliJ IDEAに関するディスカッション',
-    icon: '🧠',
-    categoryId: 'editors'
-  },
-  {
-    id: 'vim',
-    name: 'Vim',
-    description: 'Vimに関するディスカッション',
-    icon: '📝',
-    categoryId: 'editors'
-  },
-  {
-    id: 'github-copilot',
-    name: 'GitHub Copilot',
-    description: 'GitHub Copilotに関するディスカッション',
-    icon: '🤖',
-    categoryId: 'editor-extensions'
-  },
-  {
-    id: 'amazon-codewhisperer',
-    name: 'Amazon CodeWhisperer',
-    description: 'Amazon CodeWhispererに関するディスカッション',
-    icon: '☁️',
-    categoryId: 'ai-coding-services'
-  },
-  {
-    id: 'codeium',
-    name: 'Codeium',
-    description: 'Codeiumに関するディスカッション',
-    icon: '🧩',
-    categoryId: 'ai-coding-services'
-  },
-  {
-    id: 'tabnine',
-    name: 'Tabnine',
-    description: 'Tabnineに関するディスカッション',
-    icon: '📊',
-    categoryId: 'editor-extensions'
-  },
-  {
-    id: 'kite',
-    name: 'Kite',
-    description: 'Kiteに関するディスカッション',
-    icon: '🪁',
-    categoryId: 'editor-extensions'
-  },
-  {
-    id: 'blackbox',
-    name: 'Blackbox',
-    description: 'Blackboxに関するディスカッション',
-    icon: '📦',
-    categoryId: 'editor-extensions'
-  },
-  {
-    id: 'julie',
-    name: 'Julie',
-    description: 'Julie AIに関するディスカッション',
-    icon: '🤖',
-    categoryId: 'editor-extensions'
-  },
-  {
-    id: 'roo-cline',
-    name: 'Roo Cline',
-    description: 'Roo Clineに関するディスカッション',
-    icon: '🦘',
-    categoryId: 'editor-extensions'
-  },
-  {
-    id: 'general',
-    name: '一般',
-    description: '一般的なトピックに関するディスカッション',
-    icon: '💬',
-    categoryId: 'others'
-  },
-  {
-    id: 'qna',
-    name: '質問と回答',
-    description: '質問と回答に関するディスカッション',
-    icon: '❓',
-    categoryId: 'others'
-  },
+  }
 ];
 
 export const CHANNEL_CATEGORIES: ChannelCategory[] = [
   {
-    id: 'programming-languages-frameworks',
-    name: 'プログラミング言語/フレームワーク',
-    channels: ['react', 'typescript']
-  },
-  {
     id: 'editors',
     name: 'エディター',
-    channels: ['vscode', 'intellij', 'vim']
+    channels: ['cursor', 'windsurf', 'vscode', 'void-editor', 'intellij-pycharm']
   },
   {
     id: 'ai-coding-services',
     name: 'AIコーディングサービス',
-    channels: ['amazon-codewhisperer', 'codeium']
+    channels: ['v0', 'bolt-new', 'lovable', 'replit', 'devin']
   },
   {
     id: 'editor-extensions',
     name: 'エディター拡張機能',
-    channels: ['github-copilot', 'tabnine', 'kite', 'blackbox', 'julie', 'roo-cline']
+    channels: ['github-copilot', 'cline', 'roo-cline', 'julie']
   },
   {
     id: 'others',
     name: 'その他',
-    channels: ['general', 'qna']
+    channels: ['general']
+  },
+  // カテゴリーは残しておきます（表示されなくなりますが既存データ参照用）
+  {
+    id: 'programming-languages-frameworks',
+    name: 'プログラミング言語/フレームワーク',
+    channels: ['react', 'typescript']
   }
 ];
