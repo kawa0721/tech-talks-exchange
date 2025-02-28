@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, KeyboardEvent } from 'react';
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -43,6 +43,12 @@ interface NotionLikeEditorProps {
   placeholder?: string;
 }
 
+interface Command {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+}
+
 const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   value,
   onChange,
@@ -52,12 +58,27 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   const [showSlashCommands, setShowSlashCommands] = useState(false);
   const [slashCommandPosition, setSlashCommandPosition] = useState({ top: 0, left: 0 });
   const [slashPosition, setSlashPosition] = useState<{ from: number, to: number } | null>(null);
+  const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
   const editorRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   
   const lowlight = createLowlight();
   
   // Register languages for syntax highlighting
   lowlight.register('js', js);
+
+  // コマンドの定義
+  const commands: Command[] = [
+    { id: 'heading1', icon: <Heading1 className="h-4 w-4 mr-2" />, label: '見出し 1' },
+    { id: 'heading2', icon: <Heading2 className="h-4 w-4 mr-2" />, label: '見出し 2' },
+    { id: 'heading3', icon: <Heading3 className="h-4 w-4 mr-2" />, label: '見出し 3' },
+    { id: 'bulletList', icon: <List className="h-4 w-4 mr-2" />, label: '箇条書きリスト' },
+    { id: 'orderedList', icon: <ListOrdered className="h-4 w-4 mr-2" />, label: '番号付きリスト' },
+    { id: 'blockquote', icon: <Quote className="h-4 w-4 mr-2" />, label: '引用' },
+    { id: 'codeBlock', icon: <Code className="h-4 w-4 mr-2" />, label: 'コードブロック' },
+    { id: 'table', icon: <TableIcon className="h-4 w-4 mr-2" />, label: '表' },
+    { id: 'image', icon: <ImageIcon className="h-4 w-4 mr-2" />, label: '画像' },
+  ];
 
   const editor = useEditor({
     extensions: [
@@ -110,6 +131,31 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
         class: 'prose prose-sm dark:prose-invert min-h-[200px] max-w-none p-4 focus:outline-none',
       },
       handleKeyDown: (view, event) => {
+        // スラッシュメニューが表示されている場合、キーボードナビゲーションを処理
+        if (showSlashCommands) {
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setSelectedCommandIndex((prev) => (prev < commands.length - 1 ? prev + 1 : prev));
+            return true;
+          }
+          if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setSelectedCommandIndex((prev) => (prev > 0 ? prev - 1 : prev));
+            return true;
+          }
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            executeSlashCommand(commands[selectedCommandIndex].id);
+            return true;
+          }
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            setShowSlashCommands(false);
+            setSlashPosition(null);
+            return true;
+          }
+        }
+
         // スラッシュが押された時、スラッシュコマンドメニューを表示
         if (event.key === '/') {
           if (!editorRef.current) return false;
@@ -135,20 +181,14 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
             
             setSlashCommandPosition({ top, left });
             setShowSlashCommands(true);
+            setSelectedCommandIndex(0);
             
             // スラッシュの位置を保存（後で削除するため）
             setSlashPosition({
-              from: $from.pos - 1,
-              to: $from.pos
+              from: $from.pos,
+              to: $from.pos + 1
             });
           }
-        }
-        
-        // Escキーでスラッシュコマンドメニューを閉じる
-        if (event.key === 'Escape' && showSlashCommands) {
-          setShowSlashCommands(false);
-          setSlashPosition(null);
-          return true;
         }
 
         // スペースキーが押された時、マークダウン記法を変換
@@ -286,16 +326,17 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     }
   };
 
-  const executeSlashCommand = (command: string) => {
+  const executeSlashCommand = (commandId: string) => {
     if (!editor || !slashPosition) return;
 
-    // まずスラッシュを削除
+    // スラッシュを削除
     editor.commands.deleteRange({
       from: slashPosition.from,
-      to: slashPosition.to,
+      to: slashPosition.to
     });
 
-    switch (command) {
+    // コマンドに対応する処理を実行
+    switch (commandId) {
       case 'heading1':
         // 見出し1の場合は # を挿入
         editor.chain().focus().insertContent('# ').run();
@@ -341,14 +382,22 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     setSlashPosition(null);
   };
 
+  // メニューが表示されたときに選択インデックスをリセット
+  useEffect(() => {
+    if (showSlashCommands) {
+      setSelectedCommandIndex(0);
+    }
+  }, [showSlashCommands]);
+
   // クリックイベントを処理
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      // エディタ内のクリックは無視
-      if (editorRef.current && editorRef.current.contains(e.target as Node)) {
+      // メニューやそのコンテンツ内のクリックは無視
+      if (menuRef.current && menuRef.current.contains(e.target as Node)) {
         return;
       }
       
+      // エディタの他の部分をクリックした場合にもメニューを閉じる
       if (showSlashCommands) {
         setShowSlashCommands(false);
         setSlashPosition(null);
@@ -358,6 +407,22 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSlashCommands]);
+
+  // エディタ外でのキーボードイベントのリスナー
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showSlashCommands) return;
+      
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Escape') {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown as any);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown as any);
     };
   }, [showSlashCommands]);
 
@@ -429,6 +494,7 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
         {/* スラッシュコマンドメニュー (エディタ内に配置) */}
         {showSlashCommands && editor && (
           <div 
+            ref={menuRef}
             className="absolute z-10 bg-background border rounded-md shadow-md overflow-hidden"
             style={{
               top: slashCommandPosition.top + 'px',
@@ -439,69 +505,21 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
             }}
           >
             <div className="py-1">
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('heading1')}
-              >
-                <Heading1 className="h-4 w-4 mr-2" />
-                <span>見出し 1</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('heading2')}
-              >
-                <Heading2 className="h-4 w-4 mr-2" />
-                <span>見出し 2</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('heading3')}
-              >
-                <Heading3 className="h-4 w-4 mr-2" />
-                <span>見出し 3</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('bulletList')}
-              >
-                <List className="h-4 w-4 mr-2" />
-                <span>箇条書きリスト</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('orderedList')}
-              >
-                <ListOrdered className="h-4 w-4 mr-2" />
-                <span>番号付きリスト</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('blockquote')}
-              >
-                <Quote className="h-4 w-4 mr-2" />
-                <span>引用</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('codeBlock')}
-              >
-                <Code className="h-4 w-4 mr-2" />
-                <span>コードブロック</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('table')}
-              >
-                <TableIcon className="h-4 w-4 mr-2" />
-                <span>表</span>
-              </button>
-              <button 
-                className="w-full text-left px-3 py-1.5 hover:bg-muted flex items-center"
-                onClick={() => executeSlashCommand('image')}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" />
-                <span>画像</span>
-              </button>
+              {commands.map((command, index) => (
+                <button 
+                  key={command.id}
+                  className={`w-full text-left px-3 py-1.5 flex items-center ${
+                    selectedCommandIndex === index 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'hover:bg-muted'
+                  }`}
+                  onClick={() => executeSlashCommand(command.id)}
+                  onMouseEnter={() => setSelectedCommandIndex(index)}
+                >
+                  {command.icon}
+                  <span>{command.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         )}
