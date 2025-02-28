@@ -56,7 +56,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
         </p>
       </div>
       <Separator className="my-3" />
-      <ScrollArea className="h-[calc(100vh-11rem)] px-2">
+      <ScrollArea className="h-[calc(100vh-8rem)] px-2">
         <div className="space-y-1.5 p-2">
           <Button
             variant={!selectedChannel ? "secondary" : "ghost"}
