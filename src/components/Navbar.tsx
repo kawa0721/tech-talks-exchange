@@ -1,13 +1,6 @@
 
-import { useState } from "react";
-import { 
-  Bell, 
-  MessageSquare, 
-  Menu, 
-  Search, 
-  User as UserIcon 
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, MessageSquare, Search, Bell } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,22 +13,45 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavbarProps {
   onToggleSidebar: () => void;
 }
 
 const Navbar = ({ onToggleSidebar }: NavbarProps) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Mock login function (for demonstration)
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "ログアウト成功",
+        description: "ログアウトしました",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("ログアウトエラー:", error);
+      toast({
+        title: "エラー",
+        description: "ログアウト中にエラーが発生しました",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Mock logout function (for demonstration)
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  const getUserInitials = () => {
+    if (!user) return "U";
+    
+    const email = user.email || "";
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    
+    return "U";
   };
 
   return (
@@ -71,7 +87,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
 
           <ThemeToggle />
 
-          {isLoggedIn ? (
+          {user ? (
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
@@ -83,17 +99,19 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="@user" />
-                      <AvatarFallback>TG</AvatarFallback>
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt="ユーザーアバター" />
+                      <AvatarFallback>{getUserInitials()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">テックグル42</p>
+                      <p className="text-sm font-medium leading-none">
+                        {user.user_metadata?.name || user.email}
+                      </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        techguru@example.com
+                        {user.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -105,7 +123,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
                     <Link to="/settings" className="flex w-full">設定</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={handleSignOut}>
                     ログアウト
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -113,10 +131,10 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleLogin}>
+              <Button variant="outline" onClick={() => navigate("/auth")}>
                 ログイン
               </Button>
-              <Button onClick={handleLogin}>
+              <Button onClick={() => navigate("/auth?tab=register")}>
                 新規登録
               </Button>
             </div>
