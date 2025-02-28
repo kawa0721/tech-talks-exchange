@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -12,7 +13,7 @@ import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { lowlight } from 'lowlight/lib/core';
+import { lowlight } from 'lowlight';
 import {
   Bold,
   Italic,
@@ -347,7 +348,8 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       <EditorContent editor={editor} className="notion-like-editor" />
 
       {/* カスタムスタイル */}
-      <style jsx global>{`
+      <style>
+        {`
         .notion-like-editor .is-empty:first-child::before {
           content: attr(data-placeholder);
           float: left;
@@ -368,7 +370,8 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
         .dark .notion-like-editor [data-active="true"] {
           background-color: rgba(255, 255, 255, 0.1);
         }
-      `}</style>
+      `}
+      </style>
     </div>
   );
 };
