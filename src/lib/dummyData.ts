@@ -317,7 +317,101 @@ IntelliJ IDEAは、Java開発でよく使われるIDE（統合開発環境）で
   },
 ];
 
-export const channelCategories = [
+export const CHANNELS = [
+  {
+    id: 'vscode',
+    name: 'VSCode',
+    description: 'Visual Studio Codeに関するディスカッション',
+    icon: '💻',
+    categoryId: 'editors'
+  },
+  {
+    id: 'react',
+    name: 'React',
+    description: 'Reactに関するディスカッション',
+    icon: '⚛️',
+    categoryId: 'programming-languages-frameworks'
+  },
+  {
+    id: 'typescript',
+    name: 'TypeScript',
+    description: 'TypeScriptに関するディスカッション',
+    icon: '📘',
+    categoryId: 'programming-languages-frameworks'
+  },
+  {
+    id: 'intellij',
+    name: 'IntelliJ IDEA',
+    description: 'IntelliJ IDEAに関するディスカッション',
+    icon: '🧠',
+    categoryId: 'editors'
+  },
+  {
+    id: 'vim',
+    name: 'Vim',
+    description: 'Vimに関するディスカッション',
+    icon: '📝',
+    categoryId: 'editors'
+  },
+  {
+    id: 'github-copilot',
+    name: 'GitHub Copilot',
+    description: 'GitHub Copilotに関するディスカッション',
+    icon: '🤖',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'amazon-codewhisperer',
+    name: 'Amazon CodeWhisperer',
+    description: 'Amazon CodeWhispererに関するディスカッション',
+    icon: '☁️',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'codeium',
+    name: 'Codeium',
+    description: 'Codeiumに関するディスカッション',
+    icon: '🧩',
+    categoryId: 'ai-coding-services'
+  },
+  {
+    id: 'tabnine',
+    name: 'Tabnine',
+    description: 'Tabnineに関するディスカッション',
+    icon: '📊',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'kite',
+    name: 'Kite',
+    description: 'Kiteに関するディスカッション',
+    icon: '🪁',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'blackbox',
+    name: 'Blackbox',
+    description: 'Blackboxに関するディスカッション',
+    icon: '📦',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'general',
+    name: '一般',
+    description: '一般的なトピックに関するディスカッション',
+    icon: '💬',
+    categoryId: 'others'
+  },
+  {
+    id: 'qna',
+    name: '質問と回答',
+    description: '質問と回答に関するディスカッション',
+    icon: '❓',
+    categoryId: 'others'
+  },
+];
+
+export const CHANNEL_CATEGORIES = [
   {
     id: 'programming-languages-frameworks',
     name: 'プログラミング言語・フレームワーク',
@@ -345,5 +439,76 @@ export const channelCategories = [
   }
 ];
 
-export const trendingPosts = POSTS.slice(0, 3);
-export const popularPosts = POSTS.slice(2, 5);
+export const COMMENTS = [
+  {
+    id: 'comment-1',
+    postId: 'post-1',
+    userId: 'user-2',
+    user: {
+      id: 'user-2',
+      name: '山田 花子',
+      avatar: 'https://i.pravatar.cc/150?img=2'
+    },
+    content: 'この記事とても参考になりました！特にPrettierとGitLensは私も愛用しています。',
+    createdAt: new Date('2024-04-28T14:30:00Z'),
+    likesCount: 5,
+    liked: false
+  },
+  {
+    id: 'comment-2',
+    postId: 'post-1',
+    userId: 'user-3',
+    user: {
+      id: 'user-3',
+      name: '佐藤 次郎',
+      avatar: 'https://i.pravatar.cc/150?img=3'
+    },
+    content: 'vscode-iconsの代わりにMaterial Icon Themeも良いですよ！',
+    createdAt: new Date('2024-04-28T15:45:00Z'),
+    likesCount: 3,
+    liked: true
+  },
+  {
+    id: 'comment-3',
+    postId: 'post-2',
+    userId: 'user-4',
+    user: {
+      id: 'user-4',
+      name: '鈴木 さくら',
+      avatar: 'https://i.pravatar.cc/150?img=4'
+    },
+    content: 'useEffectの使い方がよく分かりました。依存配列の重要性について、もう少し詳しく説明していただけませんか？',
+    createdAt: new Date('2024-04-27T19:20:00Z'),
+    likesCount: 2,
+    liked: false
+  },
+  {
+    id: 'comment-4',
+    postId: 'post-2',
+    userId: 'user-1',
+    user: {
+      id: 'user-1',
+      name: '田中 太郎',
+      avatar: 'https://i.pravatar.cc/150?img=1'
+    },
+    content: 'useCallbackとuseMemoの違いについても知りたいです。',
+    createdAt: new Date('2024-04-27T20:10:00Z'),
+    likesCount: 1,
+    liked: false
+  }
+];
+
+export const TRENDING_POSTS = POSTS.slice(0, 3);
+export const POPULAR_POSTS = POSTS.slice(2, 5);
+
+// Helper functions to replicate the exported functions from previous version
+export const getPostsForChannel = (channelId: string | null): typeof POSTS => {
+  if (channelId === null) {
+    return POSTS;
+  }
+  return POSTS.filter(post => post.channelId === channelId);
+};
+
+export const getCommentsForPost = (postId: string): typeof COMMENTS => {
+  return COMMENTS.filter(comment => comment.postId === postId);
+};
