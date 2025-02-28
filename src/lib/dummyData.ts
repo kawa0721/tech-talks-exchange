@@ -363,7 +363,7 @@ export const CHANNELS = [
     name: 'GitHub Copilot',
     description: 'GitHub Copilotに関するディスカッション',
     icon: '🤖',
-    categoryId: 'ai-coding-services'
+    categoryId: 'editor-extensions'
   },
   {
     id: 'amazon-codewhisperer',
@@ -401,6 +401,20 @@ export const CHANNELS = [
     categoryId: 'editor-extensions'
   },
   {
+    id: 'julie',
+    name: 'Julie',
+    description: 'Julie AIに関するディスカッション',
+    icon: '🤖',
+    categoryId: 'editor-extensions'
+  },
+  {
+    id: 'roo-cline',
+    name: 'Roo Cline',
+    description: 'Roo Clineに関するディスカッション',
+    icon: '🦘',
+    categoryId: 'editor-extensions'
+  },
+  {
     id: 'general',
     name: '一般',
     description: '一般的なトピックに関するディスカッション',
@@ -419,7 +433,7 @@ export const CHANNELS = [
 export const CHANNEL_CATEGORIES = [
   {
     id: 'programming-languages-frameworks',
-    name: 'プログラミング言語・フレームワーク',
+    name: 'プログラミング言語/フレームワーク',
     channels: ['react', 'typescript']
   },
   {
@@ -430,12 +444,12 @@ export const CHANNEL_CATEGORIES = [
   {
     id: 'ai-coding-services',
     name: 'AIコーディングサービス',
-    channels: ['github-copilot', 'amazon-codewhisperer', 'codeium']
+    channels: ['amazon-codewhisperer', 'codeium']
   },
   {
     id: 'editor-extensions',
     name: 'エディター拡張機能',
-    channels: ['tabnine', 'kite', 'blackbox']
+    channels: ['github-copilot', 'tabnine', 'kite', 'blackbox', 'julie', 'roo-cline']
   },
   {
     id: 'others',
