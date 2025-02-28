@@ -40,6 +40,23 @@
   .mobile-overlay {
     @apply fixed inset-0 bg-black/50 z-30 lg:hidden;
   }
+  
+  /* プロフィールカードのスタイル */
+  .profile-card {
+    @apply overflow-hidden shadow-md;
+  }
+  
+  .profile-card .avatar-upload {
+    @apply cursor-pointer relative overflow-hidden;
+  }
+  
+  .profile-card .avatar-upload:hover .avatar-upload-overlay {
+    @apply opacity-100;
+  }
+  
+  .profile-card .avatar-upload-overlay {
+    @apply absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 transition-opacity;
+  }
 }
 
 /* カードのホバーエフェクト */
