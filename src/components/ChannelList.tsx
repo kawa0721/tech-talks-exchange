@@ -42,7 +42,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
   });
 
   return (
-    <div className="py-4 h-full">
+    <div className="py-4 h-full flex flex-col">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-semibold tracking-tight">チャンネル</h2>
@@ -56,7 +56,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
         </p>
       </div>
       <Separator className="my-3" />
-      <ScrollArea className="h-[calc(100vh-6rem)] px-2">
+      <ScrollArea className="flex-1 px-2">
         <div className="space-y-1.5 p-2">
           <Button
             variant={!selectedChannel ? "secondary" : "ghost"}
