@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import ChannelList from "@/components/ChannelList";
 import CreatePostForm from "@/components/CreatePostForm";
 import { Post } from "@/types";
-import { CHANNELS, getPostsForChannel } from "@/lib/dummyData";
+import { CHANNELS, getPostsForChannel } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import FeaturedPosts from "@/components/FeaturedPosts";
 import RecommendedChannels from "@/components/RecommendedChannels";

@@ -50,7 +50,7 @@ const PostCard = ({
   };
 
   return (
-    <Card className={`mb-4 overflow-hidden card-hover ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
+    <Card className={`mb-4 overflow-hidden hover:shadow-md transition-shadow ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
       <PostCardHeader 
         post={post} 
         channelName={channelName} 
