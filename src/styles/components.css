@@ -1,0 +1,71 @@
+
+/* コンポーネントスタイル */
+@layer components {
+  /* サイドバー関連のスタイル */
+  .sidebar {
+    @apply bg-background border-r border-border h-screen fixed left-0 top-0 z-40 w-72;
+    box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .sidebar-content {
+    @apply h-full overflow-y-auto;
+  }
+  
+  .main-content {
+    @apply ml-0 pt-4 pb-12 w-full transition-all duration-300 min-h-screen;
+  }
+  
+  @media (min-width: 1024px) {
+    .main-content {
+      @apply ml-72;
+    }
+  }
+  
+  /* Navbarスタイル */
+  .navbar {
+    @apply fixed top-0 left-0 right-0 z-50 bg-background border-b border-border;
+  }
+  
+  /* チャンネルボタンのアニメーション */
+  .channel-btn {
+    transition: all 0.2s ease;
+  }
+
+  .channel-btn:hover {
+    padding-left: 1rem;
+    background-color: hsl(var(--secondary));
+  }
+
+  /* モバイルオーバーレイ */
+  .mobile-overlay {
+    @apply fixed inset-0 bg-black/50 z-30 lg:hidden;
+  }
+}
+
+/* カードのホバーエフェクト */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+/* カスタムスクロールバー */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
