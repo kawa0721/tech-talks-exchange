@@ -72,6 +72,7 @@ VSCodeをより便利にする拡張機能を紹介します。
 これらの拡張機能を活用して、VSCodeでの開発をより快適にしましょう！
 `,
     userId: 'user-1',
+    user: USERS[0],
     channelId: 'vscode',
     createdAt: new Date('2024-04-28T12:00:00Z'),
     liked: true,
@@ -165,6 +166,7 @@ function MyComponent() {
 これらのHooksを理解して、Reactコンポーネントをより効率的に開発しましょう。
 `,
     userId: 'user-2',
+    user: USERS[1],
     channelId: 'react',
     createdAt: new Date('2024-04-27T18:30:00Z'),
     liked: false,
@@ -211,6 +213,7 @@ GitHub Copilotは、OpenAIとGitHubが共同で開発したAIペアプログラ�
 GitHub Copilotを使いこなして、爆速コーディングを実現しましょう！
 `,
     userId: 'user-3',
+    user: USERS[2],
     channelId: 'github-copilot',
     createdAt: new Date('2024-04-26T09:15:00Z'),
     liked: true,
@@ -254,6 +257,7 @@ Amazon CodeWhispererは、AIを活用してコーディングを支援するサ�
 Amazon CodeWhispererを使いこなして、効率的なコーディングを実現しましょう！
 `,
     userId: 'user-4',
+    user: USERS[3],
     channelId: 'amazon-codewhisperer',
     createdAt: new Date('2024-04-25T22:00:00Z'),
     liked: false,
@@ -309,6 +313,7 @@ IntelliJ IDEAは、Java開発でよく使われるIDE（統合開発環境）で
 これらのショートカットキーを覚えて、IntelliJ IDEAでの開発をよりスムーズにしましょう。
 `,
     userId: 'user-5',
+    user: USERS[4],
     channelId: 'intellij',
     createdAt: new Date('2024-04-24T15:45:00Z'),
     liked: true,
