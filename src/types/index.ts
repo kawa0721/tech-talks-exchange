@@ -6,11 +6,17 @@ export type User = {
   profile?: string;
 };
 
+export type ChannelCategory = {
+  id: string;
+  name: string;
+};
+
 export type Channel = {
   id: string;
   name: string;
   description: string;
   icon?: string;
+  categoryId: string;
 };
 
 export type Comment = {

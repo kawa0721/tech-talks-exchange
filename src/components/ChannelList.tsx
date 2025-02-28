@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import { Hash, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Hash, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { channels } from "@/lib/dummyData";
-import { Channel } from "@/types";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { channels, channelCategories } from "@/lib/dummyData";
+import { Channel, ChannelCategory } from "@/types";
 
 interface ChannelListProps {
   selectedChannel: string | null;
@@ -14,6 +15,32 @@ interface ChannelListProps {
 }
 
 const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => {
+  // State to track which categories are expanded
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
+    // Initially expand all categories
+    return channelCategories.reduce((acc, category) => {
+      acc[category.id] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
+  });
+
+  // Toggle category expansion
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
+  // Group channels by category
+  const channelsByCategory = channelCategories.map(category => {
+    const categoryChannels = channels.filter(channel => channel.categoryId === category.id);
+    return {
+      category,
+      channels: categoryChannels
+    };
+  });
+
   return (
     <div className="py-4 h-full">
       <div className="px-4 py-3">
@@ -39,13 +66,45 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
             <Hash className="mr-2 h-5 w-5" />
             すべてのチャンネル
           </Button>
-          {channels.map((channel) => (
-            <ChannelButton
-              key={channel.id}
-              channel={channel}
-              isSelected={selectedChannel === channel.id}
-              onClick={() => onSelectChannel(channel.id)}
-            />
+          
+          {/* Display channels grouped by category */}
+          {channelsByCategory.map(({ category, channels }) => (
+            <div key={category.id} className="mt-4">
+              <Collapsible
+                open={expandedCategories[category.id]}
+                onOpenChange={() => toggleCategory(category.id)}
+                className="space-y-2"
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between font-medium text-base pl-2 py-2 hover:bg-secondary/50"
+                  >
+                    <div className="flex items-center">
+                      {expandedCategories[category.id] ? (
+                        <ChevronDown className="h-4 w-4 mr-2" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 mr-2" />
+                      )}
+                      {category.name}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {channels.length}
+                    </span>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-1 pl-4">
+                  {channels.map((channel) => (
+                    <ChannelButton
+                      key={channel.id}
+                      channel={channel}
+                      isSelected={selectedChannel === channel.id}
+                      onClick={() => onSelectChannel(channel.id)}
+                    />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
           ))}
         </div>
       </ScrollArea>
@@ -64,7 +123,7 @@ const ChannelButton = ({ channel, isSelected, onClick }: ChannelButtonProps) => 
     <Button
       variant={isSelected ? "secondary" : "ghost"}
       className={cn(
-        "w-full justify-start font-normal text-base py-5 transition-all",
+        "w-full justify-start font-normal text-base py-4 transition-all",
         isSelected ? "bg-secondary" : "hover:bg-secondary/50"
       )}
       onClick={onClick}

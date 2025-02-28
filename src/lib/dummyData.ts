@@ -1,5 +1,5 @@
 
-import { User, Channel, Post, Comment } from "@/types";
+import { User, Channel, Post, Comment, ChannelCategory } from "@/types";
 
 // Sample users
 export const users: User[] = [
@@ -23,38 +23,115 @@ export const users: User[] = [
   },
 ];
 
+// Channel categories
+export const channelCategories: ChannelCategory[] = [
+  {
+    id: "1",
+    name: "エディター"
+  },
+  {
+    id: "2",
+    name: "AIコーディングサービス"
+  },
+  {
+    id: "3",
+    name: "エディター拡張機能"
+  }
+];
+
 // Sample channels
 export const channels: Channel[] = [
   {
     id: "1",
     name: "Cursor",
     description: "Everything about the Cursor code editor and its AI features",
-    icon: "💻"
+    icon: "💻",
+    categoryId: "1"
   },
   {
     id: "2",
     name: "Windsurf",
     description: "Discussions about Windsurf programming framework",
-    icon: "🏄"
+    icon: "🏄",
+    categoryId: "1"
   },
   {
     id: "3",
     name: "Cline",
     description: "Tips and tricks for Cline terminal tools",
-    icon: "🖥️"
+    icon: "🖥️",
+    categoryId: "3"
   },
   {
     id: "4",
     name: "React",
     description: "React.js discussions and resources",
-    icon: "⚛️"
+    icon: "⚛️",
+    categoryId: "1"
   },
   {
     id: "5",
     name: "TypeScript",
     description: "TypeScript help, discussions, and best practices",
-    icon: "📘"
+    icon: "📘",
+    categoryId: "1"
   },
+  {
+    id: "6",
+    name: "Void Editor",
+    description: "Discussions about Void Editor",
+    icon: "🌑",
+    categoryId: "1"
+  },
+  {
+    id: "7",
+    name: "IntelliJ",
+    description: "IntelliJ IDEA tips and discussions",
+    icon: "🧠",
+    categoryId: "1"
+  },
+  {
+    id: "8",
+    name: "v0",
+    description: "v0 AI coding assistant discussions",
+    icon: "🤖",
+    categoryId: "2"
+  },
+  {
+    id: "9",
+    name: "Lovable",
+    description: "Lovable AI app development discussions",
+    icon: "❤️",
+    categoryId: "2"
+  },
+  {
+    id: "10",
+    name: "Bolt",
+    description: "Bolt AI assistant discussions",
+    icon: "⚡",
+    categoryId: "2"
+  },
+  {
+    id: "11",
+    name: "Replit",
+    description: "Replit and its AI features",
+    icon: "🔄",
+    categoryId: "2"
+  },
+  {
+    id: "12",
+    name: "Devin",
+    description: "Discussions about Devin AI developer",
+    icon: "👨‍💻",
+    categoryId: "2"
+  },
+  {
+    id: "13",
+    name: "GitHub Copilot",
+    description: "GitHub Copilot tips and discussions",
+    icon: "🚁",
+    categoryId: "3"
+  }
 ];
 
 // Sample posts
