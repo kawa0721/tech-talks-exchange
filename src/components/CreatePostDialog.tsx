@@ -14,17 +14,18 @@ import { CHANNELS } from "@/lib/data";
 interface CreatePostDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  channelId: string | null;
 }
 
-const CreatePostDialog = ({ isOpen, onClose }: CreatePostDialogProps) => {
-  const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+const CreatePostDialog = ({ isOpen, onClose, channelId }: CreatePostDialogProps) => {
+  const [selectedChannel, setSelectedChannel] = useState<string | null>(channelId);
 
   useEffect(() => {
     // Reset selected channel when dialog is opened
     if (isOpen) {
-      setSelectedChannel(null);
+      setSelectedChannel(channelId);
     }
-  }, [isOpen]);
+  }, [isOpen, channelId]);
 
   const handlePostCreated = () => {
     // Close the dialog after successful post creation

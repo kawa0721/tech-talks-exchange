@@ -9,6 +9,7 @@ import FeaturedPosts from "@/components/FeaturedPosts";
 import RecommendedChannels from "@/components/RecommendedChannels";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import CreatePostDialog from "@/components/CreatePostDialog";
 
 const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
@@ -17,6 +18,7 @@ const Index = () => {
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch posts based on selected channel
@@ -51,6 +53,14 @@ const Index = () => {
   const getChannelName = (channelId: string): string => {
     const channel = CHANNELS.find((c) => c.id === channelId);
     return channel ? channel.name : "不明なチャンネル";
+  };
+
+  const handleOpenPostDialog = () => {
+    setIsPostDialogOpen(true);
+    toast({
+      title: "投稿作成",
+      description: "投稿フォームを起動します",
+    });
   };
 
   return (
@@ -141,16 +151,17 @@ const Index = () => {
       {/* 投稿ボタン（右下に固定） */}
       <Button
         className="fixed bottom-6 right-6 shadow-lg rounded-full h-14 w-14 p-0 z-50"
-        onClick={() => {
-          // 投稿機能を起動する処理
-          toast({
-            title: "投稿作成",
-            description: "投稿フォームを起動します",
-          });
-        }}
+        onClick={handleOpenPostDialog}
       >
         <Plus className="h-6 w-6" />
       </Button>
+
+      {/* 投稿ダイアログ */}
+      <CreatePostDialog
+        isOpen={isPostDialogOpen}
+        onClose={() => setIsPostDialogOpen(false)}
+        channelId={selectedChannel}
+      />
     </div>
   );
 };
