@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Edit } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreatePostDialog from "@/components/CreatePostDialog";
 
@@ -20,12 +20,13 @@ const FloatingPostButton = () => {
         onClick={handleClick}
         aria-label="新規投稿"
       >
-        <Edit className="h-6 w-6" />
+        <Plus className="h-6 w-6" />
       </Button>
 
       <CreatePostDialog 
         isOpen={isDialogOpen} 
-        onClose={() => setIsDialogOpen(false)} 
+        onClose={() => setIsDialogOpen(false)}
+        channelId={null} 
       />
     </>
   );
