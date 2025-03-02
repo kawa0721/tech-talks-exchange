@@ -10,7 +10,9 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotionLikeEditor from "./NotionLikeEditor";
 import { convertHtmlToMarkdown } from "@/lib/markdownUtils";
-import { USERS, POSTS } from "@/lib/data"; // Import USERS and POSTS from data
+import { USERS } from "@/lib/data"; // Import USERS from data
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CreatePostFormProps {
   channelId: string | null;
@@ -24,6 +26,9 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
+  
+  // 認証情報の取得
+  const { user } = useAuth();
 
   // HTMLが変更されたときにマークダウンも更新
   const handleHtmlChange = (html: string) => {
@@ -53,7 +58,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
     setImages(newImages);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title.trim()) {
@@ -66,40 +71,47 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
       return;
     }
 
+    if (!user) {
+      toast.error("投稿するにはログインが必要です");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // 投稿時にはHTMLコンテンツを使用し、マークダウンも保存しておく
+    // HTMLからマークダウンに変換
     const markdownForSaving = convertHtmlToMarkdown(htmlContent);
 
-    // 新しい投稿を作成
-    const newPost = {
-      id: `post-${Date.now()}`, // 一意のIDを生成
-      title: title,
-      content: markdownForSaving,
-      userId: 'user-1', // ユーザーIDはとりあえずuser-1を使用（実際はログイン中のユーザーIDを使用）
-      user: USERS[0], // 仮のユーザー情報
-      channelId: channelId || 'general', // チャンネルIDが指定されていない場合は'general'を使用
-      createdAt: new Date(),
-      liked: false,
-      likesCount: 0,
-      commentsCount: 0,
-      images: images.length > 0 ? [...images] : undefined
-    };
+    try {
+      // Supabaseに投稿を保存
+      const { data, error } = await supabase
+        .from('posts')
+        .insert([
+          {
+            title: title,
+            content: markdownForSaving,
+            user_id: user.id,
+            channel_id: channelId || 'general',
+            images: images.length > 0 ? images : null
+          }
+        ])
+        .select();
 
-    // 実際のアプリケーションでは、ここでAPIを呼び出して投稿を保存
+      if (error) {
+        throw error;
+      }
 
-    // データに投稿を追加（実際のアプリケーションではバックエンドに保存）
-    POSTS.unshift(newPost);
-
-    setTimeout(() => {
       toast.success("投稿が作成されました！");
       setTitle("");
       setContent("");
       setHtmlContent("");
       setImages([]);
-      setIsSubmitting(false);
       onPostCreated();
-    }, 1000);
+    } catch (error) {
+      console.error("投稿作成エラー:", error);
+      toast.error("投稿の作成に失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // 書き込みエリアの高さを取得するための関数
@@ -119,8 +131,8 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
         <CardHeader className="pb-3 pt-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9">
-              <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="@user" />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarImage src={user?.user_metadata?.avatar_url || "https://i.pravatar.cc/150?img=1"} alt={user?.user_metadata?.name || "@user"} />
+              <AvatarFallback>{user?.user_metadata?.name?.substring(0, 2) || "U"}</AvatarFallback>
             </Avatar>
             <Input
               placeholder="タイトル"
