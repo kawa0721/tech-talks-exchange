@@ -98,7 +98,7 @@ const AllPosts = () => {
           postsData.map(async (post) => {
             let userData = {
               id: post.user_id || "unknown",
-              name: "不明なユーザー",
+              name: "kawakitamasayuki@gmail.com", // Changed from "不明なユーザー"
               avatar: undefined
             };
 
@@ -113,7 +113,7 @@ const AllPosts = () => {
               if (!profileError && profile) {
                 userData = {
                   id: profile.id,
-                  name: profile.username || "匿名ユーザー",
+                  name: profile.username || "kawakitamasayuki@gmail.com", // Changed from "匿名ユーザー"
                   avatar: profile.avatar_url
                 };
               }
