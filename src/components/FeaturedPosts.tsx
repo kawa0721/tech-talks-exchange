@@ -48,7 +48,7 @@ const FeaturedPosts = ({
           </TabsTrigger>
         </TabsList>
         <Button variant="link" size="sm" className="text-muted-foreground" asChild>
-          <Link to="/posts/trending" className="flex items-center">
+          <Link to="/posts" className="flex items-center">
             すべて見る <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </Button>
