@@ -14,28 +14,30 @@ const Index = () => {
   const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false); // 追加読み込み時のローディング状態
-  const [hasMore, setHasMore] = useState(true); // さらに読み込める投稿があるかどうか
-  const [page, setPage] = useState(1); // ページ番号を追加
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const PER_PAGE = 10; // 1ページあたりの表示件数
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // 投稿をフェッチする関数
-  const fetchPosts = async (reset = true, currentPage = 1) => {
+  const fetchPosts = async (reset = true) => {
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
       setLoading(true);
-      setPage(1);
       setPosts([]);
       setHasMore(true);
-      currentPage = 1;
     } else {
       setLoadingMore(true);
     }
 
     try {
+      // 現在のポスト数（次のオフセットとして使用）
+      const offset = reset ? 0 : posts.length;
+      
+      console.log(`Fetching posts with offset ${offset}, limit ${PER_PAGE}`);
+
       // 1. 投稿を取得
       let query = supabase
         .from('posts')
@@ -47,13 +49,10 @@ const Index = () => {
         query = query.eq('channel_id', selectedChannel);
       }
 
-      // ページネーション処理
-      const from = reset ? 0 : (currentPage - 1) * PER_PAGE;
-      const to = reset ? PER_PAGE - 1 : (currentPage * PER_PAGE) - 1;
-      
-      console.log(`Fetching posts from ${from} to ${to}, page: ${currentPage}, reset: ${reset}`);
-      
-      query = query.range(from, to);
+      // limit と offset を使用してページネーション
+      query = query
+        .limit(PER_PAGE)
+        .range(offset, offset + PER_PAGE - 1);
 
       const { data: postsData, error: postsError } = await query;
 
@@ -88,7 +87,7 @@ const Index = () => {
         postsData.map(async (post) => {
           let userData = {
             id: post.user_id || "unknown",
-            name: "kawakitamasayuki@gmail.com", // Changed from "不明なユーザー"
+            name: "kawakitamasayuki@gmail.com",
             avatar: undefined
           };
 
@@ -103,7 +102,7 @@ const Index = () => {
             if (!profileError && profile) {
               userData = {
                 id: profile.id,
-                name: profile.username || "kawakitamasayuki@gmail.com", // Changed from "匿名ユーザー"
+                name: profile.username || "kawakitamasayuki@gmail.com",
                 avatar: profile.avatar_url
               };
             }
@@ -130,7 +129,16 @@ const Index = () => {
       if (reset) {
         setPosts(formattedPosts);
       } else {
-        setPosts(prev => [...prev, ...formattedPosts]);
+        // 重複を避けるためにIDベースで追加
+        const existingIds = new Set(posts.map(post => post.id));
+        const uniqueNewPosts = formattedPosts.filter(post => !existingIds.has(post.id));
+        
+        if (uniqueNewPosts.length > 0) {
+          setPosts(prev => [...prev, ...uniqueNewPosts]);
+        } else {
+          // 新しい投稿がない場合は追加データなしとマーク
+          setHasMore(false);
+        }
       }
 
       // トレンド投稿と人気投稿の処理（チャンネルが選択されていない場合のみ）
@@ -139,13 +147,11 @@ const Index = () => {
         setTrendingPosts(formattedPosts.slice(0, 2));
 
         // 人気投稿: いいね数が多い投稿から選択
-        const popularQuery = supabase
+        const { data: popularData, error: popularError } = await supabase
           .from('posts')
           .select('*')
           .order('likes_count', { ascending: false })
           .limit(2);
-
-        const { data: popularData, error: popularError } = await popularQuery;
 
         if (!popularError && popularData && popularData.length > 0) {
           const formattedPopularPosts: Post[] = await Promise.all(
@@ -207,19 +213,17 @@ const Index = () => {
 
   // 初回レンダリング時とチャンネル変更時に投稿を取得
   useEffect(() => {
-    fetchPosts(true, 1);
+    fetchPosts(true);
   }, [selectedChannel]);
 
   // 「もっと読み込む」ボタンをクリックしたときの処理
   const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchPosts(false, nextPage);
+    fetchPosts(false);
   };
 
   const handlePostCreated = () => {
     // 新しい投稿が作成された後、投稿リストを更新
-    fetchPosts(true, 1);
+    fetchPosts(true);
   };
 
   return (
