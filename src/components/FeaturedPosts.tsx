@@ -1,4 +1,3 @@
-
 import { TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";
@@ -7,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PostsList from "@/components/PostsList";
 import PostCard from "@/components/PostCard";
+import { useEffect } from "react";
 
 interface FeaturedPostsProps {
   trendingPosts: Post[];
@@ -17,15 +17,26 @@ interface FeaturedPostsProps {
   loading: boolean;
 }
 
-const FeaturedPosts = ({ 
-  trendingPosts, 
-  popularPosts, 
+const FeaturedPosts = ({
+  trendingPosts,
+  popularPosts,
   posts,
-  getChannelName, 
+  getChannelName,
   selectedChannel,
   loading
 }: FeaturedPostsProps) => {
-  // Generate recent posts - sorted by creation date
+  // デバッグログを追加
+  useEffect(() => {
+    console.log('FeaturedPosts rendered with:', {
+      trendingPostsCount: trendingPosts.length,
+      popularPostsCount: popularPosts.length,
+      postsCount: posts.length,
+      selectedChannel,
+      loading
+    });
+  }, [trendingPosts, popularPosts, posts, selectedChannel, loading]);
+
+  // 最近の投稿 - 作成日順にソート
   const recentPosts = [...trendingPosts, ...popularPosts]
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, 2);
@@ -53,14 +64,14 @@ const FeaturedPosts = ({
           </Link>
         </Button>
       </div>
-      
+
       <TabsContent value="trending" className="mt-0">
         {trendingPosts.length > 0 ? (
           <div className="space-y-4">
             {trendingPosts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                post={post} 
+              <PostCard
+                key={post.id}
+                post={post}
                 channelName={getChannelName(post.channelId)}
                 showChannel={true}
                 isTrending={true}
@@ -75,14 +86,14 @@ const FeaturedPosts = ({
           </Card>
         )}
       </TabsContent>
-      
+
       <TabsContent value="popular" className="mt-0">
         {popularPosts.length > 0 ? (
           <div className="space-y-4">
             {popularPosts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                post={post} 
+              <PostCard
+                key={post.id}
+                post={post}
                 channelName={getChannelName(post.channelId)}
                 showChannel={true}
                 isPopular={true}
@@ -99,7 +110,7 @@ const FeaturedPosts = ({
       </TabsContent>
 
       <TabsContent value="recent" className="mt-0">
-        <PostsList 
+        <PostsList
           posts={posts}
           loading={loading}
           getChannelName={getChannelName}
