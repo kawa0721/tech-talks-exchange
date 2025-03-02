@@ -48,23 +48,23 @@ const PostDetail = () => {
         
         // 次にユーザー情報を取得
         let userData: User = {
-          id: postData.user_id,
+          id: postData.user_id || "unknown",
           name: "不明なユーザー",
           avatar: undefined
         };
         
         if (postData.user_id) {
-          const { data: user, error: userError } = await supabase
+          const { data: profile, error: userError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', postData.user_id)
             .single();
           
-          if (!userError && user) {
+          if (!userError && profile) {
             userData = {
-              id: user.id,
-              name: user.name || user.username || "匿名ユーザー",
-              avatar: user.avatar_url
+              id: profile.id,
+              name: profile.username || "匿名ユーザー", // Use username from profile
+              avatar: profile.avatar_url
             };
           }
         }
@@ -74,7 +74,7 @@ const PostDetail = () => {
           id: postData.id,
           title: postData.title,
           content: postData.content,
-          userId: postData.user_id,
+          userId: postData.user_id || "unknown",
           user: userData,
           channelId: postData.channel_id,
           createdAt: new Date(postData.created_at),
@@ -82,7 +82,7 @@ const PostDetail = () => {
           likesCount: postData.likes_count,
           commentsCount: postData.comments_count,
           liked: false,
-          images: postData.images
+          images: postData.images || []
         };
         
         setPost(formattedPost);

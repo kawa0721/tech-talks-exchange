@@ -33,10 +33,7 @@ const AllPosts = () => {
       try {
         let query = supabase
           .from('posts')
-          .select(`
-            *,
-            user:user_id (*)
-          `);
+          .select('*');
         
         if (activeTab === "popular") {
           // 人気の投稿（いいね数で並び替え）
@@ -49,31 +46,60 @@ const AllPosts = () => {
         // 最大10件を取得
         query = query.limit(10);
         
-        const { data, error } = await query;
+        const { data: postsData, error: postsError } = await query;
         
-        if (error) {
-          throw error;
+        if (postsError) {
+          throw postsError;
+        }
+
+        if (!postsData || postsData.length === 0) {
+          setPosts([]);
+          setLoading(false);
+          return;
         }
         
-        // 投稿データを変換
-        const formattedPosts: Post[] = data.map(post => ({
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          userId: post.user_id,
-          user: post.user || {
-            id: post.user_id,
-            name: "不明なユーザー",
-            avatar: undefined
-          },
-          channelId: post.channel_id,
-          createdAt: new Date(post.created_at),
-          updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
-          likesCount: post.likes_count,
-          commentsCount: post.comments_count,
-          liked: false,
-          images: post.images
-        }));
+        // For each post, get the user information
+        const formattedPosts: Post[] = await Promise.all(
+          postsData.map(async (post) => {
+            let userData = {
+              id: post.user_id || "unknown",
+              name: "不明なユーザー",
+              avatar: undefined
+            };
+
+            if (post.user_id) {
+              // Fetch the user profile
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', post.user_id)
+                .single();
+
+              if (!profileError && profile) {
+                userData = {
+                  id: profile.id,
+                  name: profile.username || "匿名ユーザー",
+                  avatar: profile.avatar_url
+                };
+              }
+            }
+
+            return {
+              id: post.id,
+              title: post.title,
+              content: post.content,
+              userId: post.user_id || "unknown",
+              user: userData,
+              channelId: post.channel_id,
+              createdAt: new Date(post.created_at),
+              updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
+              likesCount: post.likes_count,
+              commentsCount: post.comments_count,
+              liked: false,
+              images: post.images || []
+            };
+          })
+        );
         
         setPosts(formattedPosts);
       } catch (error) {

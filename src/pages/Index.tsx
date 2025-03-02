@@ -24,12 +24,10 @@ const Index = () => {
     setLoading(true);
     
     try {
+      // 1. First fetch the posts
       let query = supabase
         .from('posts')
-        .select(`
-          *,
-          user:user_id (*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       // チャンネルが選択されている場合、そのチャンネルの投稿のみを取得
@@ -37,10 +35,10 @@ const Index = () => {
         query = query.eq('channel_id', selectedChannel);
       }
       
-      const { data, error } = await query;
+      const { data: postsData, error: postsError } = await query;
       
-      if (error) {
-        console.error("投稿取得エラー:", error);
+      if (postsError) {
+        console.error("投稿取得エラー:", postsError);
         toast({
           title: "エラー",
           description: "投稿の取得に失敗しました",
@@ -48,26 +46,57 @@ const Index = () => {
         });
         return;
       }
+
+      if (!postsData || postsData.length === 0) {
+        setPosts([]);
+        setTrendingPosts([]);
+        setPopularPosts([]);
+        setLoading(false);
+        return;
+      }
       
-      // 投稿データを変換
-      const formattedPosts: Post[] = data.map(post => ({
-        id: post.id,
-        title: post.title,
-        content: post.content,
-        userId: post.user_id,
-        user: post.user || {
-          id: post.user_id,
-          name: "不明なユーザー",
-          avatar: undefined
-        },
-        channelId: post.channel_id,
-        createdAt: new Date(post.created_at),
-        updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
-        likesCount: post.likes_count,
-        commentsCount: post.comments_count,
-        liked: false,
-        images: post.images
-      }));
+      // 2. For each post, get the user information
+      const formattedPosts: Post[] = await Promise.all(
+        postsData.map(async (post) => {
+          let userData = {
+            id: post.user_id || "unknown",
+            name: "不明なユーザー",
+            avatar: undefined
+          };
+
+          if (post.user_id) {
+            // Fetch the user profile
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', post.user_id)
+              .single();
+
+            if (!profileError && profile) {
+              userData = {
+                id: profile.id,
+                name: profile.username || "匿名ユーザー",
+                avatar: profile.avatar_url
+              };
+            }
+          }
+
+          return {
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            userId: post.user_id || "unknown",
+            user: userData,
+            channelId: post.channel_id,
+            createdAt: new Date(post.created_at),
+            updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
+            likesCount: post.likes_count,
+            commentsCount: post.comments_count,
+            liked: false,
+            images: post.images || []
+          };
+        })
+      );
       
       setPosts(formattedPosts);
       
