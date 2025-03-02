@@ -1,6 +1,76 @@
 
 import { Channel, ChannelCategory } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 
+// チャンネルデータをSupabaseから取得する関数
+export const getChannels = async (): Promise<Channel[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('channels')
+      .select('*')
+      .order('name');
+      
+    if (error) {
+      console.error("チャンネル取得エラー:", error);
+      return CHANNELS; // エラー時はダミーデータを返す
+    }
+    
+    return data.map(channel => ({
+      id: channel.id,
+      name: channel.name,
+      description: channel.description,
+      icon: channel.icon,
+      categoryId: channel.category_id
+    }));
+  } catch (error) {
+    console.error("チャンネル取得エラー:", error);
+    return CHANNELS; // エラー時はダミーデータを返す
+  }
+};
+
+// カテゴリーデータをSupabaseから取得する関数
+export const getChannelCategories = async (): Promise<ChannelCategory[]> => {
+  try {
+    // まずカテゴリーを取得
+    const { data: categories, error: categoryError } = await supabase
+      .from('channel_categories')
+      .select('*')
+      .order('name');
+      
+    if (categoryError) {
+      console.error("カテゴリー取得エラー:", categoryError);
+      return CHANNEL_CATEGORIES; // エラー時はダミーデータを返す
+    }
+    
+    // 次にチャンネルを取得
+    const { data: channels, error: channelError } = await supabase
+      .from('channels')
+      .select('*');
+      
+    if (channelError) {
+      console.error("チャンネル取得エラー:", channelError);
+      return CHANNEL_CATEGORIES; // エラー時はダミーデータを返す
+    }
+    
+    // カテゴリーごとにチャンネルをグループ化
+    return categories.map(category => {
+      const categoryChannels = channels
+        .filter(channel => channel.category_id === category.id)
+        .map(channel => channel.id);
+        
+      return {
+        id: category.id,
+        name: category.name,
+        channels: categoryChannels
+      };
+    });
+  } catch (error) {
+    console.error("カテゴリー取得エラー:", error);
+    return CHANNEL_CATEGORIES; // エラー時はダミーデータを返す
+  }
+};
+
+// ダミーデータ（互換性のために残しておく）
 export const CHANNELS: Channel[] = [
   // エディター
   {
@@ -148,7 +218,6 @@ export const CHANNEL_CATEGORIES: ChannelCategory[] = [
     name: 'エディター拡張機能',
     channels: ['github-copilot', 'cline', 'roo-cline', 'julie']
   },
-  // 「プログラミング言語/フレームワーク」を「その他」の前に移動
   {
     id: 'programming-languages-frameworks',
     name: 'プログラミング言語/フレームワーク',
