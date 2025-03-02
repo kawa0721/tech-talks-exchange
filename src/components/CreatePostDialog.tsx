@@ -15,7 +15,7 @@ interface CreatePostDialogProps {
   isOpen: boolean;
   onClose: () => void;
   channelId: string | null;
-  onPostCreated: () => void;
+  onPostCreated?: () => void; // オプショナルに変更
 }
 
 const CreatePostDialog = ({ isOpen, onClose, channelId, onPostCreated }: CreatePostDialogProps) => {
@@ -32,7 +32,9 @@ const CreatePostDialog = ({ isOpen, onClose, channelId, onPostCreated }: CreateP
     // Close the dialog after successful post creation
     onClose();
     // Notify parent component to refresh posts
-    onPostCreated();
+    if (onPostCreated) {
+      onPostCreated();
+    }
   };
 
   return (

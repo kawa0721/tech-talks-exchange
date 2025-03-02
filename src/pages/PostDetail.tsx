@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { Post } from "@/types";
+import { Post, User } from "@/types";
 import { CHANNELS } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -30,42 +30,59 @@ const PostDetail = () => {
       setError(null);
       
       try {
-        const { data, error } = await supabase
+        // まず投稿データを取得
+        const { data: postData, error: postError } = await supabase
           .from('posts')
-          .select(`
-            *,
-            user:user_id (*)
-          `)
+          .select('*')
           .eq('id', postId)
           .single();
           
-        if (error) {
-          throw error;
+        if (postError) {
+          throw postError;
         }
         
-        if (!data) {
+        if (!postData) {
           setError("投稿が見つかりません");
           return;
         }
         
+        // 次にユーザー情報を取得
+        let userData: User = {
+          id: postData.user_id,
+          name: "不明なユーザー",
+          avatar: undefined
+        };
+        
+        if (postData.user_id) {
+          const { data: user, error: userError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', postData.user_id)
+            .single();
+          
+          if (!userError && user) {
+            userData = {
+              id: user.id,
+              name: user.name || user.username || "匿名ユーザー",
+              avatar: user.avatar_url
+            };
+          }
+        }
+        
         // 投稿データを変換
         const formattedPost: Post = {
-          id: data.id,
-          title: data.title,
-          content: data.content,
-          userId: data.user_id,
-          user: data.user || {
-            id: data.user_id,
-            name: "不明なユーザー",
-            avatar: undefined
-          },
-          channelId: data.channel_id,
-          createdAt: new Date(data.created_at),
-          updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
-          likesCount: data.likes_count,
-          commentsCount: data.comments_count,
+          id: postData.id,
+          title: postData.title,
+          content: postData.content,
+          userId: postData.user_id,
+          user: userData,
+          channelId: postData.channel_id,
+          createdAt: new Date(postData.created_at),
+          updatedAt: postData.updated_at ? new Date(postData.updated_at) : undefined,
+          likesCount: postData.likes_count,
+          commentsCount: postData.comments_count,
           liked: false,
-          images: data.images
+          images: postData.images
         };
         
         setPost(formattedPost);
