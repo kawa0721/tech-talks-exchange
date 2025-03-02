@@ -23,27 +23,19 @@ const Index = () => {
   const { toast } = useToast();
 
   // 投稿をフェッチする関数
-  const fetchPosts = async (reset = true) => {
+  const fetchPosts = async (reset = true, currentPage = 1) => {
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
       setLoading(true);
       setPage(1);
       setPosts([]);
       setHasMore(true);
+      currentPage = 1;
     } else {
       setLoadingMore(true);
     }
 
     try {
-      // ページ番号の設定（リセット時は1、追加読み込み時は現在のページ）
-      const currentPage = reset ? 1 : page;
-      
-      // 範囲の計算（0から始まるインデックス）
-      const from = (currentPage - 1) * PER_PAGE;
-      const to = from + PER_PAGE - 1;
-
-      console.log(`Fetching posts: page=${currentPage}, range=${from}-${to}`);
-
       // 1. 投稿を取得
       let query = supabase
         .from('posts')
@@ -56,6 +48,11 @@ const Index = () => {
       }
 
       // ページネーション処理
+      const from = reset ? 0 : (currentPage - 1) * PER_PAGE;
+      const to = reset ? PER_PAGE - 1 : (currentPage * PER_PAGE) - 1;
+      
+      console.log(`Fetching posts from ${from} to ${to}, page: ${currentPage}, reset: ${reset}`);
+      
       query = query.range(from, to);
 
       const { data: postsData, error: postsError } = await query;
@@ -72,7 +69,7 @@ const Index = () => {
 
       console.log(`Fetched ${postsData?.length || 0} posts`);
 
-      // 次のページが存在するかチェック（PER_PAGE件取得できた場合、まだデータがある可能性がある）
+      // 次のページが存在するかチェック
       setHasMore(postsData && postsData.length === PER_PAGE);
 
       if (!postsData || postsData.length === 0) {
@@ -131,10 +128,8 @@ const Index = () => {
 
       // 新しいデータを追加または置き換え
       if (reset) {
-        console.log('Resetting posts array');
         setPosts(formattedPosts);
       } else {
-        console.log(`Adding ${formattedPosts.length} posts to existing ${posts.length} posts`);
         setPosts(prev => [...prev, ...formattedPosts]);
       }
 
@@ -197,7 +192,7 @@ const Index = () => {
         } else {
           setPopularPosts([]);
         }
-      } else if (selectedChannel && reset) {
+      } else if (selectedChannel) {
         setTrendingPosts([]);
         setPopularPosts([]);
       }
@@ -212,31 +207,19 @@ const Index = () => {
 
   // 初回レンダリング時とチャンネル変更時に投稿を取得
   useEffect(() => {
-    fetchPosts(true);
+    fetchPosts(true, 1);
   }, [selectedChannel]);
 
   // 「もっと読み込む」ボタンをクリックしたときの処理
   const handleLoadMore = () => {
-    // ページ番号を更新してから追加データを取得
-    setPage(prevPage => {
-      const nextPage = prevPage + 1;
-      console.log(`Loading more: page ${nextPage}`);
-      return nextPage;
-    });
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchPosts(false, nextPage);
   };
-
-  // ページ番号が変わったときに追加データを取得
-  useEffect(() => {
-    // 初回レンダリング時は実行しない
-    if (page > 1) {
-      console.log(`Page changed to ${page}, fetching more posts`);
-      fetchPosts(false);
-    }
-  }, [page]);
 
   const handlePostCreated = () => {
     // 新しい投稿が作成された後、投稿リストを更新
-    fetchPosts(true);
+    fetchPosts(true, 1);
   };
 
   return (
