@@ -44,9 +44,7 @@ const CreatePostDialog = ({ isOpen, onClose, channelId, onPostCreated }: CreateP
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>新規投稿を作成</DialogTitle>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6">
-            <X className="h-4 w-4" />
-          </Button>
+          {/* Removed the duplicate close button here */}
         </DialogHeader>
         
         <div className="mt-4">
