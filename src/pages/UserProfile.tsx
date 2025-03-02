@@ -11,6 +11,9 @@ import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
 import { ProfileContent } from "@/components/profile/ProfileContent";
 import { ProfileFooter } from "@/components/profile/ProfileFooter";
+import PostsList from "@/components/PostsList";
+import { useUserPosts } from "@/hooks/useUserPosts";
+import { CHANNELS } from "@/lib/data";
 
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -31,6 +34,9 @@ const UserProfile = () => {
     cancelEdit
   } = useUserProfile(userId, user?.id);
   
+  // Fetch user's posts
+  const { posts: userPosts, loading: postsLoading } = useUserPosts(userId);
+  
   const handleEditProfile = async () => {
     if (isEditing) {
       const success = await saveProfile();
@@ -45,6 +51,12 @@ const UserProfile = () => {
   const handleCancelEdit = () => {
     cancelEdit();
     setIsEditing(false);
+  };
+  
+  // Find channel name by ID
+  const getChannelName = (channelId: string): string => {
+    const channel = CHANNELS.find((c) => c.id === channelId);
+    return channel ? channel.name : "不明なチャンネル";
   };
   
   if (isLoading && !userProfile) {
@@ -107,9 +119,14 @@ const UserProfile = () => {
       <Separator className="my-8" />
       
       <h2 className="text-2xl font-bold mb-6">最近の投稿</h2>
-      <div className="text-center text-muted-foreground py-12">
-        まだ投稿がありません。
-      </div>
+      <PostsList 
+        posts={userPosts}
+        loading={postsLoading}
+        getChannelName={getChannelName}
+        showChannel={true}
+        emptyMessage="このユーザーはまだ投稿していません。"
+        isUserPosts={true}
+      />
     </div>
   );
 };

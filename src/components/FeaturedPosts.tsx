@@ -2,10 +2,11 @@
 import { TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";
-import PostCard from "@/components/PostCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PostsList from "@/components/PostsList";
+import PostCard from "@/components/PostCard";
 
 interface FeaturedPostsProps {
   trendingPosts: Post[];
@@ -98,30 +99,13 @@ const FeaturedPosts = ({
       </TabsContent>
 
       <TabsContent value="recent" className="mt-0">
-        {/* 通常の投稿一覧を表示 */}
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : posts.length > 0 ? (
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                post={post} 
-                channelName={getChannelName(post.channelId)}
-                showChannel={!selectedChannel} 
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 border rounded-lg bg-muted/20">
-            <h3 className="text-xl font-medium mb-2">まだ投稿がありません</h3>
-            <p className="text-muted-foreground">
-              このチャンネルで最初のディスカッションを始めましょう！
-            </p>
-          </div>
-        )}
+        <PostsList 
+          posts={posts}
+          loading={loading}
+          getChannelName={getChannelName}
+          showChannel={!selectedChannel}
+          emptyMessage="このチャンネルで最初のディスカッションを始めましょう！"
+        />
       </TabsContent>
     </Tabs>
   );

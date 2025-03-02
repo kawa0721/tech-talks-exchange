@@ -1,16 +1,25 @@
 
-import { Loader2 } from "lucide-react";
 import { Post } from "@/types";
+import { Loader2 } from "lucide-react";
 import PostCard from "@/components/PostCard";
 
 interface PostsListProps {
   posts: Post[];
   loading: boolean;
-  selectedChannel: string | null;
   getChannelName: (channelId: string) => string;
+  showChannel?: boolean;
+  emptyMessage?: string;
+  isUserPosts?: boolean;
 }
 
-const PostsList = ({ posts, loading, selectedChannel, getChannelName }: PostsListProps) => {
+const PostsList = ({
+  posts,
+  loading,
+  getChannelName,
+  showChannel = true,
+  emptyMessage = "投稿はまだありません",
+  isUserPosts = false,
+}: PostsListProps) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -21,26 +30,20 @@ const PostsList = ({ posts, loading, selectedChannel, getChannelName }: PostsLis
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12 border rounded-lg bg-muted/20">
-        <h3 className="text-xl font-medium mb-2">まだ投稿がありません</h3>
-        <p className="text-muted-foreground">
-          このチャンネルで最初のディスカッションを始めましょう！
-        </p>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold mt-8 mb-4">
-        {selectedChannel ? "チャンネルの投稿" : "最新の投稿"}
-      </h2>
       {posts.map((post) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
+        <PostCard
+          key={post.id}
+          post={post}
           channelName={getChannelName(post.channelId)}
-          showChannel={!selectedChannel} 
+          showChannel={showChannel}
         />
       ))}
     </div>

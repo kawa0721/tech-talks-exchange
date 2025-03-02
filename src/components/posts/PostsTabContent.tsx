@@ -1,7 +1,6 @@
 
 import { Post } from "@/types";
-import PostCard from "@/components/PostCard";
-import { Loader2 } from "lucide-react";
+import PostsList from "@/components/PostsList";
 
 interface PostsTabContentProps {
   posts: Post[];
@@ -18,36 +17,20 @@ export const PostsTabContent = ({
   isPopular = false,
   isTrending = false
 }: PostsTabContentProps) => {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (posts.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          {isPopular ? "人気の投稿はまだありません" : "トレンドの投稿はまだありません"}
-        </p>
-      </div>
-    );
-  }
+  // Set the empty message based on tab type
+  const emptyMessage = isPopular 
+    ? "人気の投稿はまだありません" 
+    : isTrending 
+      ? "トレンドの投稿はまだありません"
+      : "投稿はまだありません";
 
   return (
-    <div className="space-y-6">
-      {posts.map((post) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
-          channelName={getChannelName(post.channelId)}
-          showChannel={true}
-          isPopular={isPopular}
-          isTrending={isTrending}
-        />
-      ))}
-    </div>
+    <PostsList 
+      posts={posts}
+      loading={loading}
+      getChannelName={getChannelName}
+      showChannel={true}
+      emptyMessage={emptyMessage}
+    />
   );
 };
