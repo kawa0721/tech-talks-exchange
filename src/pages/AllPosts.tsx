@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -90,6 +91,8 @@ const AllPosts = () => {
           return;
         }
         
+        console.log("Retrieved posts data:", postsData);
+        
         // For each post, get the user information
         const formattedPosts: Post[] = await Promise.all(
           postsData.map(async (post) => {
@@ -133,6 +136,7 @@ const AllPosts = () => {
           })
         );
         
+        console.log("Formatted posts:", formattedPosts);
         setPosts(formattedPosts);
       } catch (error) {
         console.error("投稿取得エラー:", error);
@@ -147,7 +151,7 @@ const AllPosts = () => {
     };
     
     fetchPosts();
-  }, [activeTab]);
+  }, [activeTab, toast]);
 
   // Get the channel name for a given channel ID
   const getChannelName = (channelId: string): string => {

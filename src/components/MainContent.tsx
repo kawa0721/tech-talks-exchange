@@ -63,6 +63,10 @@ const MainContent = ({
     return channel ? channel.name : "不明なチャンネル";
   };
 
+  console.log("MainContent - posts:", posts);
+  console.log("MainContent - trendingPosts:", trendingPosts);
+  console.log("MainContent - popularPosts:", popularPosts);
+
   return (
     <main className="main-content">
       <div className="px-4 md:px-6 py-4 mx-auto max-w-4xl fade-in">
