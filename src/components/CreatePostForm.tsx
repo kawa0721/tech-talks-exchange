@@ -1,7 +1,6 @@
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { Upload, X } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotionLikeEditor from "./NotionLikeEditor";
 import { convertHtmlToMarkdown } from "@/lib/markdownUtils";
+import { USERS, POSTS } from "@/lib/data"; // Import USERS and POSTS from data
 
 interface CreatePostFormProps {
   channelId: string | null;
@@ -70,6 +70,26 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
 
     // 投稿時にはHTMLコンテンツを使用し、マークダウンも保存しておく
     const markdownForSaving = convertHtmlToMarkdown(htmlContent);
+
+    // 新しい投稿を作成
+    const newPost = {
+      id: `post-${Date.now()}`, // 一意のIDを生成
+      title: title,
+      content: markdownForSaving,
+      userId: 'user-1', // ユーザーIDはとりあえずuser-1を使用（実際はログイン中のユーザーIDを使用）
+      user: USERS[0], // 仮のユーザー情報
+      channelId: channelId || 'general', // チャンネルIDが指定されていない場合は'general'を使用
+      createdAt: new Date(),
+      liked: false,
+      likesCount: 0,
+      commentsCount: 0,
+      images: images.length > 0 ? [...images] : undefined
+    };
+
+    // 実際のアプリケーションでは、ここでAPIを呼び出して投稿を保存
+
+    // データに投稿を追加（実際のアプリケーションではバックエンドに保存）
+    POSTS.unshift(newPost);
 
     setTimeout(() => {
       toast.success("投稿が作成されました！");

@@ -22,7 +22,7 @@ const Index = () => {
   const { toast } = useToast();
 
   // Fetch posts based on selected channel
-  useEffect(() => {
+  const fetchPosts = () => {
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
@@ -47,6 +47,11 @@ const Index = () => {
       
       setLoading(false);
     }, 500);
+  };
+
+  // 投稿が変更される可能性があるため、初回レンダリング時とチャンネル変更時に投稿を取得
+  useEffect(() => {
+    fetchPosts();
   }, [selectedChannel]);
 
   // Find channel name by ID
@@ -61,6 +66,11 @@ const Index = () => {
       title: "投稿作成",
       description: "投稿フォームを起動します",
     });
+  };
+
+  const handlePostCreated = () => {
+    // 新しい投稿が作成された後、投稿リストを更新
+    fetchPosts();
   };
 
   return (
