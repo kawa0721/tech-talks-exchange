@@ -69,8 +69,9 @@ const Index = () => {
       console.log(`Fetched ${postsData?.length || 0} posts`);
 
       // 次のページが存在するかチェック
-      setHasMore(postsData && postsData.length === PER_PAGE);
-
+      const hasMoreData = postsData && postsData.length === PER_PAGE;
+      setHasMore(hasMoreData);
+      
       if (!postsData || postsData.length === 0) {
         if (reset) {
           setPosts([]);
@@ -97,7 +98,7 @@ const Index = () => {
               .from('profiles')
               .select('*')
               .eq('id', post.user_id)
-              .single();
+              .maybeSingle();  // single()ではなくmaybeSingleを使用
 
             if (!profileError && profile) {
               userData = {
@@ -129,16 +130,8 @@ const Index = () => {
       if (reset) {
         setPosts(formattedPosts);
       } else {
-        // 重複を避けるためにIDベースで追加
-        const existingIds = new Set(posts.map(post => post.id));
-        const uniqueNewPosts = formattedPosts.filter(post => !existingIds.has(post.id));
-        
-        if (uniqueNewPosts.length > 0) {
-          setPosts(prev => [...prev, ...uniqueNewPosts]);
-        } else {
-          // 新しい投稿がない場合は追加データなしとマーク
-          setHasMore(false);
-        }
+        // 既存の投稿に新しい投稿を追加
+        setPosts(prevPosts => [...prevPosts, ...formattedPosts]);
       }
 
       // トレンド投稿と人気投稿の処理（チャンネルが選択されていない場合のみ）

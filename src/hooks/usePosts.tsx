@@ -48,7 +48,7 @@ export function usePosts(type: string = "trending") {
           postsData.map(async (post) => {
             let userData = {
               id: post.user_id || "unknown",
-              name: "kawakitamasayuki@gmail.com", // Changed from "不明なユーザー"
+              name: "kawakitamasayuki@gmail.com", 
               avatar: undefined
             };
 
@@ -58,12 +58,12 @@ export function usePosts(type: string = "trending") {
                 .from('profiles')
                 .select('*')
                 .eq('id', post.user_id)
-                .single();
+                .maybeSingle();  // single()ではなくmaybeSingleを使用
 
               if (!profileError && profile) {
                 userData = {
                   id: profile.id,
-                  name: profile.username || "kawakitamasayuki@gmail.com", // Changed from "匿名ユーザー"
+                  name: profile.username || "kawakitamasayuki@gmail.com",
                   avatar: profile.avatar_url
                 };
               }
