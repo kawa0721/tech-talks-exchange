@@ -1,4 +1,3 @@
-
 import { Post } from "@/types";
 import { Loader2 } from "lucide-react";
 import PostCard from "@/components/PostCard";
