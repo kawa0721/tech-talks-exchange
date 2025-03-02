@@ -35,6 +35,15 @@ const Index = () => {
     }
 
     try {
+      // ページ番号の設定（リセット時は1、追加読み込み時は現在のページ）
+      const currentPage = reset ? 1 : page;
+      
+      // 範囲の計算（0から始まるインデックス）
+      const from = (currentPage - 1) * PER_PAGE;
+      const to = from + PER_PAGE - 1;
+
+      console.log(`Fetching posts: page=${currentPage}, range=${from}-${to}`);
+
       // 1. 投稿を取得
       let query = supabase
         .from('posts')
@@ -47,8 +56,6 @@ const Index = () => {
       }
 
       // ページネーション処理
-      const from = reset ? 0 : (page - 1) * PER_PAGE;
-      const to = reset ? PER_PAGE - 1 : page * PER_PAGE - 1;
       query = query.range(from, to);
 
       const { data: postsData, error: postsError } = await query;
@@ -63,8 +70,10 @@ const Index = () => {
         return;
       }
 
-      // 次のページが存在するかチェック
-      setHasMore(postsData.length === PER_PAGE);
+      console.log(`Fetched ${postsData?.length || 0} posts`);
+
+      // 次のページが存在するかチェック（PER_PAGE件取得できた場合、まだデータがある可能性がある）
+      setHasMore(postsData && postsData.length === PER_PAGE);
 
       if (!postsData || postsData.length === 0) {
         if (reset) {
@@ -122,8 +131,10 @@ const Index = () => {
 
       // 新しいデータを追加または置き換え
       if (reset) {
+        console.log('Resetting posts array');
         setPosts(formattedPosts);
       } else {
+        console.log(`Adding ${formattedPosts.length} posts to existing ${posts.length} posts`);
         setPosts(prev => [...prev, ...formattedPosts]);
       }
 
@@ -186,7 +197,7 @@ const Index = () => {
         } else {
           setPopularPosts([]);
         }
-      } else if (selectedChannel) {
+      } else if (selectedChannel && reset) {
         setTrendingPosts([]);
         setPopularPosts([]);
       }
@@ -201,18 +212,31 @@ const Index = () => {
 
   // 初回レンダリング時とチャンネル変更時に投稿を取得
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(true);
   }, [selectedChannel]);
 
   // 「もっと読み込む」ボタンをクリックしたときの処理
   const handleLoadMore = () => {
-    setPage(prev => prev + 1);
-    fetchPosts(false);
+    // ページ番号を更新してから追加データを取得
+    setPage(prevPage => {
+      const nextPage = prevPage + 1;
+      console.log(`Loading more: page ${nextPage}`);
+      return nextPage;
+    });
   };
+
+  // ページ番号が変わったときに追加データを取得
+  useEffect(() => {
+    // 初回レンダリング時は実行しない
+    if (page > 1) {
+      console.log(`Page changed to ${page}, fetching more posts`);
+      fetchPosts(false);
+    }
+  }, [page]);
 
   const handlePostCreated = () => {
     // 新しい投稿が作成された後、投稿リストを更新
-    fetchPosts();
+    fetchPosts(true);
   };
 
   return (
