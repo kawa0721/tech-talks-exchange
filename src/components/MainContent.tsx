@@ -1,9 +1,9 @@
 
-import { useState } from "react";
-import { Post } from "@/types";
+import { useState, useEffect } from "react";
+import { Post, Channel } from "@/types";
 import FeaturedPosts from "@/components/FeaturedPosts";
 import RecommendedChannels from "@/components/RecommendedChannels";
-import { CHANNELS } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MainContentProps {
   selectedChannel: string | null;
@@ -22,9 +22,44 @@ const MainContent = ({
   loading,
   onSelectChannel
 }: MainContentProps) => {
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [channelLoading, setChannelLoading] = useState(true);
+
+  // チャンネル情報をDBから取得
+  useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('channels')
+          .select('*');
+          
+        if (error) {
+          console.error("チャンネル取得エラー:", error);
+          return;
+        }
+        
+        const formattedChannels: Channel[] = data.map(channel => ({
+          id: channel.id,
+          name: channel.name,
+          description: channel.description,
+          icon: channel.icon,
+          categoryId: channel.category_id
+        }));
+        
+        setChannels(formattedChannels);
+      } catch (error) {
+        console.error("チャンネル取得エラー:", error);
+      } finally {
+        setChannelLoading(false);
+      }
+    };
+    
+    fetchChannels();
+  }, []);
+
   // Find channel name by ID
   const getChannelName = (channelId: string): string => {
-    const channel = CHANNELS.find((c) => c.id === channelId);
+    const channel = channels.find((c) => c.id === channelId);
     return channel ? channel.name : "不明なチャンネル";
   };
 
@@ -39,7 +74,7 @@ const MainContent = ({
           </h1>
           <p className="text-muted-foreground mt-2">
             {selectedChannel
-              ? CHANNELS.find(c => c.id === selectedChannel)?.description
+              ? channels.find(c => c.id === selectedChannel)?.description
               : "全てのテックチャンネルでの会話に参加しましょう"}
           </p>
         </div>
@@ -58,10 +93,12 @@ const MainContent = ({
             />
             
             {/* チャンネル紹介セクション */}
-            <RecommendedChannels 
-              channels={CHANNELS.slice(0, 3)} 
-              onSelectChannel={onSelectChannel}
-            />
+            {!channelLoading && (
+              <RecommendedChannels 
+                channels={channels.slice(0, 3)} 
+                onSelectChannel={onSelectChannel}
+              />
+            )}
           </div>
         )}
 

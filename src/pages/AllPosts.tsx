@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Post } from "@/types";
+import { Post, Channel } from "@/types";
 import Navbar from "@/components/Navbar";
 import PostCard from "@/components/PostCard";
-import { CHANNELS } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -17,6 +15,8 @@ const AllPosts = () => {
   const [activeTab, setActiveTab] = useState<string>(type || "trending");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [channelLoading, setChannelLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -25,6 +25,38 @@ const AllPosts = () => {
       setActiveTab(type);
     }
   }, [type]);
+
+  // チャンネル情報をDBから取得
+  useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('channels')
+          .select('*');
+          
+        if (error) {
+          console.error("チャンネル取得エラー:", error);
+          return;
+        }
+        
+        const formattedChannels: Channel[] = data.map(channel => ({
+          id: channel.id,
+          name: channel.name,
+          description: channel.description,
+          icon: channel.icon,
+          categoryId: channel.category_id
+        }));
+        
+        setChannels(formattedChannels);
+      } catch (error) {
+        console.error("チャンネル取得エラー:", error);
+      } finally {
+        setChannelLoading(false);
+      }
+    };
+    
+    fetchChannels();
+  }, []);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -119,7 +151,7 @@ const AllPosts = () => {
 
   // Get the channel name for a given channel ID
   const getChannelName = (channelId: string): string => {
-    const channel = CHANNELS.find((c) => c.id === channelId);
+    const channel = channels.find((c) => c.id === channelId);
     return channel ? channel.name : "不明なチャンネル";
   };
 
