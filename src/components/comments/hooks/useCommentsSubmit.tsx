@@ -1,17 +1,33 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Comment } from "@/types";
 import { toast } from "sonner";
 import { submitComment } from "./utils/commentActions";
 import { mapCommentWithUserInfo } from "./utils/commentMappers";
 import { supabase } from "@/integrations/supabase/client";
+import { getCommentsForPost } from "@/lib/data/comments";
 
-export function useCommentsSubmit(
-  comments: Comment[],
-  setComments: React.Dispatch<React.SetStateAction<Comment[]>>,
-  postId: string
-) {
+export function useCommentsSubmit(postId: string) {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      setLoading(true);
+      try {
+        const commentsData = await getCommentsForPost(postId);
+        setComments(commentsData);
+      } catch (error) {
+        console.error("コメント取得エラー:", error);
+        toast.error("コメントの取得に失敗しました");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [postId]);
 
   const handleSubmitComment = async (newComment: string, nickname?: string) => {
     setSubmitting(true);
@@ -44,6 +60,9 @@ export function useCommentsSubmit(
 
   return {
     submitting,
-    handleSubmitComment
+    handleSubmitComment,
+    comments,
+    setComments,
+    loading
   };
 }

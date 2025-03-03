@@ -21,11 +21,11 @@ export const useComments = (postId: string) => {
     setReplyTo,
     setReplyContent,
     handleSubmitReply
-  } = useReplyManagement();
+  } = useReplyManagement(comments, setComments, postId);
   
-  const { toggleLike } = useCommentLikes();
+  const { toggleLike } = useCommentLikes(comments, setComments);
   
-  const { deleteComment } = useCommentDelete();
+  const { deleteComment } = useCommentDelete(comments, setComments);
   
   const {
     editContent,
@@ -48,9 +48,12 @@ export const useComments = (postId: string) => {
     handleSubmitReply,
     toggleLike,
     deleteComment,
-    startEditing,
-    cancelEditing,
-    saveEdit,
+    startEditing: (id: string, isReply?: boolean, parentId?: string) => 
+      startEditing(comments, setComments, id, isReply, parentId),
+    cancelEditing: (id: string) => 
+      cancelEditing(comments, setComments, id),
+    saveEdit: (id: string, isReply?: boolean, parentId?: string) => 
+      saveEdit(comments, setComments, id, isReply, parentId),
     handleSetEditContent
   };
 };
