@@ -119,7 +119,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   onSetReplyTo(null);
                 } else {
                   onSetReplyTo(comment.id);
-                  onSetReplyContent("", comment.user.name);
                 }
               }}
             >
@@ -135,11 +134,10 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="mt-3">
           <ReplyForm
             parentId={comment.id}
-            content={""}
-            onSubmit={onSubmitReply}
+            userName={comment.user.name}
+            onSubmit={(content, nickname) => onSubmitReply(comment.id, content, nickname)}
             onCancel={() => onSetReplyTo(null)}
             isSubmitting={submitting}
-            replyToName={comment.user.name}
           />
         </div>
       )}
