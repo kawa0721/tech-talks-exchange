@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +20,6 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
 
-  // URLクエリパラメータからtabの値を取得して初期タブを設定
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
@@ -30,12 +28,10 @@ const Auth = () => {
     }
   }, [location.search]);
 
-  // すでにログインしている場合はホームへリダイレクト
   if (user && !loading) {
     return <Navigate to="/" replace />;
   }
 
-  // タブが変更されたときにフォームをリセット
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
@@ -135,20 +131,13 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <AuthHeader />
         <CardContent>
-          <Tabs defaultValue="login" value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+          <Tabs defaultValue="login" value="login" className="w-full">
+            <TabsList className="hidden">
               <TabsTrigger value="login">ログイン</TabsTrigger>
-              <TabsTrigger value="register">新規登録</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
               <LoginForm 
                 onSubmit={handleSignIn} 
-                isSubmitting={isSubmitting} 
-              />
-            </TabsContent>
-            <TabsContent value="register">
-              <RegisterForm 
-                onSubmit={handleSignUp} 
                 isSubmitting={isSubmitting} 
               />
             </TabsContent>

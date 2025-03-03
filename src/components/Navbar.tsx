@@ -1,4 +1,3 @@
-
 import { Menu, MessageSquare, Search, Bell } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,15 +53,12 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
     return "U";
   };
   
-  // プロフィールページへのナビゲーション
   const navigateToProfile = () => {
     if (user) {
-      // 直接ユーザーIDを使用してプロフィールページに遷移
       navigate(`/user/${user.id}`, {
         state: { fromProfileLink: true }
       });
     } else {
-      // 未ログインの場合はリダイレクト
       navigate("/profile");
     }
   };
@@ -146,9 +142,6 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => navigate("/auth")}>
                 ログイン
-              </Button>
-              <Button onClick={() => navigate("/auth?tab=register")}>
-                新規登録
               </Button>
             </div>
           )}

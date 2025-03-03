@@ -118,23 +118,26 @@ export type Database = {
         Row: {
           comment_id: string | null
           created_at: string
+          guest_id: string | null
           id: string
           post_id: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           comment_id?: string | null
           created_at?: string
+          guest_id?: string | null
           id?: string
           post_id?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           comment_id?: string | null
           created_at?: string
+          guest_id?: string | null
           id?: string
           post_id?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
