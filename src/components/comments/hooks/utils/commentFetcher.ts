@@ -15,22 +15,26 @@ export async function fetchUserProfile(userId: string) {
       .single();
 
     if (userError || !userData) {
-      // プロファイルが見つからない場合は、authテーブルからユーザー情報を取得
-      const { data: authUser } = await supabase.auth.admin.getUserById(userId);
-      
-      if (authUser && authUser.user) {
-        return {
-          id: userId,
-          name: authUser.user.email || "ユーザー",
-          avatar: authUser.user.user_metadata?.avatar_url
-        };
-      }
-      
+      // プロファイルが見つからない場合はデフォルト値を返す
       return {
         id: userId,
         name: "ユーザー",
         avatar: undefined
       };
+    }
+
+    // ユーザー名が設定されていない場合は現在のセッションのユーザー情報を参照
+    if (!userData.username) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user && user.id === userId) {
+        // 現在ログイン中のユーザー自身の場合
+        return {
+          id: userId,
+          name: user.email || "ユーザー",
+          avatar: userData.avatar_url || user.user_metadata?.avatar_url
+        };
+      }
     }
 
     // プロファイルが存在する場合
