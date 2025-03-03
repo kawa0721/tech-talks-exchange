@@ -43,7 +43,7 @@ export function useUserPosts(userId: string | undefined) {
           postsData.map(async (post) => {
             let userData = {
               id: post.user_id || "unknown",
-              name: "kawakitamasayuki@gmail.com",
+              name: "匿名ユーザー",
               avatar: undefined
             };
 
@@ -58,7 +58,7 @@ export function useUserPosts(userId: string | undefined) {
               if (!profileError && profile) {
                 userData = {
                   id: profile.id,
-                  name: profile.username || "kawakitamasayuki@gmail.com",
+                  name: profile.username || "匿名ユーザー",
                   avatar: profile.avatar_url
                 };
               }

@@ -48,7 +48,7 @@ export function usePosts(type: string = "trending") {
           postsData.map(async (post) => {
             let userData = {
               id: post.user_id || "unknown",
-              name: "匿名ユーザー", // Changed from email to "匿名ユーザー" 
+              name: "匿名ユーザー", 
               avatar: undefined
             };
 
@@ -59,13 +59,13 @@ export function usePosts(type: string = "trending") {
                   .from('profiles')
                   .select('*')
                   .eq('id', post.user_id)
-                  .limit(1);  
+                  .maybeSingle();  
 
-                if (!profileError && profile && profile.length > 0) {
+                if (!profileError && profile) {
                   userData = {
-                    id: profile[0].id,
-                    name: profile[0].username || "匿名ユーザー", // Changed from email to "匿名ユーザー"
-                    avatar: profile[0].avatar_url
+                    id: profile.id,
+                    name: profile.username || "匿名ユーザー",
+                    avatar: profile.avatar_url
                   };
                 }
               } catch (error) {

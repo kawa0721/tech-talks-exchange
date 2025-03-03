@@ -91,10 +91,8 @@ const CommentItem = ({
           {replyTo === comment.id && (
             <ReplyForm
               parentId={comment.id}
-              userName={comment.user.name}
-              onSubmit={(content, nickname) => {
-                onSubmitReply(comment.id, content, nickname);
-              }}
+              userName={displayName}
+              onSubmit={(content, nickname) => onSubmitReply(comment.id, content, nickname)}
               onCancel={() => onSetReplyTo(null)}
               isSubmitting={submitting}
             />
