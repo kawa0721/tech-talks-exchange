@@ -17,7 +17,7 @@ export function useReplyManagement(
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();  // 認証情報を取得
 
-  // Update the setReplyContent function to accept an optional nickname parameter
+  // Update the type definition for setReplyContentWithNickname
   const setReplyContentWithNickname = (content: string, nickname?: string) => {
     setReplyContent(content);
     // If needed, we could store the nickname in a separate state here

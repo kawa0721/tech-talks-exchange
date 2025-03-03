@@ -14,7 +14,7 @@ interface CommentItemProps {
   editContent: Record<string, string>;
   submitting: boolean;
   onSetReplyTo: (id: string | null) => void;
-  onSetReplyContent: (content: string, nickname?: string) => void;
+  onSetReplyContent: (content: string, nickname?: string) => void; // Updated type definition to include optional nickname
   onSubmitReply: (parentId: string, content?: string, nickname?: string) => void;
   onSetEditContent: (id: string, content: string) => void;
   onToggleLike: (id: string) => void;

@@ -20,7 +20,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
     loading,
     editContent,
     setReplyTo,
-    setReplyContent,
+    setReplyContent, // This now has the type (content: string, nickname?: string) => void
     handleSubmitComment,
     handleSubmitReply,
     toggleLike,
