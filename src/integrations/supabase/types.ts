@@ -60,6 +60,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          guest_nickname: string | null
           id: string
           likes_count: number
           parent_id: string | null
@@ -70,6 +71,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          guest_nickname?: string | null
           id?: string
           likes_count?: number
           parent_id?: string | null
@@ -80,6 +82,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          guest_nickname?: string | null
           id?: string
           likes_count?: number
           parent_id?: string | null
