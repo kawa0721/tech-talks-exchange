@@ -81,14 +81,12 @@ const ReplyForm = ({
   return (
     <div className="mt-3">
       {/* ログイン中のユーザー情報表示 */}
-      {user && (
+      {user ? (
         <div className="mb-2 text-xs text-muted-foreground">
           {loadingProfile ? "ユーザー情報を読み込み中..." : `${profileUsername}として返信`}
         </div>
-      )}
-      
-      {/* 未ログインの場合のみニックネーム入力欄を表示 */}
-      {!user && (
+      ) : (
+        /* 未ログインの場合のみニックネーム入力欄を表示 */
         <Input
           placeholder="ニックネーム（任意）"
           value={nickname}
