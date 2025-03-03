@@ -57,7 +57,7 @@ export function useCommentDelete(
   const getPostIdFromComment = (
     commentId: string, 
     isReply: boolean, 
-    parentId?: string,
+    parentId: string | undefined,
     commentsList: Comment[]
   ): string | null => {
     if (isReply && parentId) {
