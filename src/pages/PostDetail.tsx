@@ -91,6 +91,11 @@ const PostDetail = () => {
         };
         
         setPost(formattedPost);
+        
+        // チャンネル情報を取得
+        if (postData.channel_id) {
+          await getChannelName(postData.channel_id);
+        }
       } catch (error: any) {
         console.error("投稿取得エラー:", error);
         setError(error.message || "投稿の取得に失敗しました");
@@ -107,10 +112,34 @@ const PostDetail = () => {
     fetchPost();
   }, [postId]);
 
-  // Find channel name by ID
-  const getChannelName = (channelId: string): string => {
-    const channel = CHANNELS.find((c) => c.id === channelId);
-    return channel ? channel.name : "不明なチャンネル";
+  // チャンネル情報の状態
+  const [channelName, setChannelName] = useState<string>("読み込み中...");
+  
+  // Find channel name by ID - Supabaseから取得
+  const getChannelName = async (channelId: string) => {
+    if (!channelId) {
+      setChannelName("未分類");
+      return;
+    }
+    
+    try {
+      const { data: channel, error } = await supabase
+        .from('channels')
+        .select('name')
+        .eq('id', channelId)
+        .single();
+        
+      if (error || !channel) {
+        console.error("チャンネル取得エラー:", error);
+        setChannelName("不明なチャンネル");
+        return;
+      }
+      
+      setChannelName(channel.name);
+    } catch (error) {
+      console.error("チャンネル取得エラー:", error);
+      setChannelName("不明なチャンネル");
+    }
   };
 
   if (loading) {
@@ -154,7 +183,7 @@ const PostDetail = () => {
             
             <PostCard 
               post={post} 
-              channelName={getChannelName(post?.channelId || "")}
+              channelName={channelName}
               showChannel={true} 
             />
             
