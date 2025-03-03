@@ -1,1 +1,195 @@
-import { Post } from \"@/types\";\nimport { supabase } from \"@/integrations/supabase/client\";\n\n// Formats post data from Supabase into our application's Post type\nexport async function formatPostData(post: any): Promise<Post> {\n  let userData = {\n    id: post.user_id || \"unknown\",\n    name: \"匿名ユーザー\",\n    avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定\n  };\n\n  if (post.user_id) {\n    // RLSポリシーにより未ログインでもプロフィールを取得可能\n    const { data: profile, error: profileError } = await supabase\n      .from('profiles')\n      .select('id, username, avatar_url')\n      .eq('id', post.user_id)\n      .maybeSingle();\n\n    if (!profileError && profile) {\n      // ユーザー名が設定されていない場合はユーザーIDの一部を表示\n      const displayName = profile.username || `ユーザー_${post.user_id.substring(0, 5)}`;\n      \n      userData = {\n        id: profile.id,\n        name: displayName,\n        avatar: profile.avatar_url || `/placeholder-avatar.png` // アバターがない場合はデフォルト\n      };\n    } else {\n      console.log(\"Profile not found for user:\", post.user_id);\n      // プロフィールが見つからない場合のデフォルト情報\n      userData = {\n        id: post.user_id,\n        name: `ユーザー_${post.user_id.substring(0, 5)}`,\n        avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定\n      };\n    }\n  }\n\n  // ユーザーがこの投稿をいいねしているか確認\n  let userLiked = false;\n  const { data: { user } } = await supabase.auth.getUser();\n  if (user) {\n    const { data: likeData } = await supabase\n      .from('likes')\n      .select('id')\n      .match({ user_id: user.id, post_id: post.id })\n      .maybeSingle();\n      \n    userLiked = !!likeData;\n  }\n\n  return {\n    id: post.id,\n    title: post.title,\n    content: post.content,\n    userId: post.user_id || \"unknown\",\n    user: userData,\n    channelId: post.channel_id,\n    createdAt: new Date(post.created_at),\n    updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,\n    likesCount: post.likes_count || 0, // null/undefinedの場合は0にする\n    commentsCount: post.comments_count || 0, // null/undefinedの場合は0にする\n    liked: userLiked, // ユーザーがいいねしているかの実際の状態\n    images: post.images || []\n  };\n}\n\n// Fetch posts with pagination - カーソルベースのページネーション\nexport async function fetchPaginatedPosts(\n  selectedChannel: string | null,\n  perPage: number,\n  lastPostDate?: string\n) {\n  console.log(`[fetchPaginatedPosts] perPage: ${perPage}, lastPostDate: ${lastPostDate || 'none'}`);\n  \n  // Build query\n  let query = supabase\n    .from('posts')\n    .select('*')\n    .order('created_at', { ascending: false });\n\n  // Filter by channel if selected\n  if (selectedChannel) {\n    console.log(`[fetchPaginatedPosts] Filtering by channel: ${selectedChannel}`);\n    console.log(`[fetchPaginatedPosts] Channel type: ${typeof selectedChannel}`);\n    query = query.eq('channel_id', selectedChannel);\n  } else {\n    console.log(`[fetchPaginatedPosts] No channel filter applied`);\n  }\n\n  // カーソルベースのページネーション - 最後の投稿の日時より古いものを取得\n  if (lastPostDate) {\n    console.log(`[fetchPaginatedPosts] Using cursor: posts older than ${lastPostDate}`);\n    query = query.lt('created_at', lastPostDate);\n  } else {\n    console.log('[fetchPaginatedPosts] First page, no cursor used');\n  }\n\n  // 取得する件数を制限\n  query = query.limit(perPage);\n\n  // Debug: Print full SQL query if possible\n  console.log('[fetchPaginatedPosts] Executing query...');\n  \n  // Execute query\n  const result = await query;\n  \n  // Log results for debugging\n  console.log(`[fetchPaginatedPosts] Query returned ${result.data?.length || 0} posts`);\n  if (result.data && result.data.length > 0) {\n    console.log('[fetchPaginatedPosts] First post:', { \n      id: result.data[0].id,\n      title: result.data[0].title.substring(0, 30), \n      created_at: result.data[0].created_at \n    });\n    console.log('[fetchPaginatedPosts] Last post:', { \n      id: result.data[result.data.length-1].id,\n      title: result.data[result.data.length-1].title.substring(0, 30), \n      created_at: result.data[result.data.length-1].created_at \n    });\n  }\n  \n  if (result.error) {\n    console.error(`[fetchPaginatedPosts] Query error:`, result.error);\n  }\n  \n  return result;\n}\n\n// Fetch special posts (trending or popular) with pagination support\nexport async function fetchSpecialPosts(\n  type: \"trending\" | \"popular\",\n  perPage: number = 10,\n  lastPostDate?: string,\n  lastLikesCount?: number,\n  selectedChannel: string | null = null\n) {\n  console.log(`[fetchSpecialPosts] type: ${type}, perPage: ${perPage}, channel: ${selectedChannel || 'all'}, cursor: ${lastPostDate || lastLikesCount || 'none'}`);\n  \n  let query = supabase\n    .from('posts')\n    .select('*');\n    \n  // Filter by channel if selected\n  if (selectedChannel) {\n    console.log(`[fetchSpecialPosts] Filtering by channel: ${selectedChannel}`);\n    query = query.eq('channel_id', selectedChannel);\n  }\n  \n  if (type === \"trending\") {\n    // For trending, sort by created_at (newest first)\n    query = query.order('created_at', { ascending: false });\n    \n    // カーソルベースのページネーション\n    if (lastPostDate) {\n      console.log(`[fetchSpecialPosts] Using trending cursor: posts older than ${lastPostDate}`);\n      query = query.lt('created_at', lastPostDate);\n    }\n  } else {\n    // For popular, sort by likes_count (highest first)\n    query = query.order('likes_count', { ascending: false });\n    \n    // カーソルベースのページネーション (likes_count + created_at for tiebreaker)\n    if (lastLikesCount !== undefined && lastPostDate) {\n      console.log(`[fetchSpecialPosts] Using popular cursor: posts with likes less than ${lastLikesCount} or same likes but older`);\n      query = query.or(`likes_count.lt.${lastLikesCount},and(likes_count.eq.${lastLikesCount},created_at.lt.${lastPostDate})`);\n    }\n  }\n  \n  // 取得する件数を制限\n  query = query.limit(perPage);\n  \n  // Execute query\n  const result = await query;\n  \n  // Log results\n  console.log(`[fetchSpecialPosts] ${type} query returned ${result.data?.length || 0} posts`);\n  if (result.error) {\n    console.error(`[fetchSpecialPosts] Query error:`, result.error);\n  }\n  \n  return result;\n}\n
+import { Post } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+
+// Formats post data from Supabase into our application's Post type
+export async function formatPostData(post: any): Promise<Post> {
+  let userData = {
+    id: post.user_id || "unknown",
+    name: "匿名ユーザー",
+    avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
+  };
+
+  // JOINを使わないシンプルなアプローチでプロフィール情報を取得
+  if (post.user_id) {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .eq('id', post.user_id)
+        .maybeSingle();
+
+      if (profile) {
+        // ユーザー名が設定されていない場合はユーザーIDの一部を表示
+        const displayName = profile.username || `ユーザー_${post.user_id.substring(0, 5)}`;
+        
+        userData = {
+          id: profile.id,
+          name: displayName,
+          avatar: profile.avatar_url || `/placeholder-avatar.png` // アバターがない場合はデフォルト
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  }
+
+  // ユーザーがこの投稿をいいねしているか確認
+  let userLiked = false;
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: likeData } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('post_id', post.id)
+        .maybeSingle();
+        
+      userLiked = !!likeData;
+    }
+  } catch (error) {
+    console.error("Error checking like status:", error);
+  }
+
+  return {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    userId: post.user_id || "unknown",
+    user: userData,
+    channelId: post.channel_id,
+    createdAt: new Date(post.created_at),
+    updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
+    likesCount: post.likes_count || 0, // null/undefinedの場合は0にする
+    commentsCount: post.comments_count || 0, // null/undefinedの場合は0にする
+    liked: userLiked, // ユーザーがいいねしているかの実際の状態
+    images: post.images || []
+  };
+}
+
+// Fetch posts with pagination - カーソルベースのページネーション
+export async function fetchPaginatedPosts(
+  selectedChannel: string | null,
+  perPage: number,
+  lastPostDate?: string
+) {
+  console.log(`[fetchPaginatedPosts] perPage: ${perPage}, lastPostDate: ${lastPostDate || 'none'}`);
+  
+  // Build query - シンプルなSQLクエリだけを使用
+  let query = supabase
+    .from('posts')
+    .select('id, title, content, user_id, channel_id, created_at, updated_at, likes_count, comments_count, images')
+    .order('created_at', { ascending: false });
+
+  // Filter by channel if selected
+  if (selectedChannel) {
+    console.log(`[fetchPaginatedPosts] Filtering by channel: ${selectedChannel}`);
+    console.log(`[fetchPaginatedPosts] Channel type: ${typeof selectedChannel}`);
+    query = query.eq('channel_id', selectedChannel);
+  } else {
+    console.log(`[fetchPaginatedPosts] No channel filter applied`);
+  }
+
+  // カーソルベースのページネーション - 最後の投稿の日時より古いものを取得
+  if (lastPostDate) {
+    console.log(`[fetchPaginatedPosts] Using cursor: posts older than ${lastPostDate}`);
+    query = query.lt('created_at', lastPostDate);
+  } else {
+    console.log('[fetchPaginatedPosts] First page, no cursor used');
+  }
+
+  // 取得する件数を制限
+  query = query.limit(perPage);
+
+  // Debug: Print full SQL query if possible
+  console.log('[fetchPaginatedPosts] Executing query...');
+  
+  // Execute query
+  const result = await query;
+  
+  // Log results for debugging
+  console.log(`[fetchPaginatedPosts] Query returned ${result.data?.length || 0} posts`);
+  if (result.data && result.data.length > 0) {
+    console.log('[fetchPaginatedPosts] First post:', { 
+      id: result.data[0].id,
+      title: result.data[0].title.substring(0, 30), 
+      created_at: result.data[0].created_at 
+    });
+    console.log('[fetchPaginatedPosts] Last post:', { 
+      id: result.data[result.data.length-1].id,
+      title: result.data[result.data.length-1].title.substring(0, 30), 
+      created_at: result.data[result.data.length-1].created_at 
+    });
+  }
+  
+  if (result.error) {
+    console.error(`[fetchPaginatedPosts] Query error:`, result.error);
+  }
+  
+  return result;
+}
+
+// Fetch special posts (trending or popular) with pagination support
+export async function fetchSpecialPosts(
+  type: "trending" | "popular",
+  perPage: number = 10,
+  lastPostDate?: string,
+  lastLikesCount?: number,
+  selectedChannel: string | null = null
+) {
+  console.log(`[fetchSpecialPosts] type: ${type}, perPage: ${perPage}, channel: ${selectedChannel || 'all'}, cursor: ${lastPostDate || lastLikesCount || 'none'}`);
+  
+  // シンプルなSELECT文のみを使用
+  let query = supabase
+    .from('posts')
+    .select('id, title, content, user_id, channel_id, created_at, updated_at, likes_count, comments_count, images');
+    
+  // Filter by channel if selected
+  if (selectedChannel) {
+    console.log(`[fetchSpecialPosts] Filtering by channel: ${selectedChannel}`);
+    query = query.eq('channel_id', selectedChannel);
+  }
+  
+  if (type === "trending") {
+    // For trending, sort by created_at (newest first)
+    query = query.order('created_at', { ascending: false });
+    
+    // カーソルベースのページネーション
+    if (lastPostDate) {
+      console.log(`[fetchSpecialPosts] Using trending cursor: posts older than ${lastPostDate}`);
+      query = query.lt('created_at', lastPostDate);
+    }
+  } else {
+    // For popular, sort by likes_count (highest first)
+    query = query.order('likes_count', { ascending: false });
+    
+    // カーソルベースのページネーション (likes_count + created_at for tiebreaker)
+    if (lastLikesCount !== undefined && lastPostDate) {
+      console.log(`[fetchSpecialPosts] Using popular cursor: posts with likes less than ${lastLikesCount} or same likes but older`);
+      
+      // ORステートメントを使って複雑な条件を構築する代わりに2つの条件を分けて適用
+      // まず、いいね数が少ないものを選択
+      if (lastLikesCount > 0) {
+        query = query.lt('likes_count', lastLikesCount);
+      } else {
+        // いいね数が0の場合は、日時による絞り込みのみ
+        query = query.lt('created_at', lastPostDate);
+      }
+    }
+  }
+  
+  // 取得する件数を制限
+  query = query.limit(perPage);
+  
+  // Execute query
+  const result = await query;
+  
+  // Log results
+  console.log(`[fetchSpecialPosts] ${type} query returned ${result.data?.length || 0} posts`);
+  if (result.error) {
+    console.error(`[fetchSpecialPosts] Query error:`, result.error);
+  }
+  
+  return result;
+}
