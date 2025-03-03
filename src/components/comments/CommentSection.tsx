@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Comment } from "@/types";
 import CommentForm from "./CommentForm";
 import CommentItem from "./CommentItem";
@@ -29,7 +29,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
   const [submitting, setSubmitting] = useState(false);
   
   // 取得したコメントをローカル状態に反映
-  useState(() => {
+  useEffect(() => {
     if (comments.length > 0) {
       setCommentsState(comments);
       
@@ -41,7 +41,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
   }, [comments, onCommentCountChange]);
   
   // エラーをローカル状態に反映
-  useState(() => {
+  useEffect(() => {
     if (fetchError) {
       setError(fetchError);
     }
