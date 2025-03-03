@@ -15,7 +15,7 @@ interface CommentItemProps {
   submitting: boolean;
   onSetReplyTo: (id: string | null) => void;
   onSetReplyContent: (content: string) => void;
-  onSubmitReply: (parentId: string) => void;
+  onSubmitReply: (parentId: string, content?: string, nickname?: string) => void;
   onSetEditContent: (id: string, content: string) => void;
   onToggleLike: (id: string) => void;
   onDeleteComment: (id: string, isReply?: boolean, parentId?: string) => void;
@@ -85,7 +85,9 @@ const CommentItem = ({
             <ReplyForm
               parentId={comment.id}
               userName={comment.user.name}
-              onSubmit={onSetReplyContent}
+              onSubmit={(content, nickname) => {
+                onSubmitReply(comment.id, content, nickname);
+              }}
               onCancel={() => onSetReplyTo(null)}
               isSubmitting={submitting}
             />
