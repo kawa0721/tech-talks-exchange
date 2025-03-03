@@ -24,12 +24,25 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // カスタムフックを使用してコメント関連の機能を実装
+  // Custom hooks for comment functionality
   const { toggleLike } = useCommentLikes(comments, setComments);
-  const { submitComment, submitReply, submitting } = useCommentsSubmit(postId, comments, setComments);
-  const { replyTo, replyContent, setReplyTo, setReplyContent } = useReplyManagement();
-  const { editingCommentId, editContent, startEditing, cancelEditing, setEditContent, saveEdit } = useCommentEdit(comments, setComments);
+  const { submitting, handleSubmitComment: submitComment } = useCommentsSubmit(postId);
+  const { replyTo, replyContent, setReplyTo, setReplyContent, handleSubmitReply: submitReply } = useReplyManagement(postId);
+  const { editContent, startEditing, cancelEditing, saveEdit, handleSetEditContent: setEditContent } = useCommentEdit();
   const { deleteComment } = useCommentDelete(comments, setComments);
+  
+  // Wrapper functions to match expected interfaces
+  const handleStartEditing = (id: string, isReply?: boolean, parentId?: string) => {
+    startEditing(comments, setComments, id, isReply, parentId);
+  };
+
+  const handleCancelEditing = (id: string) => {
+    cancelEditing(comments, setComments, id);
+  };
+
+  const handleSaveEdit = (id: string, isReply?: boolean, parentId?: string) => {
+    saveEdit(comments, setComments, id, isReply, parentId);
+  };
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -38,7 +51,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
       
       try {
         // Get the parent comments (top-level comments)
-        const { data: parentComments, error: commentsError } = await supabase
+        const { data: parentCommentsData, error: commentsError } = await supabase
           .from('comments')
           .select(`
             id,
@@ -59,8 +72,19 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
           throw commentsError;
         }
         
+        if (!parentCommentsData) {
+          setComments([]);
+          setLoading(false);
+          
+          // Update comment count in parent component
+          if (onCommentCountChange) {
+            onCommentCountChange(0);
+          }
+          return;
+        }
+        
         // Get all parent comment IDs
-        const parentIds = parentComments?.map(comment => comment.id) || [];
+        const parentIds = parentCommentsData.map(comment => comment.id) || [];
         
         // No comments yet
         if (parentIds.length === 0) {
@@ -116,7 +140,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
             
           // Convert to a map for easy lookup
           userLikes = (likesData || []).reduce((acc: Record<string, boolean>, like) => {
-            if (like.comment_id) {
+            if (like && like.comment_id) {
               acc[like.comment_id] = true;
             }
             return acc;
@@ -126,7 +150,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
         // Organize replies by parent_id
         const repliesByParent: Record<string, any[]> = {};
         (repliesData || []).forEach(reply => {
-          if (reply.parent_id) {
+          if (reply && reply.parent_id) {
             if (!repliesByParent[reply.parent_id]) {
               repliesByParent[reply.parent_id] = [];
             }
@@ -135,16 +159,18 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
         });
         
         // Format comments with their replies
-        const formattedComments: Comment[] = (parentComments || []).map(comment => {
+        const formattedComments: Comment[] = (parentCommentsData || []).map(comment => {
+          if (!comment) return null;
+          
           // Format parent comment
           const formattedComment: Comment = {
-            id: comment.id,
+            id: String(comment.id),
             postId,
             userId: comment.user_id || 'guest',
-            content: comment.content,
+            content: String(comment.content),
             createdAt: new Date(comment.created_at),
             updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
-            likesCount: comment.likes_count,
+            likesCount: comment.likes_count || 0,
             liked: userLikes[comment.id] || false,
             guestNickname: comment.guest_nickname,
             user: {
@@ -158,33 +184,35 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
           // Add replies to this parent
           const replies = repliesByParent[comment.id] || [];
           if (replies.length > 0) {
-            formattedComment.replies = replies.map(reply => ({
-              id: reply.id,
-              postId,
-              userId: reply.user_id || 'guest',
-              parentId: comment.id,
-              content: reply.content,
-              createdAt: new Date(reply.created_at),
-              updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
-              likesCount: reply.likes_count,
-              liked: userLikes[reply.id] || false,
-              guestNickname: reply.guest_nickname,
-              user: {
-                id: reply.user_id || 'guest',
-                name: reply.guest_nickname || (reply.profiles?.username || `ユーザー_${(reply.user_id || '').substring(0, 5)}`),
-                avatar: reply.profiles?.avatar_url || '/placeholder-avatar.png'
-              }
-            }));
+            formattedComment.replies = replies
+              .filter(reply => reply) // Filter out null replies
+              .map(reply => ({
+                id: String(reply.id),
+                postId,
+                userId: reply.user_id || 'guest',
+                parentId: String(comment.id),
+                content: String(reply.content),
+                createdAt: new Date(reply.created_at),
+                updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
+                likesCount: reply.likes_count || 0,
+                liked: userLikes[reply.id] || false,
+                guestNickname: reply.guest_nickname,
+                user: {
+                  id: reply.user_id || 'guest',
+                  name: reply.guest_nickname || (reply.profiles?.username || `ユーザー_${(reply.user_id || '').substring(0, 5)}`),
+                  avatar: reply.profiles?.avatar_url || '/placeholder-avatar.png'
+                }
+              }));
           }
           
           return formattedComment;
-        });
+        }).filter(Boolean) as Comment[]; // Filter out null comments
         
         setComments(formattedComments);
         
         // Update comment count in parent component
         if (onCommentCountChange) {
-          const totalCount = (parentComments || []).length;
+          const totalCount = (parentCommentsData || []).length;
           onCommentCountChange(totalCount);
         }
       } catch (err: any) {
@@ -234,9 +262,9 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
               onSetEditContent={setEditContent}
               onToggleLike={toggleLike}
               onDeleteComment={deleteComment}
-              onStartEditing={startEditing}
-              onCancelEditing={cancelEditing}
-              onSaveEdit={saveEdit}
+              onStartEditing={handleStartEditing}
+              onCancelEditing={handleCancelEditing}
+              onSaveEdit={handleSaveEdit}
             />
           ))
         )}

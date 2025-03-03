@@ -29,10 +29,10 @@ export async function submitComment(
       guest_nickname: !userId ? (nickname || "ゲスト") : null
     };
 
-    // コメントをデータベースに追加
+    // コメントをデータベースに追加 - fix the array syntax
     const { data, error } = await supabase
       .from('comments')
-      .insert(commentData)
+      .insert([commentData])
       .select()
       .single();
 
@@ -77,10 +77,10 @@ export async function submitReply(
       guest_nickname: !userId ? (nickname || "返信") : null
     };
     
-    // 返信をデータベースに追加
+    // 返信をデータベースに追加 - fix the array syntax
     const { data, error } = await supabase
       .from('comments')
-      .insert(replyData)
+      .insert([replyData])
       .select()
       .single();
 
@@ -122,13 +122,13 @@ export async function toggleCommentLike(commentId: string, userId: string, isLik
       
       return false;
     } else {
-      // いいねを追加
+      // いいねを追加 - fix the array syntax
       const { error } = await supabase
         .from('likes')
-        .insert({
+        .insert([{
           user_id: userId,
           comment_id: commentId
-        });
+        }]);
 
       if (error) {
         console.error("いいね追加エラー:", error);
@@ -184,13 +184,16 @@ export async function updateCommentContent(commentId: string, userId: string, ne
   try {
     const now = new Date().toISOString();
     
+    // Fix the update operation type
+    const updateData = {
+      content: newContent,
+      updated_at: now
+    };
+    
     // コメントを更新
     const { error } = await supabase
       .from('comments')
-      .update({
-        content: newContent,
-        updated_at: now
-      })
+      .update(updateData)
       .eq('id', commentId)
       .eq('user_id', userId);
 

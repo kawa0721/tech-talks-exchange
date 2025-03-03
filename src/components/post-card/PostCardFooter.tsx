@@ -60,10 +60,10 @@ const PostCardFooter = ({
           onToggleLike();
         }
       } else {
-        // Add like to database
+        // Add like to database - fix the insert operation
         const { error } = await supabase
           .from('likes')
-          .insert({ user_id: user.id, post_id: postId });
+          .insert([{ user_id: user.id, post_id: postId }]);
           
         if (error) {
           console.error("いいね追加エラー:", error);

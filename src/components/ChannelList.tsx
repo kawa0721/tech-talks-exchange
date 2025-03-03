@@ -49,27 +49,29 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
           return;
         }
         
-        // Format channels
-        const formattedChannels: Channel[] = channelsData.map(channel => ({
-          id: channel.id,
-          name: channel.name,
-          description: channel.description,
-          icon: channel.icon,
-          categoryId: channel.category_id
-        }));
+        // Format channels - check that data exists and is not an error
+        const formattedChannels: Channel[] = channelsData ? channelsData.map(channel => ({
+          id: String(channel.id),
+          name: String(channel.name),
+          description: String(channel.description),
+          icon: channel.icon ? String(channel.icon) : undefined,
+          categoryId: String(channel.category_id)
+        })) : [];
         
-        // Format categories
-        const formattedCategories: ChannelCategory[] = categoriesData.map(category => {
-          const categoryChannels = channelsData
-            .filter(channel => channel.category_id === category.id)
-            .map(channel => channel.id);
+        // Format categories - check that data exists and is not an error
+        const formattedCategories: ChannelCategory[] = categoriesData ? categoriesData.map(category => {
+          const categoryChannels = channelsData 
+            ? channelsData
+                .filter(channel => channel.category_id === category.id)
+                .map(channel => String(channel.id))
+            : [];
             
           return {
-            id: category.id,
-            name: category.name,
+            id: String(category.id),
+            name: String(category.name),
             channels: categoryChannels
           };
-        });
+        }) : [];
         
         setChannels(formattedChannels);
         setCategories(formattedCategories);
