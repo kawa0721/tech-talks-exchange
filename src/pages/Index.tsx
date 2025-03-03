@@ -44,7 +44,7 @@ const Index = () => {
     popularLoading,
     fetchTrendingPosts,
     fetchPopularPosts
-  } = useFeaturePosts();
+  } = useFeaturePosts({ selectedChannel });
 
   // さらに詳細なデバッグログ
   useEffect(() => {
@@ -67,6 +67,13 @@ const Index = () => {
     fetchTrendingPosts(true);
     fetchPopularPosts(true);
   }, []);
+  
+  // チャンネルが変更されたときに特集投稿を再取得
+  useEffect(() => {
+    console.log('Channel changed, refreshing featured posts');
+    fetchTrendingPosts(true);
+    fetchPopularPosts(true);
+  }, [selectedChannel]);
 
   // 「もっと読み込む」ボタンをクリックしたときの処理（通常の投稿）
   const handleLoadMore = () => {

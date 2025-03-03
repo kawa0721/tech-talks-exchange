@@ -110,13 +110,20 @@ export async function fetchSpecialPosts(
   type: "trending" | "popular",
   perPage: number = 10,
   lastPostDate?: string,
-  lastLikesCount?: number
+  lastLikesCount?: number,
+  selectedChannel: string | null = null
 ) {
-  console.log(`[fetchSpecialPosts] type: ${type}, perPage: ${perPage}, cursor: ${lastPostDate || lastLikesCount || 'none'}`);
+  console.log(`[fetchSpecialPosts] type: ${type}, perPage: ${perPage}, channel: ${selectedChannel || 'all'}, cursor: ${lastPostDate || lastLikesCount || 'none'}`);
   
   let query = supabase
     .from('posts')
     .select('*');
+    
+  // Filter by channel if selected
+  if (selectedChannel) {
+    console.log(`[fetchSpecialPosts] Filtering by channel: ${selectedChannel}`);
+    query = query.eq('channel_id', selectedChannel);
+  }
   
   if (type === "trending") {
     // For trending, sort by created_at (newest first)

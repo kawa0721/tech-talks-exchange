@@ -3,7 +3,11 @@ import { useState } from "react";
 import { Post } from "@/types";
 import { fetchSpecialPosts, formatPostData } from "./fetchPostsUtils";
 
-export function useFeaturePosts() {
+interface UseFeaturePostsProps {
+  selectedChannel?: string | null;
+}
+
+export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps = {}) {
   // 投稿データ状態
   const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
@@ -22,7 +26,7 @@ export function useFeaturePosts() {
 
   // トレンド投稿の取得（ページネーション対応）
   const fetchTrendingPosts = async (reset = true) => {
-    console.log(`Fetching trending posts, reset=${reset}, current count=${trendingPosts.length}`);
+    console.log(`Fetching trending posts, reset=${reset}, current count=${trendingPosts.length}, channel=${selectedChannel || 'all'}`);
     
     if (reset) {
       setTrendingLoading(true);
@@ -43,7 +47,9 @@ export function useFeaturePosts() {
       const { data: trendingData, error: trendingError } = await fetchSpecialPosts(
         "trending", 
         PER_PAGE, 
-        lastTrendingDate
+        lastTrendingDate,
+        undefined,
+        selectedChannel
       );
       
       if (trendingError) {
@@ -93,7 +99,7 @@ export function useFeaturePosts() {
   
   // 人気投稿の取得（ページネーション対応）
   const fetchPopularPosts = async (reset = true) => {
-    console.log(`Fetching popular posts, reset=${reset}, current count=${popularPosts.length}`);
+    console.log(`Fetching popular posts, reset=${reset}, current count=${popularPosts.length}, channel=${selectedChannel || 'all'}`);
     
     if (reset) {
       setPopularLoading(true);
@@ -115,7 +121,8 @@ export function useFeaturePosts() {
         "popular", 
         PER_PAGE, 
         lastPopularInfo?.date,
-        lastPopularInfo?.likesCount
+        lastPopularInfo?.likesCount,
+        selectedChannel
       );
       
       if (popularError) {
