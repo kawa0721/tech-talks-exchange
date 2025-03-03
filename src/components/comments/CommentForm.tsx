@@ -3,12 +3,13 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 interface CommentFormProps {
   postId: string;
   userAvatar?: string;
-  onSubmit: (content: string) => void;
+  onSubmit: (content: string, nickname?: string) => void;
   isSubmitting: boolean;
 }
 
@@ -19,6 +20,7 @@ const CommentForm = ({
   isSubmitting
 }: CommentFormProps) => {
   const [content, setContent] = useState("");
+  const [nickname, setNickname] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +30,9 @@ const CommentForm = ({
       return;
     }
 
-    onSubmit(content);
+    onSubmit(content, nickname);
     setContent("");
+    // ニックネームはそのまま維持して次のコメントでも使えるようにする
   };
 
   return (
@@ -40,6 +43,12 @@ const CommentForm = ({
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
         <div className="flex-1">
+          <Input
+            placeholder="ニックネーム（任意）"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="mb-2"
+          />
           <Textarea
             placeholder="コメントを追加..."
             value={content}

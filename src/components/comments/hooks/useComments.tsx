@@ -27,7 +27,8 @@ export function useComments(postId: string) {
             updated_at,
             user_id,
             likes_count,
-            parent_id
+            parent_id,
+            guest_nickname
           `)
           .eq('post_id', postId)
           .is('parent_id', null)
@@ -40,42 +41,46 @@ export function useComments(postId: string) {
         // ユーザー情報を取得
         const commentsWithUserInfo = await Promise.all(
           parentComments.map(async (comment) => {
-            // ユーザー情報を取得
-            const { data: userData, error: userError } = await supabase
-              .from('profiles')
-              .select('id, username, avatar_url')
-              .eq('id', comment.user_id)
-              .single();
+            let userInfo = {
+              id: comment.user_id || 'guest',
+              name: comment.guest_nickname || "ゲスト",
+              avatar: undefined
+            };
 
-            if (userError) {
-              console.error("ユーザー情報取得エラー:", userError);
-              return {
-                id: comment.id,
-                postId,
-                userId: comment.user_id,
-                user: {
-                  id: comment.user_id,
-                  name: "不明なユーザー",
-                  avatar: undefined
-                },
-                content: comment.content,
-                createdAt: new Date(comment.created_at),
-                updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
-                likesCount: comment.likes_count,
-                liked: false,
-                replies: []
-              };
+            // ユーザーIDがある場合のみプロフィール情報を取得
+            if (comment.user_id) {
+              // ユーザー情報を取得
+              const { data: userData, error: userError } = await supabase
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .eq('id', comment.user_id)
+                .single();
+
+              if (!userError && userData) {
+                userInfo = {
+                  id: userData.id,
+                  name: userData.username || "不明なユーザー",
+                  avatar: userData.avatar_url
+                };
+              }
             }
 
             // いいね状態を確認
-            const { data: likeData } = await supabase
-              .from('likes')
-              .select('id')
-              .match({ 
-                user_id: (await supabase.auth.getUser()).data.user?.id,
-                comment_id: comment.id 
-              })
-              .maybeSingle();
+            const user = await supabase.auth.getUser();
+            let liked = false;
+            
+            if (user.data.user) {
+              const { data: likeData } = await supabase
+                .from('likes')
+                .select('id')
+                .match({ 
+                  user_id: user.data.user.id,
+                  comment_id: comment.id 
+                })
+                .maybeSingle();
+                
+              liked = !!likeData;
+            }
 
             // 返信を取得
             const { data: replies, error: repliesError } = await supabase
@@ -86,7 +91,8 @@ export function useComments(postId: string) {
                 created_at,
                 updated_at,
                 user_id,
-                likes_count
+                likes_count,
+                guest_nickname
               `)
               .eq('post_id', postId)
               .eq('parent_id', comment.id)
@@ -98,75 +104,72 @@ export function useComments(postId: string) {
                 id: comment.id,
                 postId,
                 userId: comment.user_id,
-                user: {
-                  id: userData.id,
-                  name: userData.username || "不明なユーザー",
-                  avatar: userData.avatar_url
-                },
+                user: userInfo,
                 content: comment.content,
                 createdAt: new Date(comment.created_at),
                 updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
                 likesCount: comment.likes_count,
-                liked: !!likeData,
-                replies: []
+                liked: liked,
+                replies: [],
+                guestNickname: comment.guest_nickname
               };
             }
 
             // 返信にユーザー情報を追加
             const repliesWithUserInfo = await Promise.all(
               replies.map(async (reply) => {
-                // ユーザー情報を取得
-                const { data: replyUserData, error: replyUserError } = await supabase
-                  .from('profiles')
-                  .select('id, username, avatar_url')
-                  .eq('id', reply.user_id)
-                  .single();
+                let replyUserInfo = {
+                  id: reply.user_id || 'guest',
+                  name: reply.guest_nickname || "ゲスト",
+                  avatar: undefined
+                };
 
-                if (replyUserError) {
-                  console.error("返信ユーザー情報取得エラー:", replyUserError);
-                  return {
-                    id: reply.id,
-                    postId,
-                    userId: reply.user_id,
-                    parentId: comment.id,
-                    user: {
-                      id: reply.user_id,
-                      name: "不明なユーザー",
-                      avatar: undefined
-                    },
-                    content: reply.content,
-                    createdAt: new Date(reply.created_at),
-                    updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
-                    likesCount: reply.likes_count,
-                    liked: false
-                  };
+                // ユーザーIDがある場合のみプロフィール情報を取得
+                if (reply.user_id) {
+                  // ユーザー情報を取得
+                  const { data: replyUserData, error: replyUserError } = await supabase
+                    .from('profiles')
+                    .select('id, username, avatar_url')
+                    .eq('id', reply.user_id)
+                    .single();
+
+                  if (!replyUserError && replyUserData) {
+                    replyUserInfo = {
+                      id: replyUserData.id,
+                      name: replyUserData.username || "不明なユーザー",
+                      avatar: replyUserData.avatar_url
+                    };
+                  }
                 }
 
                 // 返信のいいね状態を確認
-                const { data: replyLikeData } = await supabase
-                  .from('likes')
-                  .select('id')
-                  .match({ 
-                    user_id: (await supabase.auth.getUser()).data.user?.id,
-                    comment_id: reply.id 
-                  })
-                  .maybeSingle();
+                let replyLiked = false;
+                
+                if (user.data.user) {
+                  const { data: replyLikeData } = await supabase
+                    .from('likes')
+                    .select('id')
+                    .match({ 
+                      user_id: user.data.user.id,
+                      comment_id: reply.id 
+                    })
+                    .maybeSingle();
+                    
+                  replyLiked = !!replyLikeData;
+                }
 
                 return {
                   id: reply.id,
                   postId,
                   userId: reply.user_id,
                   parentId: comment.id,
-                  user: {
-                    id: replyUserData.id,
-                    name: replyUserData.username || "不明なユーザー",
-                    avatar: replyUserData.avatar_url
-                  },
+                  user: replyUserInfo,
                   content: reply.content,
                   createdAt: new Date(reply.created_at),
                   updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
                   likesCount: reply.likes_count,
-                  liked: !!replyLikeData
+                  liked: replyLiked,
+                  guestNickname: reply.guest_nickname
                 };
               })
             );
@@ -175,17 +178,14 @@ export function useComments(postId: string) {
               id: comment.id,
               postId,
               userId: comment.user_id,
-              user: {
-                id: userData.id,
-                name: userData.username || "不明なユーザー",
-                avatar: userData.avatar_url
-              },
+              user: userInfo,
               content: comment.content,
               createdAt: new Date(comment.created_at),
               updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
               likesCount: comment.likes_count,
-              liked: !!likeData,
-              replies: repliesWithUserInfo
+              liked: liked,
+              replies: repliesWithUserInfo,
+              guestNickname: comment.guest_nickname
             };
           })
         );
@@ -202,23 +202,26 @@ export function useComments(postId: string) {
     fetchComments();
   }, [postId]);
 
-  const handleSubmitComment = async (newComment: string) => {
-    const user = await supabase.auth.getUser();
-    if (!user.data.user) {
-      toast.error("コメントを投稿するにはログインが必要です");
-      return;
-    }
-
+  const handleSubmitComment = async (newComment: string, nickname?: string) => {
     setSubmitting(true);
     
     try {
+      const user = await supabase.auth.getUser();
+      let userId = null;
+      
+      // ログインしている場合はユーザーIDを設定
+      if (user.data.user) {
+        userId = user.data.user.id;
+      }
+      
       // コメントをデータベースに追加
       const { data, error } = await supabase
         .from('comments')
         .insert({
           post_id: postId,
-          user_id: user.data.user.id,
+          user_id: userId,
           content: newComment,
+          guest_nickname: nickname || null
         })
         .select()
         .single();
@@ -227,33 +230,42 @@ export function useComments(postId: string) {
         throw error;
       }
 
-      // ユーザー情報を取得
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url')
-        .eq('id', user.data.user.id)
-        .single();
+      let userInfo = {
+        id: userId || 'guest',
+        name: nickname || "ゲスト",
+        avatar: undefined
+      };
 
-      if (userError) {
-        console.error("ユーザー情報取得エラー:", userError);
-        throw userError;
+      // ログインしている場合はプロフィール情報を取得
+      if (userId) {
+        // ユーザー情報を取得
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .eq('id', userId)
+          .single();
+
+        if (!userError && userData) {
+          userInfo = {
+            id: userData.id,
+            name: userData.username || "匿名ユーザー",
+            avatar: userData.avatar_url
+          };
+        }
       }
 
       // 新しいコメントを追加
       const newCommentObj: Comment = {
         id: data.id,
         postId,
-        userId: user.data.user.id,
-        user: {
-          id: userData.id,
-          name: userData.username || "匿名ユーザー",
-          avatar: userData.avatar_url
-        },
+        userId: userId,
+        user: userInfo,
         content: newComment,
         createdAt: new Date(data.created_at),
         likesCount: 0,
         liked: false,
-        replies: []
+        replies: [],
+        guestNickname: nickname
       };
       
       setComments([newCommentObj, ...comments]);
@@ -272,23 +284,30 @@ export function useComments(postId: string) {
       return;
     }
 
-    const user = await supabase.auth.getUser();
-    if (!user.data.user) {
-      toast.error("返信するにはログインが必要です");
-      return;
-    }
-
     setSubmitting(true);
     
     try {
+      const user = await supabase.auth.getUser();
+      let userId = null;
+      let nickname = null;
+      
+      // ログインしている場合はユーザーIDを設定
+      if (user.data.user) {
+        userId = user.data.user.id;
+      } else {
+        // ログインしていない場合は「返信」としてニックネームを設定
+        nickname = "返信";
+      }
+      
       // 返信をデータベースに追加
       const { data, error } = await supabase
         .from('comments')
         .insert({
           post_id: postId,
-          user_id: user.data.user.id,
+          user_id: userId,
           content: replyContent,
-          parent_id: parentId
+          parent_id: parentId,
+          guest_nickname: nickname
         })
         .select()
         .single();
@@ -297,33 +316,42 @@ export function useComments(postId: string) {
         throw error;
       }
 
-      // ユーザー情報を取得
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url')
-        .eq('id', user.data.user.id)
-        .single();
+      let userInfo = {
+        id: userId || 'guest',
+        name: nickname || "ゲスト",
+        avatar: undefined
+      };
 
-      if (userError) {
-        console.error("ユーザー情報取得エラー:", userError);
-        throw userError;
+      // ログインしている場合はプロフィール情報を取得
+      if (userId) {
+        // ユーザー情報を取得
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .eq('id', userId)
+          .single();
+
+        if (!userError && userData) {
+          userInfo = {
+            id: userData.id,
+            name: userData.username || "匿名ユーザー",
+            avatar: userData.avatar_url
+          };
+        }
       }
 
       // 新しい返信を作成
       const newReply: Comment = {
         id: data.id,
         postId,
-        userId: user.data.user.id,
+        userId: userId,
         parentId,
-        user: {
-          id: userData.id,
-          name: userData.username || "匿名ユーザー",
-          avatar: userData.avatar_url
-        },
+        user: userInfo,
         content: replyContent,
         createdAt: new Date(data.created_at),
         likesCount: 0,
-        liked: false
+        liked: false,
+        guestNickname: nickname
       };
       
       // コメントリストを更新

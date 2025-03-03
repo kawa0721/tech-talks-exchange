@@ -1,6 +1,7 @@
 
 import { useState, ChangeEvent } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { convertHtmlToMarkdown } from "@/lib/markdownUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
   const [htmlContent, setHtmlContent] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [guestNickname, setGuestNickname] = useState("");
   
   // 認証情報の取得
   const { user } = useAuth();
@@ -57,11 +59,6 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
       return;
     }
 
-    if (!user) {
-      toast.error("投稿するにはログインが必要です");
-      return;
-    }
-
     setIsSubmitting(true);
 
     // HTMLからマークダウンに変換
@@ -75,9 +72,10 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
           {
             title: title,
             content: markdownForSaving,
-            user_id: user.id,
+            user_id: user ? user.id : null,
             channel_id: channelId || 'general',
-            images: images.length > 0 ? images : null
+            images: images.length > 0 ? images : null,
+            guest_nickname: !user && guestNickname ? guestNickname : null
           }
         ])
         .select();
@@ -91,6 +89,7 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
       setContent("");
       setHtmlContent("");
       setImages([]);
+      setGuestNickname("");
       onPostCreated();
     } catch (error) {
       console.error("投稿作成エラー:", error);
@@ -110,6 +109,17 @@ const CreatePostForm = ({ channelId, onPostCreated }: CreatePostFormProps) => {
             userAvatarUrl={user?.user_metadata?.avatar_url}
             userName={user?.user_metadata?.name}
           />
+          
+          {!user && (
+            <div className="mt-2">
+              <Input
+                placeholder="ニックネーム（任意）"
+                value={guestNickname}
+                onChange={(e) => setGuestNickname(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          )}
         </CardHeader>
         <CardContent className="pb-2">
           <PostFormEditor 
