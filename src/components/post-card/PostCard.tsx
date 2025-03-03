@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Post } from "@/types";
@@ -7,6 +7,7 @@ import PostCardHeader from "./PostCardHeader";
 import PostCardContent from "./PostCardContent";
 import PostCardFooter from "./PostCardFooter";
 import ContentToggler from "./ContentToggler";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PostCardProps {
   post: Post;
@@ -26,6 +27,24 @@ const PostCard = ({
   const [liked, setLiked] = useState(post.liked || false);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [showFullContent, setShowFullContent] = useState(false);
+
+  // Check if user has liked this post
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: likeData } = await supabase
+          .from('likes')
+          .select('id')
+          .match({ user_id: user.id, post_id: post.id })
+          .maybeSingle();
+          
+        setLiked(!!likeData);
+      }
+    };
+    
+    checkLikeStatus();
+  }, [post.id]);
 
   // 投稿内容を一定の長さに制限する
   const contentPreviewLength = 150; // プレビューの文字制限

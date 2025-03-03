@@ -4,7 +4,6 @@ import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Post, User } from "@/types";
-import { CHANNELS } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import PostCard from "@/components/PostCard";
@@ -20,6 +19,7 @@ const PostDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,6 +101,29 @@ const PostDetail = () => {
           }
         }
         
+        // 現在のユーザーがこの投稿をいいねしているか確認
+        let userLiked = false;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: likeData } = await supabase
+            .from('likes')
+            .select('id')
+            .match({ user_id: user.id, post_id: postId })
+            .maybeSingle();
+            
+          userLiked = !!likeData;
+        }
+        
+        // コメント数を取得
+        const { count: commentCount, error: countError } = await supabase
+          .from('comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('post_id', postId);
+          
+        if (!countError) {
+          setCommentsCount(commentCount || 0);
+        }
+        
         // 投稿データを変換
         const formattedPost: Post = {
           id: postData.id,
@@ -113,7 +136,7 @@ const PostDetail = () => {
           updatedAt: postData.updated_at ? new Date(postData.updated_at) : undefined,
           likesCount: postData.likes_count,
           commentsCount: postData.comments_count,
-          liked: false,
+          liked: userLiked,
           images: postData.images || []
         };
         
@@ -138,6 +161,16 @@ const PostDetail = () => {
     
     fetchPost();
   }, [postId]);
+
+  // コメントが追加/削除されたときに投稿を更新する
+  const handleCommentCountChange = (newCount: number) => {
+    if (post) {
+      setPost({
+        ...post,
+        commentsCount: newCount
+      });
+    }
+  };
 
   // チャンネル情報の状態
   const [channelName, setChannelName] = useState<string>("読み込み中...");
@@ -214,7 +247,11 @@ const PostDetail = () => {
               showChannel={true} 
             />
             
-            <CommentSection postId={post?.id || ""} postOwnerId={post?.userId} />
+            <CommentSection 
+              postId={post?.id || ""} 
+              postOwnerId={post?.userId}
+              onCommentCountChange={handleCommentCountChange}
+            />
           </div>
         </div>
       </div>

@@ -11,6 +11,8 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PostCardFooterProps {
   postId: string;
@@ -27,6 +29,56 @@ const PostCardFooter = ({
   liked, 
   onToggleLike 
 }: PostCardFooterProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleToggleLike = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("いいねするにはログインが必要です");
+        return;
+      }
+      
+      // Call the parent component's toggle like function
+      onToggleLike();
+      
+      // Optimistically update UI before API call completes
+      if (liked) {
+        // Delete like from database
+        const { error } = await supabase
+          .from('likes')
+          .delete()
+          .match({ user_id: user.id, post_id: postId });
+          
+        if (error) {
+          console.error("いいね削除エラー:", error);
+          toast.error("いいねの削除に失敗しました");
+          // Revert the optimistic update if there was an error
+          onToggleLike();
+        }
+      } else {
+        // Add like to database
+        const { error } = await supabase
+          .from('likes')
+          .insert({ user_id: user.id, post_id: postId });
+          
+        if (error) {
+          console.error("いいね追加エラー:", error);
+          toast.error("いいねの追加に失敗しました");
+          // Revert the optimistic update if there was an error
+          onToggleLike();
+        }
+      }
+    } catch (error) {
+      console.error("いいね処理エラー:", error);
+      toast.error("いいね処理に失敗しました");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const shareToX = () => {
     // 現在のURLを取得
@@ -74,7 +126,8 @@ const PostCardFooter = ({
         variant="ghost" 
         size="sm" 
         className={`flex gap-1 ${liked ? "text-blue-500" : ""}`}
-        onClick={onToggleLike}
+        onClick={handleToggleLike}
+        disabled={isLoading}
       >
         <ThumbsUp className="h-4 w-4" /> 
         <span>{likesCount}</span>
