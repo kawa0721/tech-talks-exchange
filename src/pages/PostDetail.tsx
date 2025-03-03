@@ -158,7 +158,7 @@ const PostDetail = () => {
               showChannel={true} 
             />
             
-            <CommentSection postId={post?.id || ""} />
+            <CommentSection postId={post?.id || ""} postOwnerId={post?.userId} />
           </div>
         </div>
       </div>

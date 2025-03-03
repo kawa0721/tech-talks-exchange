@@ -9,9 +9,10 @@ import { useComments } from "./hooks"; // Updated import path
 
 interface CommentSectionProps {
   postId: string;
+  postOwnerId?: string;
 }
 
-const CommentSection = ({ postId }: CommentSectionProps) => {
+const CommentSection = ({ postId, postOwnerId }: CommentSectionProps) => {
   const {
     comments,
     replyTo,
@@ -37,6 +38,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       
       <CommentForm 
         postId={postId}
+        postOwnerId={postOwnerId}
         onSubmit={handleSubmitComment}
         isSubmitting={submitting}
       />
