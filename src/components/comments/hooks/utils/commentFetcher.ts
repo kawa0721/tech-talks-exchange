@@ -1,3 +1,4 @@
+
 import { Comment } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,7 +13,7 @@ export async function fetchUserProfile(userId: string) {
       .from('profiles')
       .select('id, username, avatar_url')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (userError || !userData) {
       // プロファイルが見つからない場合はデフォルト値を返す
