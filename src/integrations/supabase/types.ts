@@ -99,6 +99,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments_with_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
@@ -135,6 +142,13 @@ export type Database = {
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments_with_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -250,7 +264,44 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      comments_with_profiles: {
+        Row: {
+          avatar_url: string | null
+          content: string | null
+          created_at: string | null
+          guest_nickname: string | null
+          id: string | null
+          likes_count: number | null
+          parent_id: string | null
+          post_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments_with_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
