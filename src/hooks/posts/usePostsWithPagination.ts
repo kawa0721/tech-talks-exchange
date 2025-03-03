@@ -18,7 +18,6 @@ export function usePostsWithPagination({
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(0);
   const [lastPostDate, setLastPostDate] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   
@@ -32,24 +31,22 @@ export function usePostsWithPagination({
   // 投稿をフェッチする関数
   const fetchPosts = async (reset = true) => {
     console.log('=== FETCH POSTS START ===');
-    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}, page=${page}, lastPostDate=${lastPostDate || 'none'}`);
+    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}, lastPostDate=${lastPostDate || 'none'}`);
 
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
       setLoading(true);
       setPosts([]);
       setHasMore(true);
-      setPage(0);
-      setLastPostDate(undefined);
+      setLastPostDate(undefined); // カーソルをリセット
     } else {
       setLoadingMore(true);
     }
 
     try {
-      // 1. 投稿を取得
+      // 1. 投稿を取得 (カーソルベースのページネーション)
       const { data: postsData, error: postsError } = await fetchPaginatedPosts(
         selectedChannel,
-        page,
         perPage,
         lastPostDate
       );
@@ -129,11 +126,9 @@ export function usePostsWithPagination({
         if (uniqueNewPosts.length > 0) {
           // 新しいユニークな投稿がある場合はそれらを追加
           setPosts(prevPosts => [...prevPosts, ...uniqueNewPosts]);
-          setPage(prev => prev + 1);
         } else if (hasMoreData) {
           // データはあるが全て重複の場合、非同期で次のページを試す
           console.log("All posts were duplicates, trying next page via setTimeout");
-          setPage(prev => prev + 1);
           // 非同期で次のページを取得（再帰の代わりに非同期タイマーを使用）
           setTimeout(() => {
             console.log("Executing delayed fetch for next page");

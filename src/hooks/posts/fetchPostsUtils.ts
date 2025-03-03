@@ -42,14 +42,13 @@ export async function formatPostData(post: any): Promise<Post> {
   };
 }
 
-// Fetch posts with pagination
+// Fetch posts with pagination - カーソルベースのページネーション
 export async function fetchPaginatedPosts(
   selectedChannel: string | null,
-  page: number,
   perPage: number,
   lastPostDate?: string
 ) {
-  console.log(`[fetchPaginatedPosts] page: ${page}, perPage: ${perPage}, lastPostDate: ${lastPostDate || 'none'}`);
+  console.log(`[fetchPaginatedPosts] perPage: ${perPage}, lastPostDate: ${lastPostDate || 'none'}`);
   
   // Build query
   let query = supabase
@@ -65,20 +64,36 @@ export async function fetchPaginatedPosts(
 
   // カーソルベースのページネーション - 最後の投稿の日時より古いものを取得
   if (lastPostDate) {
+    console.log(`[fetchPaginatedPosts] Using cursor: posts older than ${lastPostDate}`);
     query = query.lt('created_at', lastPostDate);
   } else {
-    // 最初のページの場合はオフセットを使用しない（カーソルベースに統一）
     console.log('[fetchPaginatedPosts] First page, no cursor used');
   }
 
   // 取得する件数を制限
   query = query.limit(perPage);
 
+  // Debug: Print full SQL query if possible
+  console.log('[fetchPaginatedPosts] Executing query...');
+  
   // Execute query
   const result = await query;
   
   // Log results for debugging
   console.log(`[fetchPaginatedPosts] Query returned ${result.data?.length || 0} posts`);
+  if (result.data && result.data.length > 0) {
+    console.log('[fetchPaginatedPosts] First post:', { 
+      id: result.data[0].id,
+      title: result.data[0].title.substring(0, 30), 
+      created_at: result.data[0].created_at 
+    });
+    console.log('[fetchPaginatedPosts] Last post:', { 
+      id: result.data[result.data.length-1].id,
+      title: result.data[result.data.length-1].title.substring(0, 30), 
+      created_at: result.data[result.data.length-1].created_at 
+    });
+  }
+  
   if (result.error) {
     console.error(`[fetchPaginatedPosts] Query error:`, result.error);
   }
