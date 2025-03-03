@@ -3,82 +3,35 @@ import { Comment } from "@/types";
 import { toast } from "sonner";
 import { toggleCommentLike } from "./utils/commentActions";
 import { supabase } from "@/integrations/supabase/client";
+import { findAndUpdateComment } from "./utils/commentMappers";
 
 export function useCommentLikes(
   comments: Comment[],
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>
 ) {
   const toggleLike = async (commentId: string) => {
-    const user = await supabase.auth.getUser();
-    if (!user.data.user) {
+    // Check authentication
+    const user = await checkUserAuthentication();
+    if (!user) {
       toast.error("いいねするにはログインが必要です");
       return;
     }
 
-    const userId = user.data.user.id;
-
-    // コメントといいねの状態を取得
-    let commentToUpdate: Comment | undefined = undefined;
-    let parentComment: Comment | undefined = undefined;
-
-    // 親コメントを検索
-    for (const comment of comments) {
-      if (comment.id === commentId) {
-        commentToUpdate = comment;
-        break;
-      }
-      // 返信を検索
-      if (comment.replies) {
-        for (const reply of comment.replies) {
-          if (reply.id === commentId) {
-            commentToUpdate = reply;
-            parentComment = comment;
-            break;
-          }
-        }
-        if (commentToUpdate) break;
-      }
-    }
-
+    const userId = user.id;
+    const commentToUpdate = findCommentById(comments, commentId);
+    
     if (!commentToUpdate) {
       console.error("コメントが見つかりません:", commentId);
       return;
     }
 
     try {
+      // Call API to toggle like
       const isLiked = commentToUpdate.liked;
-      const newLikedStatus = await toggleCommentLike(commentId, userId, isLiked);
+      await toggleCommentLike(commentId, userId, isLiked);
       
-      // コメントリストを更新
-      const updatedComments = comments.map(comment => {
-        if (comment.id === commentId) {
-          return {
-            ...comment,
-            liked: !comment.liked,
-            likesCount: !comment.liked ? comment.likesCount + 1 : comment.likesCount - 1
-          };
-        }
-        
-        // 返信を確認
-        if (comment.replies) {
-          const updatedReplies = comment.replies.map(reply => {
-            if (reply.id === commentId) {
-              return {
-                ...reply,
-                liked: !reply.liked,
-                likesCount: !reply.liked ? reply.likesCount + 1 : reply.likesCount - 1
-              };
-            }
-            return reply;
-          });
-          
-          return { ...comment, replies: updatedReplies };
-        }
-        
-        return comment;
-      });
-      
-      setComments(updatedComments);
+      // Update UI state
+      updateCommentLikeState(comments, setComments, commentId, isLiked);
     } catch (error) {
       console.error("いいね処理エラー:", error);
       toast.error("いいねの処理に失敗しました");
@@ -87,3 +40,46 @@ export function useCommentLikes(
 
   return { toggleLike };
 }
+
+// Helper function to find a comment by ID (either top-level or reply)
+function findCommentById(comments: Comment[], commentId: string): Comment | undefined {
+  for (const comment of comments) {
+    if (comment.id === commentId) {
+      return comment;
+    }
+    
+    if (comment.replies) {
+      const reply = comment.replies.find(r => r.id === commentId);
+      if (reply) return reply;
+    }
+  }
+  
+  return undefined;
+}
+
+// Helper function to check authentication
+async function checkUserAuthentication() {
+  const { data } = await supabase.auth.getUser();
+  return data.user;
+}
+
+// Helper function to update like state in comment tree
+function updateCommentLikeState(
+  comments: Comment[],
+  setComments: React.Dispatch<React.SetStateAction<Comment[]>>,
+  commentId: string,
+  currentLikedState: boolean
+) {
+  const updatedComments = findAndUpdateComment(
+    comments,
+    commentId,
+    (comment) => ({
+      ...comment,
+      liked: !currentLikedState,
+      likesCount: !currentLikedState ? comment.likesCount + 1 : comment.likesCount - 1
+    })
+  );
+  
+  setComments(updatedComments);
+}
+

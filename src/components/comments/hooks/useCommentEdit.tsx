@@ -4,10 +4,12 @@ import { Comment } from "@/types";
 import { toast } from "sonner";
 import { updateCommentContent } from "./utils/commentActions";
 import { supabase } from "@/integrations/supabase/client";
+import { findAndUpdateComment } from "./utils/commentMappers";
 
 export function useCommentEdit() {
   const [editContent, setEditContent] = useState<Record<string, string>>({});
 
+  // Helper function to start editing a comment
   const startEditing = (
     comments: Comment[],
     setComments: React.Dispatch<React.SetStateAction<Comment[]>>,
@@ -17,39 +19,14 @@ export function useCommentEdit() {
   ) => {
     let currentContent = "";
     
-    // 編集するコメントの内容を探す
-    if (isReply && parentId) {
-      const parentComment = comments.find(c => c.id === parentId);
-      const reply = parentComment?.replies?.find(r => r.id === commentId);
-      if (reply) currentContent = reply.content;
-    } else {
-      const comment = comments.find(c => c.id === commentId);
-      if (comment) currentContent = comment.content;
-    }
+    // Find the current content of the comment being edited
+    currentContent = findCommentContent(comments, commentId, isReply, parentId);
     
-    // 編集内容を設定
+    // Set the edit content for this comment ID
     setEditContent({ ...editContent, [commentId]: currentContent });
     
-    const updatedComments = comments.map(comment => {
-      if (comment.id === commentId) {
-        return { ...comment, isEditing: true };
-      }
-      
-      if (comment.replies) {
-        const updatedReplies = comment.replies.map(reply => {
-          if (reply.id === commentId) {
-            return { ...reply, isEditing: true };
-          }
-          return reply;
-        });
-        
-        return { ...comment, replies: updatedReplies };
-      }
-      
-      return comment;
-    });
-    
-    setComments(updatedComments);
+    // Update the comments state to mark this comment as being edited
+    updateCommentsEditingState(comments, setComments, commentId, true);
   };
 
   const cancelEditing = (
@@ -57,31 +34,13 @@ export function useCommentEdit() {
     setComments: React.Dispatch<React.SetStateAction<Comment[]>>,
     commentId: string
   ) => {
-    // 編集内容をリセット
+    // Reset the edit content for this comment
     const newEditContent = { ...editContent };
     delete newEditContent[commentId];
     setEditContent(newEditContent);
     
-    const updatedComments = comments.map(comment => {
-      if (comment.id === commentId) {
-        return { ...comment, isEditing: false };
-      }
-      
-      if (comment.replies) {
-        const updatedReplies = comment.replies.map(reply => {
-          if (reply.id === commentId) {
-            return { ...reply, isEditing: false };
-          }
-          return reply;
-        });
-        
-        return { ...comment, replies: updatedReplies };
-      }
-      
-      return comment;
-    });
-    
-    setComments(updatedComments);
+    // Update the comments state to unmark this comment as being edited
+    updateCommentsEditingState(comments, setComments, commentId, false);
   };
 
   const saveEdit = async (
@@ -107,38 +66,21 @@ export function useCommentEdit() {
     try {
       await updateCommentContent(commentId, user.data.user.id, newContent);
       
-      const updatedComments = comments.map(comment => {
-        if (comment.id === commentId) {
-          return { 
-            ...comment, 
-            content: newContent, 
-            isEditing: false,
-            updatedAt: new Date()
-          };
-        }
-        
-        if (comment.replies && (isReply || parentId === comment.id)) {
-          const updatedReplies = comment.replies.map(reply => {
-            if (reply.id === commentId) {
-              return { 
-                ...reply, 
-                content: newContent, 
-                isEditing: false,
-                updatedAt: new Date()
-              };
-            }
-            return reply;
-          });
-          
-          return { ...comment, replies: updatedReplies };
-        }
-        
-        return comment;
-      });
+      // Update the comments with the new content
+      const updatedComments = findAndUpdateComment(
+        comments,
+        commentId,
+        (comment) => ({
+          ...comment,
+          content: newContent,
+          isEditing: false,
+          updatedAt: new Date()
+        })
+      );
       
       setComments(updatedComments);
       
-      // 編集内容をリセット
+      // Reset the edit content for this comment
       const newEditContent = { ...editContent };
       delete newEditContent[commentId];
       setEditContent(newEditContent);
@@ -162,3 +104,37 @@ export function useCommentEdit() {
     handleSetEditContent
   };
 }
+
+// Helper function to find comment content
+function findCommentContent(
+  comments: Comment[], 
+  commentId: string, 
+  isReply = false, 
+  parentId?: string
+): string {
+  if (isReply && parentId) {
+    const parentComment = comments.find(c => c.id === parentId);
+    const reply = parentComment?.replies?.find(r => r.id === commentId);
+    return reply?.content || "";
+  } else {
+    const comment = comments.find(c => c.id === commentId);
+    return comment?.content || "";
+  }
+}
+
+// Helper function to update editing state in comment tree
+function updateCommentsEditingState(
+  comments: Comment[],
+  setComments: React.Dispatch<React.SetStateAction<Comment[]>>,
+  commentId: string,
+  isEditing: boolean
+) {
+  const updatedComments = findAndUpdateComment(
+    comments,
+    commentId,
+    (comment) => ({ ...comment, isEditing })
+  );
+  
+  setComments(updatedComments);
+}
+
