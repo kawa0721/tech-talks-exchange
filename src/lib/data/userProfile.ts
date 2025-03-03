@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 
@@ -36,31 +37,48 @@ export const getUserProfile = async (userId: string): Promise<User | null> => {
   }
 };
 
-// 非認証状態でも直接プロフィール情報を取得する関数
+// 非認証状態でも直接プロフィール情報を取得する関数 - 改善版
 export const getPublicUserProfile = async (userId: string): Promise<User | null> => {
   console.log('Fetching public user profile for user ID:', userId);
   
   if (!userId) {
     console.log('No user ID provided for public profile fetch');
-    return null;
+    return {
+      id: 'guest',
+      name: "匿名ユーザー",
+      avatar: undefined,
+      profile: undefined
+    };
   }
   
   try {
-    // Supabaseのanonキーを使用して直接公開データを取得
+    // Supabaseのanonキーを使用して直接公開データを取得 - 読み込み方法改善
     const { data, error } = await supabase
       .from('profiles')
       .select('id, username, avatar_url, profile')
       .eq('id', userId)
-      .single();
+      .maybeSingle();  // single()ではなくmaybeSingle()を使用
       
     if (error) {
       console.error("公開プロフィール取得エラー:", error);
-      return null;
+      // エラー時にもデフォルト情報を返す
+      return {
+        id: userId,
+        name: `ユーザー_${userId.substring(0, 5)}`,
+        avatar: undefined,
+        profile: undefined
+      };
     }
     
     if (!data) {
       console.log('No public profile data found for user ID:', userId);
-      return null;
+      // プロファイルが見つからない場合もデフォルト情報を返す
+      return {
+        id: userId,
+        name: `ユーザー_${userId.substring(0, 5)}`,
+        avatar: undefined,
+        profile: undefined
+      };
     }
     
     console.log('Fetched public profile data:', data);
@@ -73,6 +91,12 @@ export const getPublicUserProfile = async (userId: string): Promise<User | null>
     };
   } catch (error) {
     console.error("公開プロフィール取得エラー:", error);
-    return null;
+    // 例外発生時にもデフォルト情報を返す
+    return {
+      id: userId,
+      name: `ユーザー_${userId.substring(0, 5)}`,
+      avatar: undefined,
+      profile: undefined
+    };
   }
 };

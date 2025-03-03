@@ -1,6 +1,6 @@
-
 import { Comment } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
+import { getPublicUserProfile } from "@/lib/data/userProfile";
 
 /**
  * Fetches user profile information from Supabase
@@ -8,24 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function fetchUserProfile(userId: string) {
   try {
-    // まずプロファイル情報を取得
-    const { data: userData, error: userError } = await supabase
-      .from('profiles')
-      .select('id, username, avatar_url')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (userError) {
-      console.log("User profile fetch error:", userError.message);
-      return {
-        id: userId,
-        name: "ユーザー",
-        avatar: undefined
-      };
-    }
+    // getPublicUserProfileを使ってプロファイル情報を取得
+    const userData = await getPublicUserProfile(userId);
     
     if (!userData) {
-      // プロファイルが見つからない場合はデフォルト値を返す
       console.log("User profile not found:", userId);
       return {
         id: userId,
@@ -33,15 +19,12 @@ export async function fetchUserProfile(userId: string) {
         avatar: undefined
       };
     }
-
-    // ユーザー名が設定されていない場合はユーザーIDの一部を表示
-    const displayName = userData.username || `ユーザー_${userId.substring(0, 5)}`;
     
-    // プロファイルが存在する場合
+    // 既に整形されたユーザー情報を返す
     return {
       id: userData.id,
-      name: displayName,
-      avatar: userData.avatar_url
+      name: userData.name,
+      avatar: userData.avatar
     };
   } catch (error) {
     console.error("ユーザープロファイル取得エラー:", error);

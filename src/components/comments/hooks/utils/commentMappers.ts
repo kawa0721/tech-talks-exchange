@@ -14,11 +14,13 @@ export async function mapCommentWithUserInfo(comment: any, postId: string, curre
     avatar: undefined
   };
 
-  // If the comment has a user ID, fetch their profile - ログインステータスに関わらず情報を表示
+  // Always try to fetch the profile, regardless of login status
   if (comment.user_id) {
     userInfo = await fetchUserProfile(comment.user_id);
-  } else if (comment.guest_nickname) {
-    // ゲストニックネームがある場合は表示名を設定
+  } 
+  
+  // ゲストニックネームがある場合は、取得したユーザー情報よりも優先する
+  if (comment.guest_nickname) {
     userInfo.name = comment.guest_nickname;
   }
 
@@ -67,11 +69,13 @@ export async function mapReplyWithUserInfo(reply: any, postId: string, parentId:
     avatar: undefined
   };
 
-  // If the reply has a user ID, fetch their profile - ログインステータスに関わらず情報を表示
+  // Always try to fetch the profile, regardless of login status
   if (reply.user_id) {
     replyUserInfo = await fetchUserProfile(reply.user_id);
-  } else if (reply.guest_nickname) {
-    // ゲストニックネームがある場合は表示名を設定
+  }
+  
+  // ゲストニックネームがある場合は、取得したユーザー情報よりも優先する
+  if (reply.guest_nickname) {
     replyUserInfo.name = reply.guest_nickname;
   }
 
