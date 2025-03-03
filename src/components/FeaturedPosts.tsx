@@ -16,6 +16,16 @@ interface FeaturedPostsProps {
   getChannelName: (channelId: string) => string;
   selectedChannel: string | null;
   loading: boolean;
+  loadingMore: boolean;
+  
+  // ページネーション用の状態と関数
+  trendingHasMore?: boolean;
+  popularHasMore?: boolean;
+  trendingLoading?: boolean;
+  popularLoading?: boolean;
+  onLoadMoreTrending?: () => void;
+  onLoadMorePopular?: () => void;
+  onLoadMore: () => void; // 既存の通常投稿のさらに読み込み関数
 }
 
 const FeaturedPosts = ({
@@ -24,7 +34,15 @@ const FeaturedPosts = ({
   posts,
   getChannelName,
   selectedChannel,
-  loading
+  loading,
+  loadingMore,
+  trendingHasMore = false,
+  popularHasMore = false, 
+  trendingLoading = false,
+  popularLoading = false,
+  onLoadMoreTrending = () => {},
+  onLoadMorePopular = () => {},
+  onLoadMore
 }: FeaturedPostsProps) => {
   // Add detailed debug logs
   useEffect(() => {
@@ -74,6 +92,35 @@ const FeaturedPosts = ({
                 isTrending={true}
               />
             ))}
+            
+            {/* トレンド投稿の「さらに読み込む」ボタン */}
+            {trendingHasMore && (
+              <div className="flex justify-center mt-8">
+                <Button 
+                  onClick={onLoadMoreTrending} 
+                  disabled={trendingLoading}
+                  variant="outline"
+                  className="w-full max-w-xs"
+                  size="lg"
+                >
+                  {trendingLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <span>読み込み中... (現在{trendingPosts.length}件表示中)</span>
+                    </>
+                  ) : (
+                    <span>さらに読み込む (現在{trendingPosts.length}件表示中)</span>
+                  )}
+                </Button>
+              </div>
+            )}
+            
+            {/* 全ての結果を表示した場合のメッセージ */}
+            {!trendingHasMore && trendingPosts.length > 0 && (
+              <div className="text-center py-4 mt-4 text-muted-foreground text-sm">
+                すべてのトレンド投稿を表示しています (計{trendingPosts.length}件)
+              </div>
+            )}
           </div>
         ) : (
           <Card>
@@ -96,6 +143,35 @@ const FeaturedPosts = ({
                 isPopular={true}
               />
             ))}
+            
+            {/* 人気投稿の「さらに読み込む」ボタン */}
+            {popularHasMore && (
+              <div className="flex justify-center mt-8">
+                <Button 
+                  onClick={onLoadMorePopular} 
+                  disabled={popularLoading}
+                  variant="outline"
+                  className="w-full max-w-xs"
+                  size="lg"
+                >
+                  {popularLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <span>読み込み中... (現在{popularPosts.length}件表示中)</span>
+                    </>
+                  ) : (
+                    <span>さらに読み込む (現在{popularPosts.length}件表示中)</span>
+                  )}
+                </Button>
+              </div>
+            )}
+            
+            {/* 全ての結果を表示した場合のメッセージ */}
+            {!popularHasMore && popularPosts.length > 0 && (
+              <div className="text-center py-4 mt-4 text-muted-foreground text-sm">
+                すべての人気投稿を表示しています (計{popularPosts.length}件)
+              </div>
+            )}
           </div>
         ) : (
           <Card>

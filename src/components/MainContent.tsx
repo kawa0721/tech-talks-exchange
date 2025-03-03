@@ -19,6 +19,14 @@ interface MainContentProps {
   hasMore: boolean;
   onLoadMore: () => void;
   onSelectChannel: (channelId: string) => void;
+  
+  // 特集投稿のページネーション用プロパティ
+  trendingHasMore?: boolean;
+  popularHasMore?: boolean;
+  trendingLoading?: boolean;
+  popularLoading?: boolean;
+  onLoadMoreTrending?: () => void;
+  onLoadMorePopular?: () => void;
 }
 
 const MainContent = ({
@@ -30,7 +38,13 @@ const MainContent = ({
   loadingMore,
   hasMore,
   onLoadMore,
-  onSelectChannel
+  onSelectChannel,
+  trendingHasMore = false,
+  popularHasMore = false,
+  trendingLoading = false, 
+  popularLoading = false,
+  onLoadMoreTrending = () => {},
+  onLoadMorePopular = () => {}
 }: MainContentProps) => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelLoading, setChannelLoading] = useState(true);
@@ -129,6 +143,14 @@ const MainContent = ({
               getChannelName={getChannelName}
               selectedChannel={selectedChannel}
               loading={loading}
+              loadingMore={loadingMore}
+              trendingHasMore={trendingHasMore}
+              popularHasMore={popularHasMore}
+              trendingLoading={trendingLoading}
+              popularLoading={popularLoading}
+              onLoadMoreTrending={onLoadMoreTrending}
+              onLoadMorePopular={onLoadMorePopular}
+              onLoadMore={onLoadMore}
             />
 
             {/* チャンネル紹介セクション */}
@@ -151,6 +173,14 @@ const MainContent = ({
               getChannelName={getChannelName}
               selectedChannel={selectedChannel}
               loading={loading}
+              loadingMore={loadingMore}
+              trendingHasMore={trendingHasMore}
+              popularHasMore={popularHasMore}
+              trendingLoading={trendingLoading}
+              popularLoading={popularLoading}
+              onLoadMoreTrending={onLoadMoreTrending}
+              onLoadMorePopular={onLoadMorePopular}
+              onLoadMore={onLoadMore}
             />
           </div>
         )}

@@ -9,6 +9,7 @@ import Sidebar from "@/components/Sidebar";
 import MainContent from "@/components/MainContent";
 import CreatePostButton from "@/components/CreatePostButton";
 import { usePostsWithPagination } from "@/hooks/usePostsWithPagination";
+import { useFeaturePosts } from "@/hooks/posts/useFeaturePosts";
 
 const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
@@ -16,11 +17,9 @@ const Index = () => {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const { toast } = useToast();
   
-  // usePostsWithPaginationフックを使用する
+  // 通常の投稿のページネーション用フック
   const {
     posts,
-    trendingPosts,
-    popularPosts,
     loading,
     loadingMore,
     hasMore,
@@ -29,6 +28,18 @@ const Index = () => {
     selectedChannel,
     perPage: 10
   });
+  
+  // 特集投稿（トレンドと人気）のページネーション用フック
+  const {
+    trendingPosts,
+    popularPosts,
+    trendingHasMore,
+    popularHasMore,
+    trendingLoading,
+    popularLoading,
+    fetchTrendingPosts,
+    fetchPopularPosts
+  } = useFeaturePosts();
 
   // デバッグログ (必要に応じて)
   useEffect(() => {
@@ -43,17 +54,36 @@ const Index = () => {
     console.log(`HasMore state updated: ${hasMore}`);
   }, [hasMore]);
 
-  // 「もっと読み込む」ボタンをクリックしたときの処理
+  // 初回レンダリング時に特集投稿を取得
+  useEffect(() => {
+    fetchTrendingPosts(true);
+    fetchPopularPosts(true);
+  }, []);
+
+  // 「もっと読み込む」ボタンをクリックしたときの処理（通常の投稿）
   const handleLoadMore = () => {
-    console.log('Load more button clicked');
-    // usePostsWithPaginationフックのfetchPosts関数を呼び出す
+    console.log('Load more button clicked for regular posts');
     fetchPosts(false);
+  };
+  
+  // トレンド投稿の「さらに読み込む」ボタンをクリックしたときの処理
+  const handleLoadMoreTrending = () => {
+    console.log('Load more button clicked for trending posts');
+    fetchTrendingPosts(false);
+  };
+  
+  // 人気投稿の「さらに読み込む」ボタンをクリックしたときの処理
+  const handleLoadMorePopular = () => {
+    console.log('Load more button clicked for popular posts');
+    fetchPopularPosts(false);
   };
 
   const handlePostCreated = () => {
     // 新しい投稿が作成された後、投稿リストを更新
     console.log('New post created, refreshing posts');
     fetchPosts(true);
+    fetchTrendingPosts(true);
+    fetchPopularPosts(true);
   };
 
   return (
@@ -81,6 +111,12 @@ const Index = () => {
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
           onSelectChannel={setSelectedChannel}
+          trendingHasMore={trendingHasMore}
+          popularHasMore={popularHasMore}
+          trendingLoading={trendingLoading}
+          popularLoading={popularLoading}
+          onLoadMoreTrending={handleLoadMoreTrending}
+          onLoadMorePopular={handleLoadMorePopular}
         />
       </div>
 

@@ -101,21 +101,50 @@ export async function fetchPaginatedPosts(
   return result;
 }
 
-// Fetch special posts (trending or popular)
-export async function fetchSpecialPosts(type: "trending" | "popular", limit: number = 2) {
+// Fetch special posts (trending or popular) with pagination support
+export async function fetchSpecialPosts(
+  type: "trending" | "popular",
+  perPage: number = 10,
+  lastPostDate?: string,
+  lastLikesCount?: number
+) {
+  console.log(`[fetchSpecialPosts] type: ${type}, perPage: ${perPage}, cursor: ${lastPostDate || lastLikesCount || 'none'}`);
+  
+  let query = supabase
+    .from('posts')
+    .select('*');
+  
   if (type === "trending") {
-    // For trending, we just get the most recent posts
-    return await supabase
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    // For trending, sort by created_at (newest first)
+    query = query.order('created_at', { ascending: false });
+    
+    // カーソルベースのページネーション
+    if (lastPostDate) {
+      console.log(`[fetchSpecialPosts] Using trending cursor: posts older than ${lastPostDate}`);
+      query = query.lt('created_at', lastPostDate);
+    }
   } else {
-    // For popular, we get posts with the most likes
-    return await supabase
-      .from('posts')
-      .select('*')
-      .order('likes_count', { ascending: false })
-      .limit(limit);
+    // For popular, sort by likes_count (highest first)
+    query = query.order('likes_count', { ascending: false });
+    
+    // カーソルベースのページネーション (likes_count + created_at for tiebreaker)
+    if (lastLikesCount !== undefined && lastPostDate) {
+      console.log(`[fetchSpecialPosts] Using popular cursor: posts with likes less than ${lastLikesCount} or same likes but older`);
+      query = query.or(`likes_count.lt.${lastLikesCount},and(likes_count.eq.${lastLikesCount},created_at.lt.${lastPostDate})`);
+    }
   }
+  
+  // 取得する件数を制限
+  query = query.limit(perPage);
+  
+  // Execute query
+  const result = await query;
+  
+  // Log results
+  console.log(`[fetchSpecialPosts] ${type} query returned ${result.data?.length || 0} posts`);
+  if (result.error) {
+    console.error(`[fetchSpecialPosts] Query error:`, result.error);
+  }
+  
+  return result;
 }
