@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { submitReply } from "./utils/commentActions";
 import { mapReplyWithUserInfo } from "./utils/commentMappers";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useReplyManagement(
   comments: Comment[],
@@ -14,9 +15,13 @@ export function useReplyManagement(
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();  // 認証情報を取得
 
-  const handleSubmitReply = async (parentId: string) => {
-    if (!replyContent.trim()) {
+  const handleSubmitReply = async (parentId: string, content?: string, nickname?: string) => {
+    // コンテンツが直接渡されない場合はステートから取得
+    const replyText = content || replyContent;
+    
+    if (!replyText.trim()) {
       toast.error("返信を入力してください");
       return;
     }
@@ -24,20 +29,15 @@ export function useReplyManagement(
     setSubmitting(true);
     
     try {
-      const user = await supabase.auth.getUser();
       let userId = null;
-      let nickname = null;
       
       // ログインしている場合はユーザーIDを設定
-      if (user.data.user) {
-        userId = user.data.user.id;
-      } else {
-        // ログインしていない場合は「返信」としてニックネームを設定
-        nickname = "返信";
+      if (user) {
+        userId = user.id;
       }
       
       // 返信をデータベースに追加
-      const data = await submitReply(postId, parentId, replyContent, userId, nickname);
+      const data = await submitReply(postId, parentId, replyText, userId, nickname);
       
       const currentUserId = userId;
       const newReply = await mapReplyWithUserInfo(data, postId, parentId, currentUserId);
