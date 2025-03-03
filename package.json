@@ -80,6 +80,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^9.0.1",
     "vaul": "^0.9.3",
     "zod": "^3.23.8"
   },
@@ -90,6 +91,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/showdown": "^2.0.6",
+    "@types/uuid": "^9.0.8",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
