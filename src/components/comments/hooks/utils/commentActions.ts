@@ -41,9 +41,6 @@ export async function submitComment(
       throw error;
     }
 
-    // 投稿のコメント数を増やす
-    await supabase.rpc('increment_comments_count', { post_id_param: postId });
-    
     return data;
   } catch (error) {
     console.error("コメント投稿エラー:", error);
@@ -91,9 +88,6 @@ export async function submitReply(
       console.error("返信投稿エラー:", error);
       throw error;
     }
-
-    // 投稿のコメント数を増やす
-    await supabase.rpc('increment_comments_count', { post_id_param: postId });
     
     return data;
   } catch (error) {
@@ -118,18 +112,13 @@ export async function toggleCommentLike(commentId: string, userId: string, isLik
       const { error } = await supabase
         .from('likes')
         .delete()
-        .match({ 
-          user_id: userId,
-          comment_id: commentId 
-        });
+        .eq('user_id', userId)
+        .eq('comment_id', commentId);
 
       if (error) {
         console.error("いいね削除エラー:", error);
         throw error;
       }
-      
-      // コメントのいいね数を減らす
-      await supabase.rpc('decrement_comment_likes_count', { comment_id_param: commentId });
       
       return false;
     } else {
@@ -145,9 +134,6 @@ export async function toggleCommentLike(commentId: string, userId: string, isLik
         console.error("いいね追加エラー:", error);
         throw error;
       }
-      
-      // コメントのいいね数を増やす
-      await supabase.rpc('increment_comment_likes_count', { comment_id_param: commentId });
       
       return true;
     }
@@ -179,9 +165,6 @@ export async function deleteCommentById(commentId: string, userId: string, postI
       console.error("コメント削除エラー:", error);
       throw error;
     }
-    
-    // 投稿のコメント数を減らす
-    await supabase.rpc('decrement_comments_count', { post_id_param: postId });
   } catch (error) {
     console.error("コメント削除エラー:", error);
     throw error;
