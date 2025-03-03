@@ -19,6 +19,7 @@ export function usePostsWithPagination({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [lastPostDate, setLastPostDate] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   
   // Use our feature posts hook
@@ -30,27 +31,27 @@ export function usePostsWithPagination({
 
   // 投稿をフェッチする関数
   const fetchPosts = async (reset = true) => {
+    console.log('=== FETCH POSTS START ===');
+    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}, page=${page}, lastPostDate=${lastPostDate || 'none'}`);
+
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
       setLoading(true);
       setPosts([]);
       setHasMore(true);
       setPage(0);
+      setLastPostDate(undefined);
     } else {
       setLoadingMore(true);
     }
 
     try {
-      // 現在のポスト数（次のオフセットとして使用）
-      const currentPage = reset ? 0 : page;
-      
-      console.log(`Fetching posts with page ${currentPage}, limit ${perPage}`);
-
       // 1. 投稿を取得
       const { data: postsData, error: postsError } = await fetchPaginatedPosts(
         selectedChannel,
-        currentPage,
-        perPage
+        page,
+        perPage,
+        lastPostDate
       );
 
       if (postsError) {
@@ -64,6 +65,20 @@ export function usePostsWithPagination({
       }
 
       console.log(`Fetched ${postsData?.length || 0} posts`);
+      
+      // 詳細なデバッグログを追加
+      if (postsData && postsData.length > 0) {
+        console.log('First post in results:', {
+          id: postsData[0].id,
+          title: postsData[0].title,
+          created_at: postsData[0].created_at
+        });
+        console.log('Last post in results:', {
+          id: postsData[postsData.length - 1].id,
+          title: postsData[postsData.length - 1].title,
+          created_at: postsData[postsData.length - 1].created_at
+        });
+      }
 
       // 次のページが存在するかチェック
       const hasMoreData = postsData && postsData.length === perPage;
@@ -73,6 +88,8 @@ export function usePostsWithPagination({
         if (reset) {
           setPosts([]);
         }
+        console.log('No posts returned from query, setting hasMore to false');
+        setHasMore(false);
         setLoading(false);
         setLoadingMore(false);
         return;
@@ -85,27 +102,46 @@ export function usePostsWithPagination({
 
       // 新しいデータを追加または置き換え
       if (reset) {
+        console.log('Setting posts state with new data');
         setPosts(formattedPosts);
+        
+        // 最後の投稿の日時を保存（次回のカーソルとして使用）
+        if (postsData.length > 0) {
+          const lastPost = postsData[postsData.length - 1];
+          setLastPostDate(lastPost.created_at);
+          console.log(`Setting lastPostDate to ${lastPost.created_at} from post ID ${lastPost.id}`);
+        }
       } else {
-        // 既存の投稿に新しい投稿を追加 (IDで重複確認)
+        console.log('Appending new posts to existing posts');
+        // IDベースで重複を確認し、重複を除外して追加
         const existingIds = new Set(posts.map(post => post.id));
         const uniqueNewPosts = formattedPosts.filter(post => !existingIds.has(post.id));
         
-        console.log(`Found ${uniqueNewPosts.length} unique new posts to add`);
+        console.log(`Found ${uniqueNewPosts.length} unique new posts out of ${formattedPosts.length} fetched posts`);
+        
+        // 最後の投稿の日時を保存（次回のカーソルとして使用）
+        if (postsData.length > 0) {
+          const lastPost = postsData[postsData.length - 1];
+          setLastPostDate(lastPost.created_at);
+          console.log(`Setting lastPostDate to ${lastPost.created_at} from post ID ${lastPost.id}`);
+        }
         
         if (uniqueNewPosts.length > 0) {
+          // 新しいユニークな投稿がある場合はそれらを追加
           setPosts(prevPosts => [...prevPosts, ...uniqueNewPosts]);
-          // 次のページを設定
-          setPage(currentPage + 1);
+          setPage(prev => prev + 1);
         } else if (hasMoreData) {
-          // データはあるが全て重複の場合、次のページを試す
-          console.log("All posts were duplicates, trying next page immediately");
-          setPage(currentPage + 1);
-          setLoadingMore(false);
-          // 再帰的に次のページを即時取得
-          return fetchPosts(false);
+          // データはあるが全て重複の場合、非同期で次のページを試す
+          console.log("All posts were duplicates, trying next page via setTimeout");
+          setPage(prev => prev + 1);
+          // 非同期で次のページを取得（再帰の代わりに非同期タイマーを使用）
+          setTimeout(() => {
+            console.log("Executing delayed fetch for next page");
+            fetchPosts(false);
+          }, 0);
         } else {
-          console.log('No unique new posts found, setting hasMore to false');
+          // 次のページがなく重複もある場合は終了
+          console.log('No unique new posts found and no more pages, setting hasMore to false');
           setHasMore(false);
         }
       }
@@ -114,13 +150,12 @@ export function usePostsWithPagination({
       if (!selectedChannel && reset) {
         // 特集記事（トレンドとポピュラー）を取得
         await fetchFeaturePosts();
-      } else if (selectedChannel && reset) {
-        // チャンネルが選択されている場合は特集記事をクリア
       }
 
     } catch (error) {
       console.error("投稿取得エラー:", error);
     } finally {
+      console.log('=== FETCH POSTS END ===');
       setLoading(false);
       setLoadingMore(false);
     }
@@ -128,6 +163,7 @@ export function usePostsWithPagination({
 
   // 初回レンダリング時とチャンネル変更時に投稿を取得
   useEffect(() => {
+    console.log('Channel changed or component mounted, fetching posts');
     fetchPosts(true);
   }, [selectedChannel]);
 

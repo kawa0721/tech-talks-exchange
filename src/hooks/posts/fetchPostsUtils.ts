@@ -1,4 +1,3 @@
-
 import { Post } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,12 +46,10 @@ export async function formatPostData(post: any): Promise<Post> {
 export async function fetchPaginatedPosts(
   selectedChannel: string | null,
   page: number,
-  perPage: number
+  perPage: number,
+  lastPostDate?: string
 ) {
-  // Calculate offset
-  const offset = page * perPage;
-  
-  console.log(`[fetchPaginatedPosts] page: ${page}, perPage: ${perPage}, offset: ${offset}`);
+  console.log(`[fetchPaginatedPosts] page: ${page}, perPage: ${perPage}, lastPostDate: ${lastPostDate || 'none'}`);
   
   // Build query
   let query = supabase
@@ -66,8 +63,16 @@ export async function fetchPaginatedPosts(
     query = query.eq('channel_id', selectedChannel);
   }
 
-  // Apply pagination
-  query = query.range(offset, offset + perPage - 1);
+  // カーソルベースのページネーション - 最後の投稿の日時より古いものを取得
+  if (lastPostDate) {
+    query = query.lt('created_at', lastPostDate);
+  } else {
+    // 最初のページの場合はオフセットを使用しない（カーソルベースに統一）
+    console.log('[fetchPaginatedPosts] First page, no cursor used');
+  }
+
+  // 取得する件数を制限
+  query = query.limit(perPage);
 
   // Execute query
   const result = await query;
