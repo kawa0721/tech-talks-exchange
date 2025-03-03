@@ -184,31 +184,36 @@ const EditPostForm = ({ post, onPostUpdated }: EditPostFormProps) => {
           />
         </CardContent>
         <CardFooter>
-          <div className="flex justify-between border-t p-3 w-full">
-            <div className="flex items-center">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="flex gap-1"
-                onClick={() => document.getElementById("edit-image-upload")?.click()}
+          <div className="flex justify-between w-full items-center border-t pt-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="flex gap-1"
+              onClick={() => document.getElementById("edit-image-upload")?.click()}
+            >
+              <input
+                id="edit-image-upload"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              画像アップロード
+            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                type="button" 
+                onClick={onPostUpdated}
               >
-                <input
-                  id="edit-image-upload"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                アップロード
-              </Button>
-            </div>
-            <div>
-              <Button variant="outline" type="button" className="mr-2" onClick={onPostUpdated}>
                 キャンセル
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "更新中..." : "更新"}
               </Button>
             </div>

@@ -68,7 +68,7 @@ const CreatePostFormContainer = ({
             removeImage={removeImage} 
           />
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-between">
           <PostFormFooter 
             isSubmitting={isSubmitting} 
             handleImageUpload={handleImageUpload} 

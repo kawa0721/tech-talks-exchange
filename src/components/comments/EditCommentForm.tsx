@@ -40,7 +40,7 @@ const EditCommentForm = ({
         onChange={handleContentChange}
         className={isReply ? "min-h-[60px] mb-2 text-sm" : "min-h-[80px] mb-2"}
       />
-      <div className="flex gap-2">
+      <div className="flex gap-2 justify-start">
         <Button 
           size="sm" 
           onClick={onSave}
