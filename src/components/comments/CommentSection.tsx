@@ -5,7 +5,7 @@ import CommentForm from "./CommentForm";
 import CommentItem from "./CommentItem";
 import { CommentLoading } from "./comment-loading";
 import { CommentEmpty } from "./comment-empty";
-import { useComments } from "./hooks/useComments";
+import { useComments } from "./hooks"; // Updated import path
 
 interface CommentSectionProps {
   postId: string;
