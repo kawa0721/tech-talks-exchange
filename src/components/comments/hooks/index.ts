@@ -12,7 +12,8 @@ export const useComments = (postId: string) => {
     comments, 
     loading, 
     handleSubmitComment, 
-    submitting 
+    submitting,
+    setComments 
   } = useCommentsSubmit(postId);
   
   const {
