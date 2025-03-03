@@ -7,8 +7,6 @@ import { Loader2 } from "lucide-react";
 import { EmptyComments } from "./comment-empty";
 import { CommentSkeleton } from "./comment-loading";
 import { useCommentLikes } from "./hooks/useCommentLikes";
-import { useCommentsSubmit } from "./hooks/useCommentsSubmit";
-import { useReplyManagement } from "./hooks/useReplyManagement";
 import { useCommentEdit } from "./hooks/useCommentEdit";
 import { useCommentDelete } from "./hooks/useCommentDelete";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,25 +21,188 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   
   // Custom hooks for comment functionality
   const { toggleLike } = useCommentLikes(comments, setComments);
-  const { submitting, handleSubmitComment: submitComment } = useCommentsSubmit(postId);
-  const { replyTo, replyContent, setReplyTo, setReplyContent, handleSubmitReply: submitReply } = useReplyManagement(postId);
-  const { editContent, startEditing, cancelEditing, saveEdit, handleSetEditContent: setEditContent } = useCommentEdit();
+  const { editContent, startEditing: editHookStartEditing, cancelEditing: editHookCancelEditing, saveEdit: editHookSaveEdit, handleSetEditContent: setEditContent } = useCommentEdit();
   const { deleteComment } = useCommentDelete(comments, setComments);
   
   // Wrapper functions to match expected interfaces
   const handleStartEditing = (id: string, isReply?: boolean, parentId?: string) => {
-    startEditing(comments, setComments, id, isReply, parentId);
+    editHookStartEditing(comments, setComments, id, isReply, parentId);
   };
 
   const handleCancelEditing = (id: string) => {
-    cancelEditing(comments, setComments, id);
+    editHookCancelEditing(comments, setComments, id);
   };
 
   const handleSaveEdit = (id: string, isReply?: boolean, parentId?: string) => {
-    saveEdit(comments, setComments, id, isReply, parentId);
+    editHookSaveEdit(comments, setComments, id, isReply, parentId);
+  };
+
+  // Function to handle comment submission
+  const handleSubmitComment = async (newComment: string, nickname?: string) => {
+    setSubmitting(true);
+    
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let userId = null;
+      if (user) {
+        userId = user.id;
+      }
+      
+      // Prepare comment data
+      const commentData = {
+        post_id: postId,
+        content: newComment,
+        user_id: userId,
+        guest_nickname: nickname
+      };
+      
+      // Insert comment into database
+      const { data: newCommentData, error: insertError } = await supabase
+        .from('comments')
+        .insert([commentData])
+        .select('*, profiles:profiles(id, username, avatar_url)')
+        .single();
+        
+      if (insertError) {
+        throw insertError;
+      }
+      
+      if (!newCommentData) {
+        throw new Error("Failed to create comment");
+      }
+      
+      // Format the new comment
+      const formattedComment: Comment = {
+        id: newCommentData.id,
+        postId,
+        userId: newCommentData.user_id || 'guest',
+        content: newCommentData.content,
+        createdAt: new Date(newCommentData.created_at),
+        updatedAt: newCommentData.updated_at ? new Date(newCommentData.updated_at) : undefined,
+        likesCount: newCommentData.likes_count || 0,
+        liked: false,
+        guestNickname: newCommentData.guest_nickname,
+        user: {
+          id: newCommentData.user_id || 'guest',
+          name: newCommentData.guest_nickname || 
+                (newCommentData.profiles && 'username' in newCommentData.profiles ? 
+                  newCommentData.profiles.username : 
+                  `ユーザー_${(newCommentData.user_id || '').substring(0, 5)}`),
+          avatar: newCommentData.profiles && 'avatar_url' in newCommentData.profiles ? 
+                  newCommentData.profiles.avatar_url : 
+                  '/placeholder-avatar.png'
+        },
+        replies: []
+      };
+      
+      setComments(prevComments => [formattedComment, ...prevComments]);
+      
+      // Update comment count
+      if (onCommentCountChange) {
+        onCommentCountChange(comments.length + 1);
+      }
+    } catch (err: any) {
+      console.error("コメント投稿エラー:", err);
+      setError(err.message || "コメントの投稿に失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Function to handle reply submission
+  const handleSubmitReply = async (parentId: string, content?: string, nickname?: string) => {
+    // Use the content parameter if provided, otherwise use the state
+    const replyText = content || replyContent;
+    
+    if (!replyText.trim()) {
+      return;
+    }
+
+    setSubmitting(true);
+    
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let userId = null;
+      if (user) {
+        userId = user.id;
+      }
+      
+      // Prepare reply data
+      const replyData = {
+        post_id: postId,
+        content: replyText,
+        parent_id: parentId,
+        user_id: userId,
+        guest_nickname: nickname
+      };
+      
+      // Insert reply into database
+      const { data: newReplyData, error: insertError } = await supabase
+        .from('comments')
+        .insert([replyData])
+        .select('*, profiles:profiles(id, username, avatar_url)')
+        .single();
+        
+      if (insertError) {
+        throw insertError;
+      }
+      
+      if (!newReplyData) {
+        throw new Error("Failed to create reply");
+      }
+      
+      // Format the new reply
+      const formattedReply: Comment = {
+        id: newReplyData.id,
+        postId,
+        userId: newReplyData.user_id || 'guest',
+        parentId,
+        content: newReplyData.content,
+        createdAt: new Date(newReplyData.created_at),
+        updatedAt: newReplyData.updated_at ? new Date(newReplyData.updated_at) : undefined,
+        likesCount: newReplyData.likes_count || 0,
+        liked: false,
+        guestNickname: newReplyData.guest_nickname,
+        user: {
+          id: newReplyData.user_id || 'guest',
+          name: newReplyData.guest_nickname || 
+                (newReplyData.profiles && typeof newReplyData.profiles === 'object' && 'username' in newReplyData.profiles ? 
+                  newReplyData.profiles.username : 
+                  `ユーザー_${(newReplyData.user_id || '').substring(0, 5)}`),
+          avatar: newReplyData.profiles && typeof newReplyData.profiles === 'object' && 'avatar_url' in newReplyData.profiles ? 
+                  newReplyData.profiles.avatar_url : 
+                  '/placeholder-avatar.png'
+        }
+      };
+      
+      // Update comments state with the new reply
+      const updatedComments = comments.map(comment => {
+        if (comment.id === parentId) {
+          const updatedReplies = comment.replies ? [...comment.replies, formattedReply] : [formattedReply];
+          return { ...comment, replies: updatedReplies };
+        }
+        return comment;
+      });
+      
+      setComments(updatedComments);
+      setReplyTo(null);
+      setReplyContent("");
+    } catch (err: any) {
+      console.error("返信投稿エラー:", err);
+      setError(err.message || "返信の投稿に失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -62,7 +223,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
             likes_count,
             parent_id,
             guest_nickname,
-            profiles(id, username, avatar_url)
+            profiles:profiles(id, username, avatar_url)
           `)
           .eq('post_id', postId)
           .is('parent_id', null)
@@ -72,7 +233,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
           throw commentsError;
         }
         
-        if (!parentCommentsData) {
+        if (!parentCommentsData || parentCommentsData.length === 0) {
           setComments([]);
           setLoading(false);
           
@@ -86,18 +247,6 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
         // Get all parent comment IDs
         const parentIds = parentCommentsData.map(comment => comment.id) || [];
         
-        // No comments yet
-        if (parentIds.length === 0) {
-          setComments([]);
-          setLoading(false);
-          
-          // Update comment count in parent component
-          if (onCommentCountChange) {
-            onCommentCountChange(0);
-          }
-          return;
-        }
-        
         // Get all replies for these parent comments
         const { data: repliesData, error: repliesError } = await supabase
           .from('comments')
@@ -110,7 +259,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
             likes_count,
             parent_id,
             guest_nickname,
-            profiles(id, username, avatar_url)
+            profiles:profiles(id, username, avatar_url)
           `)
           .eq('post_id', postId)
           .in('parent_id', parentIds)
@@ -159,60 +308,70 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
         });
         
         // Format comments with their replies
-        const formattedComments: Comment[] = (parentCommentsData || []).map(comment => {
-          if (!comment) return null;
-          
-          // Format parent comment
-          const formattedComment: Comment = {
-            id: String(comment.id),
-            postId,
-            userId: comment.user_id || 'guest',
-            content: String(comment.content),
-            createdAt: new Date(comment.created_at),
-            updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
-            likesCount: comment.likes_count || 0,
-            liked: userLikes[comment.id] || false,
-            guestNickname: comment.guest_nickname,
-            user: {
-              id: comment.user_id || 'guest',
-              name: comment.guest_nickname || (comment.profiles?.username || `ユーザー_${(comment.user_id || '').substring(0, 5)}`),
-              avatar: comment.profiles?.avatar_url || '/placeholder-avatar.png'
-            },
-            replies: []
-          };
-          
-          // Add replies to this parent
-          const replies = repliesByParent[comment.id] || [];
-          if (replies.length > 0) {
-            formattedComment.replies = replies
-              .filter(reply => reply) // Filter out null replies
-              .map(reply => ({
-                id: String(reply.id),
-                postId,
-                userId: reply.user_id || 'guest',
-                parentId: String(comment.id),
-                content: String(reply.content),
-                createdAt: new Date(reply.created_at),
-                updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
-                likesCount: reply.likes_count || 0,
-                liked: userLikes[reply.id] || false,
-                guestNickname: reply.guest_nickname,
-                user: {
-                  id: reply.user_id || 'guest',
-                  name: reply.guest_nickname || (reply.profiles?.username || `ユーザー_${(reply.user_id || '').substring(0, 5)}`),
-                  avatar: reply.profiles?.avatar_url || '/placeholder-avatar.png'
-                }
-              }));
-          }
-          
-          return formattedComment;
-        }).filter(Boolean) as Comment[]; // Filter out null comments
+        const formattedComments: Comment[] = (parentCommentsData || [])
+          .filter(Boolean)
+          .map(comment => {
+            // Format parent comment
+            const formattedComment: Comment = {
+              id: comment.id,
+              postId,
+              userId: comment.user_id || 'guest',
+              content: comment.content,
+              createdAt: new Date(comment.created_at),
+              updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
+              likesCount: comment.likes_count || 0,
+              liked: userLikes[comment.id] || false,
+              guestNickname: comment.guest_nickname,
+              user: {
+                id: comment.user_id || 'guest',
+                name: comment.guest_nickname || 
+                      (comment.profiles && typeof comment.profiles === 'object' && 'username' in comment.profiles ? 
+                        comment.profiles.username : 
+                        `ユーザー_${(comment.user_id || '').substring(0, 5)}`),
+                avatar: comment.profiles && typeof comment.profiles === 'object' && 'avatar_url' in comment.profiles ? 
+                        comment.profiles.avatar_url : 
+                        '/placeholder-avatar.png'
+              },
+              replies: []
+            };
+            
+            // Add replies to this parent
+            const replies = repliesByParent[comment.id] || [];
+            if (replies.length > 0) {
+              formattedComment.replies = replies
+                .filter(Boolean)
+                .map(reply => ({
+                  id: reply.id,
+                  postId,
+                  userId: reply.user_id || 'guest',
+                  parentId: comment.id,
+                  content: reply.content,
+                  createdAt: new Date(reply.created_at),
+                  updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
+                  likesCount: reply.likes_count || 0,
+                  liked: userLikes[reply.id] || false,
+                  guestNickname: reply.guest_nickname,
+                  user: {
+                    id: reply.user_id || 'guest',
+                    name: reply.guest_nickname || 
+                          (reply.profiles && typeof reply.profiles === 'object' && 'username' in reply.profiles ? 
+                            reply.profiles.username : 
+                            `ユーザー_${(reply.user_id || '').substring(0, 5)}`),
+                    avatar: reply.profiles && typeof reply.profiles === 'object' && 'avatar_url' in reply.profiles ? 
+                            reply.profiles.avatar_url : 
+                            '/placeholder-avatar.png'
+                  }
+                }));
+            }
+            
+            return formattedComment;
+          });
         
         setComments(formattedComments);
         
         // Update comment count in parent component
         if (onCommentCountChange) {
-          const totalCount = (parentCommentsData || []).length;
+          const totalCount = parentCommentsData.length;
           onCommentCountChange(totalCount);
         }
       } catch (err: any) {
@@ -232,7 +391,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
       
       <CommentForm 
         postId={postId}
-        onSubmit={submitComment}
+        onSubmit={handleSubmitComment}
         isSubmitting={submitting} 
       />
       
@@ -258,7 +417,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
               submitting={submitting}
               onSetReplyTo={setReplyTo}
               onSetReplyContent={setReplyContent}
-              onSubmitReply={submitReply}
+              onSubmitReply={handleSubmitReply}
               onSetEditContent={setEditContent}
               onToggleLike={toggleLike}
               onDeleteComment={deleteComment}
