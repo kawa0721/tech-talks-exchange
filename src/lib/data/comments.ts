@@ -5,7 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 // この関数は特定の投稿のコメントを取得します
 export const getCommentsForPost = async (postId: string): Promise<Comment[]> => {
   try {
-    // 親コメント（parent_idがnull）のみを最初に取得
+    // セッションを取得
+    const { data: { session } } = await supabase.auth.getSession();
+    const currentUserId = session?.user?.id;
+    
+    // 親コメント（parent_idがnull）を取得
     const { data: parentComments, error: commentsError } = await supabase
       .from('comments')
       .select(`
@@ -15,112 +19,119 @@ export const getCommentsForPost = async (postId: string): Promise<Comment[]> => 
         updated_at,
         user_id,
         likes_count,
-        parent_id
+        parent_id,
+        guest_nickname,
+        profiles(id, username, avatar_url)
       `)
       .eq('post_id', postId)
       .is('parent_id', null)
       .order('created_at', { ascending: false });
 
     if (commentsError) {
-      console.error("コメント取得エラー:", commentsError);
+      console.error("親コメント取得エラー:", commentsError);
       return [];
     }
-
-    // 以前のダミーデータと互換性を保つためのマッピング
-    const formattedComments: Comment[] = await Promise.all(
-      parentComments.map(async (comment) => {
-        // ユーザー情報を取得
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('id, username, avatar_url')
-          .eq('id', comment.user_id)
-          .single();
-
-        let userInfo = {
-          id: comment.user_id,
-          name: "不明なユーザー",
-          avatar: undefined
-        };
-
-        if (!userError && userData) {
-          userInfo = {
-            id: userData.id,
-            name: userData.username || "匿名ユーザー",
-            avatar: userData.avatar_url
-          };
-        }
-
-        // 返信を取得
-        const { data: replies, error: repliesError } = await supabase
-          .from('comments')
-          .select(`
-            id,
-            content,
-            created_at,
-            updated_at,
-            user_id,
-            likes_count
-          `)
-          .eq('post_id', postId)
-          .eq('parent_id', comment.id)
-          .order('created_at', { ascending: true });
-
-        let formattedReplies: Comment[] = [];
-
-        if (!repliesError && replies) {
-          formattedReplies = await Promise.all(
-            replies.map(async (reply) => {
-              // 返信のユーザー情報を取得
-              const { data: replyUserData, error: replyUserError } = await supabase
-                .from('profiles')
-                .select('id, username, avatar_url')
-                .eq('id', reply.user_id)
-                .single();
-
-              let replyUserInfo = {
-                id: reply.user_id,
-                name: "不明なユーザー",
-                avatar: undefined
-              };
-
-              if (!replyUserError && replyUserData) {
-                replyUserInfo = {
-                  id: replyUserData.id,
-                  name: replyUserData.username || "匿名ユーザー",
-                  avatar: replyUserData.avatar_url
-                };
-              }
-
-              return {
-                id: reply.id,
-                postId,
-                userId: reply.user_id,
-                parentId: comment.id,
-                user: replyUserInfo,
-                content: reply.content,
-                createdAt: new Date(reply.created_at),
-                updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
-                likesCount: reply.likes_count,
-                liked: false
-              };
-            })
-          );
-        }
-
+    
+    // 全ての親コメントIDを配列にする（返信取得用）
+    const parentIds = parentComments.map(comment => comment.id);
+    
+    // すべての返信コメントを一度に取得（N+1問題解消）
+    const { data: allReplies, error: repliesError } = await supabase
+      .from('comments')
+      .select(`
+        id,
+        content,
+        created_at,
+        updated_at,
+        user_id,
+        likes_count,
+        parent_id,
+        guest_nickname,
+        profiles(id, username, avatar_url)
+      `)
+      .eq('post_id', postId)
+      .in('parent_id', parentIds)
+      .order('created_at', { ascending: true });
+      
+    if (repliesError) {
+      console.error("返信取得エラー:", repliesError);
+      return [];
+    }
+    
+    // ログインしている場合は、いいね情報を一括取得
+    let userLikes: Record<string, boolean> = {};
+    if (currentUserId) {
+      const allCommentIds = [...parentIds, ...allReplies.map(reply => reply.id)];
+      
+      const { data: likesData } = await supabase
+        .from('likes')
+        .select('comment_id')
+        .eq('user_id', currentUserId)
+        .in('comment_id', allCommentIds);
+        
+      if (likesData) {
+        // いいねしたコメントIDのマップを作成
+        userLikes = likesData.reduce((acc: Record<string, boolean>, like) => {
+          acc[like.comment_id] = true;
+          return acc;
+        }, {});
+      }
+    }
+    
+    // 返信コメントを親コメントIDごとに整理
+    const repliesByParentId: Record<string, any[]> = {};
+    allReplies.forEach(reply => {
+      if (!repliesByParentId[reply.parent_id]) {
+        repliesByParentId[reply.parent_id] = [];
+      }
+      repliesByParentId[reply.parent_id].push(reply);
+    });
+    
+    // 親コメントに返信を関連付けてフォーマット
+    const formattedComments = parentComments.map(comment => {
+      const profileData = comment.profiles || {};
+      const commentReplies = repliesByParentId[comment.id] || [];
+      
+      // 返信のフォーマット
+      const formattedReplies = commentReplies.map(reply => {
+        const replyProfileData = reply.profiles || {};
         return {
-          id: comment.id,
+          id: reply.id,
           postId,
-          userId: comment.user_id,
-          user: userInfo,
-          content: comment.content,
-          createdAt: new Date(comment.created_at),
-          updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
-          likesCount: comment.likes_count,
-          liked: false,
-          replies: formattedReplies
+          userId: reply.user_id,
+          parentId: comment.id,
+          user: {
+            id: reply.user_id || "guest",
+            name: replyProfileData.username || reply.guest_nickname || "匿名ユーザー",
+            avatar: replyProfileData.avatar_url
+          },
+          content: reply.content,
+          createdAt: new Date(reply.created_at),
+          updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,
+          likesCount: reply.likes_count,
+          liked: !!userLikes[reply.id],
+          guestNickname: reply.guest_nickname
         };
-      })
-    );
+      });
+      
+      return {
+        id: comment.id,
+        postId,
+        userId: comment.user_id,
+        user: {
+          id: comment.user_id || "guest",
+          name: profileData.username || comment.guest_nickname || "匿名ユーザー",
+          avatar: profileData.avatar_url
+        },
+        content: comment.content,
+        createdAt: new Date(comment.created_at),
+        updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,
+        likesCount: comment.likes_count,
+        liked: !!userLikes[comment.id],
+        replies: formattedReplies,
+        guestNickname: comment.guest_nickname
+      };
+    });
 
     return formattedComments;
   } catch (error) {
