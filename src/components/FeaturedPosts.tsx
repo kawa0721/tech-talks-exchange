@@ -1,5 +1,4 @@
-
-import { TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
+import { TrendingUp, Star, Clock, ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

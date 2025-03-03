@@ -17,6 +17,11 @@ const Index = () => {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const { toast } = useToast();
   
+  // Add detailed debug logs
+  useEffect(() => {
+    console.log('Index component mounted or updated');
+  }, []);
+  
   // 通常の投稿のページネーション用フック
   const {
     posts,
@@ -41,21 +46,24 @@ const Index = () => {
     fetchPopularPosts
   } = useFeaturePosts();
 
-  // デバッグログ (必要に応じて)
+  // さらに詳細なデバッグログ
   useEffect(() => {
-    console.log(`Posts state updated: ${posts.length} posts in state`);
-  }, [posts]);
-
-  useEffect(() => {
-    console.log(`Loading state updated: loading=${loading}, loadingMore=${loadingMore}`);
-  }, [loading, loadingMore]);
-
-  useEffect(() => {
-    console.log(`HasMore state updated: ${hasMore}`);
-  }, [hasMore]);
+    console.log('Index data status:', {
+      postsLength: posts.length,
+      postsData: posts,
+      loading,
+      loadingMore,
+      hasMore,
+      trendingPostsLength: trendingPosts.length,
+      popularPostsLength: popularPosts.length,
+      selectedChannel
+    });
+  }, [posts, loading, loadingMore, hasMore, trendingPosts, popularPosts, selectedChannel]);
 
   // 初回レンダリング時に特集投稿を取得
   useEffect(() => {
+    console.log('Initial data fetch triggered');
+    fetchPosts(true);
     fetchTrendingPosts(true);
     fetchPopularPosts(true);
   }, []);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Post, Channel } from "@/types";
 import FeaturedPosts from "@/components/FeaturedPosts";
@@ -91,17 +90,19 @@ const MainContent = ({
     return channel ? channel.name : "不明なチャンネル";
   };
 
-  // Debug logs for props changes
+  // Add more detailed debug logs for props changes
   useEffect(() => {
-    console.log('MainContent props changed:', {
+    console.log('MainContent detailed props analysis:', {
       selectedChannel,
       postsCount: posts.length,
+      postsData: posts,
       loading,
       loadingMore,
       hasMore,
-      postIds: posts.map(post => post.id)
+      trendingPostsCount: trendingPosts.length,
+      popularPostsCount: popularPosts.length
     });
-  }, [selectedChannel, posts, loading, loadingMore, hasMore]);
+  }, [selectedChannel, posts, loading, loadingMore, hasMore, trendingPosts, popularPosts]);
 
   // Handle the load more button click with additional logging
   const handleLoadMore = () => {
