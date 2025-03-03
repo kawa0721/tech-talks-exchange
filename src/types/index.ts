@@ -33,6 +33,7 @@ export type Comment = {
   likesCount: number;
   liked?: boolean;
   isEditing?: boolean;
+  guestNickname?: string;
 };
 
 export type Post = {
