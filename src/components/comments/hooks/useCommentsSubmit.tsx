@@ -6,11 +6,13 @@ import { submitComment } from "./utils/commentActions";
 import { mapCommentWithUserInfo } from "./utils/commentMappers";
 import { supabase } from "@/integrations/supabase/client";
 import { getCommentsForPost } from "@/lib/data/comments";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useCommentsSubmit(postId: string) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();  // 認証情報を取得
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -33,12 +35,11 @@ export function useCommentsSubmit(postId: string) {
     setSubmitting(true);
     
     try {
-      const user = await supabase.auth.getUser();
       let userId = null;
       
-      // ログインしている場合はユーザーIDを設定
-      if (user.data.user) {
-        userId = user.data.user.id;
+      // ログインしている場合は認証情報からユーザーIDを設定
+      if (user) {
+        userId = user.id;
       }
       
       // コメントをデータベースに追加
