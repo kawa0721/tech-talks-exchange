@@ -84,9 +84,16 @@ const MainContent = ({
       postsCount: posts.length,
       loading,
       loadingMore,
-      hasMore
+      hasMore,
+      postIds: posts.map(post => post.id)
     });
   }, [selectedChannel, posts, loading, loadingMore, hasMore]);
+
+  // Handle the load more button click with additional logging
+  const handleLoadMore = () => {
+    console.log('Load more button clicked in MainContent, current posts:', posts.length);
+    onLoadMore();
+  };
 
   return (
     <main className="main-content w-full">
@@ -148,10 +155,10 @@ const MainContent = ({
           </div>
         )}
 
-        {/* 「もっと読み込む」ボタン - 改良版 */}
+        {/* 「もっと読み込む」ボタン */}
         {!loading && posts.length > 0 && (
           <LoadMoreButton 
-            onLoadMore={onLoadMore} 
+            onLoadMore={handleLoadMore} 
             loading={loadingMore}
             hasMore={hasMore}
             postsCount={posts.length}

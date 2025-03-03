@@ -21,14 +21,13 @@ const PostsList = ({
   emptyMessage = "投稿はまだありません",
   isUserPosts = false,
 }: PostsListProps) => {
-  // デバッグログ
+  // Add detailed console logs for debugging
   useEffect(() => {
-    console.log('PostsList rendered with:', {
+    console.log('PostsList rendered with posts:', {
       postsCount: posts.length,
       loading,
       showChannel,
-      firstPostId: posts.length > 0 ? posts[0].id : null,
-      lastPostId: posts.length > 0 ? posts[posts.length - 1].id : null
+      postIds: posts.map(post => post.id)
     });
   }, [posts, loading, showChannel]);
 
@@ -50,9 +49,9 @@ const PostsList = ({
 
   return (
     <div className="space-y-6">
-      {posts.map((post, index) => (
+      {posts.map((post) => (
         <PostCard
-          key={`${post.id}-${index}`} // 追加のインデックスで重複を防止
+          key={post.id}
           post={post}
           channelName={getChannelName(post.channelId)}
           showChannel={showChannel}

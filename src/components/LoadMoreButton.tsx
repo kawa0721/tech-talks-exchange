@@ -10,6 +10,7 @@ interface LoadMoreButtonProps {
 }
 
 const LoadMoreButton = ({ onLoadMore, loading, hasMore, postsCount }: LoadMoreButtonProps) => {
+  // Don't render button if there are no more posts to load
   if (!hasMore) return null;
 
   return (
@@ -20,6 +21,7 @@ const LoadMoreButton = ({ onLoadMore, loading, hasMore, postsCount }: LoadMoreBu
         variant="outline"
         className="w-full max-w-xs"
         size="lg"
+        data-testid="load-more-button"
       >
         {loading ? (
           <>

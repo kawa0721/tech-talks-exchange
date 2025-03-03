@@ -26,21 +26,17 @@ const FeaturedPosts = ({
   selectedChannel,
   loading
 }: FeaturedPostsProps) => {
-  // デバッグログを追加
+  // Add detailed debug logs
   useEffect(() => {
     console.log('FeaturedPosts rendered with:', {
       trendingPostsCount: trendingPosts.length,
       popularPostsCount: popularPosts.length,
       postsCount: posts.length,
       selectedChannel,
-      loading
+      loading,
+      postIds: posts.map(post => post.id)
     });
   }, [trendingPosts, popularPosts, posts, selectedChannel, loading]);
-
-  // 最近の投稿 - 作成日順にソート
-  const recentPosts = [...trendingPosts, ...popularPosts]
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    .slice(0, 2);
 
   return (
     <Tabs defaultValue="trending" className="w-full">
