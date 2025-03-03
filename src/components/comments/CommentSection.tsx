@@ -83,7 +83,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
       const formattedComment: Comment = {
         id: newCommentData.id as string,
         postId,
-        userId: newCommentData.user_id as string || 'guest',
+        userId: (newCommentData.user_id as string) || 'guest',
         content: newCommentData.content as string,
         createdAt: new Date(newCommentData.created_at),
         updatedAt: newCommentData.updated_at ? new Date(newCommentData.updated_at) : undefined,
@@ -93,11 +93,11 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
         user: {
           id: newCommentData.user_id || 'guest',
           name: newCommentData.guest_nickname || 
-                (newCommentData.profiles && typeof newCommentData.profiles === 'object' && 'username' in newCommentData.profiles ? 
-                  newCommentData.profiles.username : 
+                (newCommentData.profiles && typeof newCommentData.profiles === 'object' ? 
+                  (newCommentData.profiles as any)?.username || `ユーザー_${(newCommentData.user_id || '').substring(0, 5)}` : 
                   `ユーザー_${(newCommentData.user_id || '').substring(0, 5)}`),
-          avatar: newCommentData.profiles && typeof newCommentData.profiles === 'object' && 'avatar_url' in newCommentData.profiles ? 
-                  newCommentData.profiles.avatar_url : 
+          avatar: (newCommentData.profiles && typeof newCommentData.profiles === 'object' ? 
+                  (newCommentData.profiles as any)?.avatar_url : null) || 
                   '/placeholder-avatar.png'
         },
         replies: []
@@ -165,7 +165,7 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
       const formattedReply: Comment = {
         id: newReplyData.id as string,
         postId,
-        userId: newReplyData.user_id as string || 'guest',
+        userId: (newReplyData.user_id as string) || 'guest',
         parentId,
         content: newReplyData.content as string,
         createdAt: new Date(newReplyData.created_at),
@@ -176,11 +176,11 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
         user: {
           id: newReplyData.user_id || 'guest',
           name: newReplyData.guest_nickname || 
-                (newReplyData.profiles && typeof newReplyData.profiles === 'object' && 'username' in newReplyData.profiles ? 
-                  (newReplyData.profiles as any).username : 
+                (newReplyData.profiles && typeof newReplyData.profiles === 'object' ? 
+                  (newReplyData.profiles as any)?.username || `ユーザー_${(newReplyData.user_id || '').substring(0, 5)}` : 
                   `ユーザー_${(newReplyData.user_id || '').substring(0, 5)}`),
-          avatar: newReplyData.profiles && typeof newReplyData.profiles === 'object' && 'avatar_url' in newReplyData.profiles ? 
-                  (newReplyData.profiles as any).avatar_url : 
+          avatar: (newReplyData.profiles && typeof newReplyData.profiles === 'object' ? 
+                  (newReplyData.profiles as any)?.avatar_url : null) || 
                   '/placeholder-avatar.png'
         }
       };
@@ -325,11 +325,11 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
               user: {
                 id: comment.user_id || 'guest',
                 name: comment.guest_nickname || 
-                      (comment.profiles && typeof comment.profiles === 'object' && 'username' in comment.profiles ? 
-                        (comment.profiles as any).username : 
+                      (comment.profiles && typeof comment.profiles === 'object' ? 
+                        (comment.profiles as any)?.username || `ユーザー_${(comment.user_id || '').substring(0, 5)}` : 
                         `ユーザー_${(comment.user_id || '').substring(0, 5)}`),
-                avatar: comment.profiles && typeof comment.profiles === 'object' && 'avatar_url' in comment.profiles ? 
-                        (comment.profiles as any).avatar_url : 
+                avatar: (comment.profiles && typeof comment.profiles === 'object' ? 
+                        (comment.profiles as any)?.avatar_url : null) || 
                         '/placeholder-avatar.png'
               },
               replies: []
@@ -352,13 +352,13 @@ const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSe
                   liked: userLikes[reply.id] || false,
                   guestNickname: reply.guest_nickname,
                   user: {
-                    id: reply.user_id || 'guest',
+                    id: reply.user_id || "guest",
                     name: reply.guest_nickname || 
-                          (reply.profiles && typeof reply.profiles === 'object' && 'username' in reply.profiles ? 
-                            (reply.profiles as any).username : 
+                          (reply.profiles && typeof reply.profiles === 'object' ? 
+                            (reply.profiles as any)?.username || `ユーザー_${(reply.user_id || '').substring(0, 5)}` : 
                             `ユーザー_${(reply.user_id || '').substring(0, 5)}`),
-                    avatar: reply.profiles && typeof reply.profiles === 'object' && 'avatar_url' in reply.profiles ? 
-                            (reply.profiles as any).avatar_url : 
+                    avatar: (reply.profiles && typeof reply.profiles === 'object' ? 
+                            (reply.profiles as any)?.avatar_url : null) || 
                             '/placeholder-avatar.png'
                   }
                 }));
