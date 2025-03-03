@@ -170,8 +170,10 @@ const Index = () => {
           setPosts(prev => [...prev, ...uniqueNewPosts]);
           setCurrentPage(nextPage);
         } else {
-          console.log('No unique new posts found, setting hasMore to false');
-          setHasMore(false);
+          // 重複が全てだった場合でも、次のページを確認するためにページカウンタを進める
+          console.log('No unique new posts found, trying next page');
+          setCurrentPage(nextPage);
+          // 次のページが存在する可能性があるので、hasMoreはまだfalseにしない
         }
       }
 
