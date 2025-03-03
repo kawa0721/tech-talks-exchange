@@ -11,6 +11,7 @@ import AllPosts from "./pages/AllPosts";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./pages/UserProfile";
+import ProfileRedirect from "./pages/ProfileRedirect";
 import NotFound from "./pages/NotFound";
 import { migrateChannelsData } from "./utils/migrateChannelsData";
 import "./App.css";
@@ -32,6 +33,8 @@ function App() {
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/user/:userId" element={<UserProfile />} />
+            <Route path="/profile" element={<ProfileRedirect />} />
+            <Route path="/settings" element={<ProfileRedirect />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
