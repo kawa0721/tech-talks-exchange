@@ -16,6 +16,8 @@ interface ReplyItemProps {
   onStartEditing: (id: string, isReply: boolean, parentId: string) => void;
   onCancelEditing: (id: string) => void;
   onSaveEdit: (id: string, isReply: boolean, parentId: string) => void;
+  isEditing?: boolean;
+  submitting: boolean;
 }
 
 const ReplyItem = ({
@@ -27,7 +29,9 @@ const ReplyItem = ({
   onDeleteComment,
   onStartEditing,
   onCancelEditing,
-  onSaveEdit
+  onSaveEdit,
+  isEditing = false,
+  submitting
 }: ReplyItemProps) => {
   return (
     <div className="flex gap-3">
@@ -49,24 +53,20 @@ const ReplyItem = ({
           </div>
           
           <CommentActions
-            id={reply.id}
-            isReply={true}
-            parentId={parentId}
-            liked={reply.liked || false}
-            likesCount={reply.likesCount}
-            onLike={() => onToggleLike(reply.id)}
-            onEdit={() => onStartEditing(reply.id, true, parentId)}
-            onDelete={() => onDeleteComment(reply.id, true, parentId)}
-            showReplyButton={false}
+            comment={reply}
+            onStartEditing={(id) => onStartEditing(id, true, parentId)}
+            onDeleteComment={(id) => onDeleteComment(id, true, parentId)}
           />
         </div>
         
         {reply.isEditing ? (
           <EditCommentForm
+            id={reply.id}
             content={editContent[reply.id] || ""}
-            onChange={(content) => onSetEditContent(reply.id, content)}
-            onSave={() => onSaveEdit(reply.id, true, parentId)}
+            onSetContent={(content) => onSetEditContent(reply.id, content)}
             onCancel={() => onCancelEditing(reply.id)}
+            onSave={() => onSaveEdit(reply.id, true, parentId)}
+            isSubmitting={submitting}
             isReply={true}
           />
         ) : (

@@ -1,5 +1,5 @@
 
-import { ThumbsUp, Reply, MoreHorizontal } from "lucide-react";
+import { ThumbsUp, Reply, MoreHorizontal, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,77 +7,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Comment } from "@/types";
 
 interface CommentActionsProps {
-  id: string;
-  isReply?: boolean;
-  parentId?: string;
-  liked: boolean;
-  likesCount: number;
-  onLike: () => void;
-  onReply?: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  showReplyButton?: boolean;
+  comment: Comment;
+  onStartEditing: (id: string, isReply?: boolean, parentId?: string) => void;
+  onDeleteComment: (id: string, isReply?: boolean, parentId?: string) => void;
 }
 
 const CommentActions = ({
-  id,
-  isReply = false,
-  parentId,
-  liked,
-  likesCount,
-  onLike,
-  onReply,
-  onEdit,
-  onDelete,
-  showReplyButton = true
+  comment,
+  onStartEditing,
+  onDeleteComment
 }: CommentActionsProps) => {
   return (
-    <div className="flex justify-between items-center">
-      <div className="flex gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`px-2 py-1 h-auto text-xs ${liked ? "text-blue-500" : ""}`}
-          onClick={onLike}
-        >
-          <ThumbsUp className={isReply ? "h-3 w-3 mr-1" : "h-3 w-3 mr-1"} />
-          {likesCount > 0 && likesCount}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
-        
-        {showReplyButton && !isReply && onReply && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="px-2 py-1 h-auto text-xs"
-            onClick={onReply}
-          >
-            <Reply className="h-3 w-3 mr-1" />
-            返信
-          </Button>
-        )}
-      </div>
-      
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className={isReply ? "h-6 w-6" : "h-8 w-8"}>
-            <MoreHorizontal className={isReply ? "h-3 w-3" : "h-4 w-4"} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onDelete}>
-            削除
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onEdit}>
-            編集
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            報告
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onDeleteComment(comment.id)}>
+          <Trash2 className="h-4 w-4 mr-2" />
+          削除
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onStartEditing(comment.id)}>
+          <Edit className="h-4 w-4 mr-2" />
+          編集
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          報告
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

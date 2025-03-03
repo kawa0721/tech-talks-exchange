@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
-import { MoreHorizontal, Heart, MessageSquare, Trash2, Edit, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Heart, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Comment } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -17,7 +16,7 @@ interface CommentItemProps {
   editContent: Record<string, string>;
   submitting: boolean;
   onSetReplyTo: (id: string | null) => void;
-  onSetReplyContent: (content: string, nickname?: string) => void; // Ensure this accepts nickname parameter
+  onSetReplyContent: (content: string, nickname?: string) => void;
   onSubmitReply: (parentId: string, content?: string, nickname?: string) => void;
   onSetEditContent: (id: string, content: string) => void;
   onToggleLike: (id: string) => void;
@@ -65,8 +64,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
           id={comment.id}
           content={editContent[comment.id] || comment.content}
           onSetContent={onSetEditContent}
-          onCancel={onCancelEditing}
-          onSave={onSaveEdit}
+          onCancel={() => onCancelEditing(comment.id)}
+          onSave={() => onSaveEdit(comment.id)}
           isSubmitting={submitting}
         />
       ) : (
@@ -92,7 +91,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               </div>
             </div>
             <CommentActions 
-              comment={comment} 
+              comment={comment}
               onStartEditing={onStartEditing}
               onDeleteComment={onDeleteComment}
             />
@@ -120,7 +119,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   onSetReplyTo(null);
                 } else {
                   onSetReplyTo(comment.id);
-                  onSetReplyContent("", comment.user.name); // Pass both content and nickname
+                  onSetReplyContent("", comment.user.name);
                 }
               }}
             >
@@ -136,7 +135,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="mt-3">
           <ReplyForm
             parentId={comment.id}
-            content={""} // This should be controlled by the parent component
+            content={""}
             onSubmit={onSubmitReply}
             onCancel={() => onSetReplyTo(null)}
             isSubmitting={submitting}
