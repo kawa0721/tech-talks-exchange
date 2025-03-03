@@ -39,19 +39,26 @@ const CommentItem = ({
   onCancelEditing,
   onSaveEdit
 }: CommentItemProps) => {
+  // Display the user's name or nickname if available, otherwise show "匿名ユーザー"
+  const displayName = comment.guestNickname || comment.user.name || "匿名ユーザー";
+  
   return (
     <div className="space-y-4">
       <div className="flex gap-3">
         <Avatar className="h-8 w-8">
-          <AvatarImage src={comment.user.avatar} alt={comment.user.name} />
-          <AvatarFallback>{comment.user.name.substring(0, 2)}</AvatarFallback>
+          <AvatarImage src={comment.user.avatar} alt={displayName} />
+          <AvatarFallback>{displayName.substring(0, 2)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div>
-              <Link to={`/user/${comment.user.id}`} className="font-medium hover:underline">
-                {comment.user.name}
-              </Link>
+              {comment.user.id !== "unknown" ? (
+                <Link to={`/user/${comment.user.id}`} className="font-medium hover:underline">
+                  {displayName}
+                </Link>
+              ) : (
+                <span className="font-medium">{displayName}</span>
+              )}
               <span className="text-xs text-muted-foreground ml-2">
                 {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
                 {comment.updatedAt && comment.updatedAt > comment.createdAt && 

@@ -49,7 +49,7 @@ const PostDetail = () => {
         // 次にユーザー情報を取得
         let userData: User = {
           id: postData.user_id || "unknown",
-          name: "kawakitamasayuki@gmail.com", // Changed from "不明なユーザー"
+          name: "匿名ユーザー", // Changed from email address to "匿名ユーザー" (Anonymous User)
           avatar: undefined
         };
         
@@ -63,7 +63,7 @@ const PostDetail = () => {
           if (!userError && profile) {
             userData = {
               id: profile.id,
-              name: profile.username || "kawakitamasayuki@gmail.com", // Changed from "匿名ユーザー"
+              name: profile.username || "匿名ユーザー", // Changed from email to "匿名ユーザー"
               avatar: profile.avatar_url
             };
           }

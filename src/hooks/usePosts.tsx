@@ -48,7 +48,7 @@ export function usePosts(type: string = "trending") {
           postsData.map(async (post) => {
             let userData = {
               id: post.user_id || "unknown",
-              name: "kawakitamasayuki@gmail.com", 
+              name: "匿名ユーザー", // Changed from email to "匿名ユーザー" 
               avatar: undefined
             };
 
@@ -64,7 +64,7 @@ export function usePosts(type: string = "trending") {
                 if (!profileError && profile && profile.length > 0) {
                   userData = {
                     id: profile[0].id,
-                    name: profile[0].username || "kawakitamasayuki@gmail.com",
+                    name: profile[0].username || "匿名ユーザー", // Changed from email to "匿名ユーザー"
                     avatar: profile[0].avatar_url
                   };
                 }
