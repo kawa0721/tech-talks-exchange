@@ -60,7 +60,7 @@ const FeaturedPosts = ({
   }, [trendingPosts, popularPosts, posts, selectedChannel, loading]);
 
   return (
-    <Tabs defaultValue="recent" className="w-full">
+    <Tabs defaultValue="trending" className="w-full">
       <div className="flex items-center justify-between mb-4">
         <TabsList>
           <TabsTrigger value="trending" className="flex items-center gap-1">
