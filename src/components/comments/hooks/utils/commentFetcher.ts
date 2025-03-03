@@ -17,7 +17,7 @@ export async function fetchUserProfile(userId: string) {
       return {
         id: userId,
         name: `ユーザー_${userId.substring(0, 5)}`,
-        avatar: undefined
+        avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
       };
     }
     
@@ -25,14 +25,14 @@ export async function fetchUserProfile(userId: string) {
     return {
       id: userData.id,
       name: userData.name,
-      avatar: userData.avatar
+      avatar: userData.avatar || `/placeholder-avatar.png` // アバターがない場合はデフォルト
     };
   } catch (error) {
     console.error("ユーザープロファイル取得エラー:", error);
     return {
       id: userId,
       name: `ユーザー_${userId.substring(0, 5)}`,
-      avatar: undefined
+      avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
     };
   }
 }

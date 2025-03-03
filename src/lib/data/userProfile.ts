@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
+import { User as LucideUser } from "lucide-react";
 
 // プロフィール情報を取得する関数
 export const getUserProfile = async (userId: string): Promise<User | null> => {
@@ -65,7 +66,7 @@ export const getPublicUserProfile = async (userId: string): Promise<User | null>
       return {
         id: userId,
         name: `ユーザー_${userId.substring(0, 5)}`,
-        avatar: undefined,
+        avatar: `/placeholder-avatar.png`, // デフォルトアバター画像を指定
         profile: undefined
       };
     }
@@ -76,7 +77,7 @@ export const getPublicUserProfile = async (userId: string): Promise<User | null>
       return {
         id: userId,
         name: `ユーザー_${userId.substring(0, 5)}`,
-        avatar: undefined,
+        avatar: `/placeholder-avatar.png`, // デフォルトアバター画像を指定
         profile: undefined
       };
     }
@@ -86,7 +87,7 @@ export const getPublicUserProfile = async (userId: string): Promise<User | null>
     return {
       id: data.id,
       name: data.username || "匿名ユーザー",
-      avatar: data.avatar_url,
+      avatar: data.avatar_url || `/placeholder-avatar.png`, // アバターがない場合はデフォルト画像
       profile: data.profile
     };
   } catch (error) {
@@ -95,7 +96,7 @@ export const getPublicUserProfile = async (userId: string): Promise<User | null>
     return {
       id: userId,
       name: `ユーザー_${userId.substring(0, 5)}`,
-      avatar: undefined,
+      avatar: `/placeholder-avatar.png`, // デフォルトアバター画像を指定
       profile: undefined
     };
   }

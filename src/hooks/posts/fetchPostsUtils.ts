@@ -1,4 +1,3 @@
-
 import { Post } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -7,7 +6,7 @@ export async function formatPostData(post: any): Promise<Post> {
   let userData = {
     id: post.user_id || "unknown",
     name: "匿名ユーザー",
-    avatar: undefined
+    avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
   };
 
   if (post.user_id) {
@@ -25,7 +24,7 @@ export async function formatPostData(post: any): Promise<Post> {
       userData = {
         id: profile.id,
         name: displayName,
-        avatar: profile.avatar_url
+        avatar: profile.avatar_url || `/placeholder-avatar.png` // アバターがない場合はデフォルト
       };
     } else {
       console.log("Profile not found for user:", post.user_id);
@@ -33,7 +32,7 @@ export async function formatPostData(post: any): Promise<Post> {
       userData = {
         id: post.user_id,
         name: `ユーザー_${post.user_id.substring(0, 5)}`,
-        avatar: undefined
+        avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
       };
     }
   }

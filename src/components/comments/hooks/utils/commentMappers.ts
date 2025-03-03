@@ -1,4 +1,3 @@
-
 import { Comment } from "@/types";
 import { fetchUserProfile, checkCommentLikeStatus, fetchCommentReplies } from "./commentFetcher";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,7 @@ export async function mapCommentWithUserInfo(comment: any, postId: string, curre
   let userInfo = {
     id: comment.user_id || 'guest',
     name: comment.guest_nickname || "ゲスト",
-    avatar: undefined
+    avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
   };
 
   // Always try to fetch the profile, regardless of login status
@@ -66,7 +65,7 @@ export async function mapReplyWithUserInfo(reply: any, postId: string, parentId:
   let replyUserInfo = {
     id: reply.user_id || 'guest',
     name: reply.guest_nickname || "ゲスト",
-    avatar: undefined
+    avatar: `/placeholder-avatar.png` // デフォルトアバター画像を指定
   };
 
   // Always try to fetch the profile, regardless of login status
