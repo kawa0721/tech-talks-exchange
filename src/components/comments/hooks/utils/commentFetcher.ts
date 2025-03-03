@@ -6,25 +6,47 @@ import { supabase } from "@/integrations/supabase/client";
  * Fetches user profile information from Supabase
  */
 export async function fetchUserProfile(userId: string) {
-  const { data: userData, error: userError } = await supabase
-    .from('profiles')
-    .select('id, username, avatar_url')
-    .eq('id', userId)
-    .single();
+  try {
+    // まずプロファイル情報を取得
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .eq('id', userId)
+      .single();
 
-  if (userError || !userData) {
+    if (userError || !userData) {
+      // プロファイルが見つからない場合は、authテーブルからユーザー情報を取得
+      const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+      
+      if (authUser && authUser.user) {
+        return {
+          id: userId,
+          name: authUser.user.email || "ユーザー",
+          avatar: authUser.user.user_metadata?.avatar_url
+        };
+      }
+      
+      return {
+        id: userId,
+        name: "ユーザー",
+        avatar: undefined
+      };
+    }
+
+    // プロファイルが存在する場合
+    return {
+      id: userData.id,
+      name: userData.username || "ユーザー", // usernameがnullの場合のフォールバック
+      avatar: userData.avatar_url
+    };
+  } catch (error) {
+    console.error("ユーザープロファイル取得エラー:", error);
     return {
       id: userId,
-      name: "不明なユーザー",
+      name: "ユーザー",
       avatar: undefined
     };
   }
-
-  return {
-    id: userData.id,
-    name: userData.username || "不明なユーザー",
-    avatar: userData.avatar_url
-  };
 }
 
 /**
