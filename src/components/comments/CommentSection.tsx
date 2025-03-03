@@ -1,1 +1,305 @@
-\nimport { useState, useEffect } from \"react\";\nimport { Comment } from \"@/types\";\nimport CommentForm from \"./CommentForm\";\nimport CommentItem from \"./CommentItem\";\nimport { Loader2 } from \"lucide-react\";\nimport { EmptyComments } from \"./comment-empty\";\nimport { CommentSkeleton } from \"./comment-loading\";\nimport { useCommentLikes } from \"./hooks/useCommentLikes\";\nimport { useCommentEdit } from \"./hooks/useCommentEdit\";\nimport { useCommentDelete } from \"./hooks/useCommentDelete\";\nimport { supabase } from \"@/integrations/supabase/client\";\n\ninterface CommentSectionProps {\n  postId: string;\n  postOwnerId?: string;\n  onCommentCountChange?: (count: number) => void;\n}\n\nconst CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSectionProps) => {\n  const [comments, setComments] = useState<Comment[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n  const [replyTo, setReplyTo] = useState<string | null>(null);\n  const [replyContent, setReplyContent] = useState(\"\");\n  const [submitting, setSubmitting] = useState(false);\n  \n  // Custom hooks for comment functionality\n  const { toggleLike } = useCommentLikes(comments, setComments);\n  const { editContent, startEditing: editHookStartEditing, cancelEditing: editHookCancelEditing, saveEdit: editHookSaveEdit, handleSetEditContent: setEditContent } = useCommentEdit();\n  const { deleteComment } = useCommentDelete(comments, setComments);\n  \n  // Wrapper functions to match expected interfaces\n  const handleStartEditing = (id: string, isReply?: boolean, parentId?: string) => {\n    editHookStartEditing(comments, setComments, id, isReply, parentId);\n  };\n\n  const handleCancelEditing = (id: string) => {\n    editHookCancelEditing(comments, setComments, id);\n  };\n\n  const handleSaveEdit = (id: string, isReply?: boolean, parentId?: string) => {\n    editHookSaveEdit(comments, setComments, id, isReply, parentId);\n  };\n\n  // 追加のヘルパー関数 - ユーザープロフィール情報を別途取得する\n  const getProfileForUser = async (userId: string | null) => {\n    if (!userId) {\n      return null;\n    }\n    \n    try {\n      const { data: profile, error } = await supabase\n        .from('profiles')\n        .select('id, username, avatar_url')\n        .eq('id', userId)\n        .maybeSingle();\n        \n      return error ? null : profile;\n    } catch (e) {\n      console.error(\"Profile fetch error:\", e);\n      return null;\n    }\n  };\n\n  // Function to handle comment submission\n  const handleSubmitComment = async (newComment: string, nickname?: string) => {\n    setSubmitting(true);\n    \n    try {\n      // Check if user is authenticated\n      const { data: { user } } = await supabase.auth.getUser();\n      \n      let userId = null;\n      if (user) {\n        userId = user.id;\n      }\n      \n      // Prepare comment data\n      const commentData = {\n        post_id: postId,\n        content: newComment,\n        user_id: userId,\n        guest_nickname: nickname\n      };\n      \n      // Insert comment into database - 重要：まずinsertだけを実行\n      const { data: insertResult, error: insertError } = await supabase\n        .from('comments')\n        .insert([commentData]);\n        \n      if (insertError) {\n        throw insertError;\n      }\n      \n      // 次に、挿入されたコメントを別のクエリで取得\n      const { data: newCommentData, error: fetchError } = await supabase\n        .from('comments')\n        .select('id, content, created_at, updated_at, user_id, likes_count, parent_id, guest_nickname')\n        .eq('post_id', postId)\n        .order('created_at', { ascending: false })\n        .limit(1)\n        .single();\n      \n      if (fetchError || !newCommentData) {\n        throw fetchError || new Error(\"Failed to fetch new comment\");\n      }\n      \n      // 別途プロフィール情報を取得\n      let profile = null;\n      if (userId) {\n        profile = await getProfileForUser(userId);\n      }\n      \n      // Format the new comment\n      const formattedComment: Comment = {\n        id: newCommentData.id as string,\n        postId,\n        userId: (newCommentData.user_id as string) || 'guest',\n        content: newCommentData.content as string,\n        createdAt: new Date(newCommentData.created_at),\n        updatedAt: newCommentData.updated_at ? new Date(newCommentData.updated_at) : undefined,\n        likesCount: newCommentData.likes_count || 0,\n        liked: false,\n        guestNickname: newCommentData.guest_nickname,\n        user: {\n          id: newCommentData.user_id || 'guest',\n          name: newCommentData.guest_nickname || \n                (profile ? profile.username : null) || \n                `ユーザー_${(newCommentData.user_id || '').substring(0, 5)}`,\n          avatar: (profile ? profile.avatar_url : null) || '/placeholder-avatar.png'\n        },\n        replies: []\n      };\n      \n      setComments(prevComments => [formattedComment, ...prevComments]);\n      \n      // Update comment count\n      if (onCommentCountChange) {\n        onCommentCountChange(comments.length + 1);\n      }\n    } catch (err: any) {\n      console.error(\"コメント投稿エラー:\", err);\n      setError(err.message || \"コメントの投稿に失敗しました\");\n    } finally {\n      setSubmitting(false);\n    }\n  };\n\n  // Function to handle reply submission\n  const handleSubmitReply = async (parentId: string, content?: string, nickname?: string) => {\n    // Use the content parameter if provided, otherwise use the state\n    const replyText = content || replyContent;\n    \n    if (!replyText.trim()) {\n      return;\n    }\n\n    setSubmitting(true);\n    \n    try {\n      // Check if user is authenticated\n      const { data: { user } } = await supabase.auth.getUser();\n      \n      let userId = null;\n      if (user) {\n        userId = user.id;\n      }\n      \n      // Prepare reply data\n      const replyData = {\n        post_id: postId,\n        content: replyText,\n        parent_id: parentId,\n        user_id: userId,\n        guest_nickname: nickname\n      };\n      \n      // Insert reply into database - 重要：まずinsertだけを実行\n      const { data: insertResult, error: insertError } = await supabase\n        .from('comments')\n        .insert([replyData]);\n        \n      if (insertError) {\n        throw insertError;\n      }\n      \n      // 次に、挿入された返信を別のクエリで取得\n      const { data: newReplyData, error: fetchError } = await supabase\n        .from('comments')\n        .select('id, content, created_at, updated_at, user_id, likes_count, parent_id, guest_nickname')\n        .eq('post_id', postId)\n        .eq('parent_id', parentId)\n        .order('created_at', { ascending: false })\n        .limit(1)\n        .single();\n      \n      if (fetchError || !newReplyData) {\n        throw fetchError || new Error(\"Failed to fetch new reply\");\n      }\n      \n      // 別途プロフィール情報を取得\n      let profile = null;\n      if (userId) {\n        profile = await getProfileForUser(userId);\n      }\n      \n      // Format the new reply\n      const formattedReply: Comment = {\n        id: newReplyData.id as string,\n        postId,\n        userId: (newReplyData.user_id as string) || 'guest',\n        parentId,\n        content: newReplyData.content as string,\n        createdAt: new Date(newReplyData.created_at),\n        updatedAt: newReplyData.updated_at ? new Date(newReplyData.updated_at) : undefined,\n        likesCount: newReplyData.likes_count || 0,\n        liked: false,\n        guestNickname: newReplyData.guest_nickname,\n        user: {\n          id: newReplyData.user_id || 'guest',\n          name: newReplyData.guest_nickname || \n                (profile ? profile.username : null) || \n                `ユーザー_${(newReplyData.user_id || '').substring(0, 5)}`,\n          avatar: (profile ? profile.avatar_url : null) || \n                '/placeholder-avatar.png'\n        }\n      };\n      \n      // Update comments state with the new reply\n      const updatedComments = comments.map(comment => {\n        if (comment.id === parentId) {\n          const updatedReplies = comment.replies ? [...comment.replies, formattedReply] : [formattedReply];\n          return { ...comment, replies: updatedReplies };\n        }\n        return comment;\n      });\n      \n      setComments(updatedComments);\n      setReplyTo(null);\n      setReplyContent(\"\");\n    } catch (err: any) {\n      console.error(\"返信投稿エラー:\", err);\n      setError(err.message || \"返信の投稿に失敗しました\");\n    } finally {\n      setSubmitting(false);\n    }\n  };\n\n  useEffect(() => {\n    const fetchComments = async () => {\n      setLoading(true);\n      setError(null);\n      \n      try {\n        // 1. 親コメント（トップレベルのコメント）を取得\n        const { data: parentCommentsData, error: commentsError } = await supabase\n          .from('comments')\n          .select(`\n            id,\n            content,\n            created_at,\n            updated_at,\n            user_id,\n            likes_count,\n            parent_id,\n            guest_nickname\n          `)\n          .eq('post_id', postId)\n          .is('parent_id', null)\n          .order('created_at', { ascending: false });\n          \n        if (commentsError) {\n          throw commentsError;\n        }\n        \n        if (!parentCommentsData || parentCommentsData.length === 0) {\n          setComments([]);\n          setLoading(false);\n          \n          // Update comment count in parent component\n          if (onCommentCountChange) {\n            onCommentCountChange(0);\n          }\n          return;\n        }\n        \n        // 2. すべての親コメントIDを取得\n        const parentIds = parentCommentsData.map(comment => comment.id) || [];\n        \n        // 3. これらの親コメントに対するすべての返信を取得\n        const { data: repliesData, error: repliesError } = await supabase\n          .from('comments')\n          .select(`\n            id,\n            content,\n            created_at,\n            updated_at,\n            user_id,\n            likes_count,\n            parent_id,\n            guest_nickname\n          `)\n          .eq('post_id', postId)\n          .in('parent_id', parentIds)\n          .order('created_at', { ascending: true });\n          \n        if (repliesError) {\n          throw repliesError;\n        }\n        \n        // 4. すべてのユーザーIDを集めて、プロフィール情報を一度に取得\n        const allUserIds = new Set<string>();\n        \n        // 親コメントからユーザーIDを収集\n        parentCommentsData.forEach(comment => {\n          if (comment.user_id) allUserIds.add(comment.user_id);\n        });\n        \n        // 返信からユーザーIDを収集\n        if (repliesData) {\n          repliesData.forEach(reply => {\n            if (reply.user_id) allUserIds.add(reply.user_id);\n          });\n        }\n        \n        // 5. すべてのユーザーのプロフィール情報を一度に取得\n        const userProfiles: Record<string, any> = {};\n        if (allUserIds.size > 0) {\n          const userIdsArray = Array.from(allUserIds);\n          \n          // PostgreSQLのIN演算子で複数のIDを一度に検索\n          const { data: profilesData } = await supabase\n            .from('profiles')\n            .select('id, username, avatar_url')\n            .in('id', userIdsArray);\n          \n          // IDでインデックス化したプロフィール情報を作成\n          if (profilesData) {\n            profilesData.forEach(profile => {\n              userProfiles[profile.id] = profile;\n            });\n          }\n        }\n\n        // 6. 現在のユーザーがいいねしたコメントを確認\n        const { data: { user } } = await supabase.auth.getUser();\n        let userLikes: Record<string, boolean> = {};\n        \n        if (user) {\n          // すべてのコメントIDを取得（親と返信）\n          const allCommentIds = [\n            ...parentIds,\n            ...(repliesData?.map(reply => reply.id) || [])\n          ];\n          \n          // どのコメントにいいねしたかを確認\n          const { data: likesData } = await supabase\n            .from('likes')\n            .select('comment_id')\n            .eq('user_id', user.id)\n            .in('comment_id', allCommentIds);\n            \n          // 簡単な検索用にマップを作成\n          userLikes = (likesData || []).reduce((acc: Record<string, boolean>, like) => {\n            if (like && like.comment_id) {\n              acc[like.comment_id] = true;\n            }\n            return acc;\n          }, {});\n        }\n        \n        // 7. 親ごとに返信を整理\n        const repliesByParent: Record<string, any[]> = {};\n        (repliesData || []).forEach(reply => {\n          if (reply && reply.parent_id) {\n            if (!repliesByParent[reply.parent_id]) {\n              repliesByParent[reply.parent_id] = [];\n            }\n            repliesByParent[reply.parent_id].push(reply);\n          }\n        });\n        \n        // 8. 返信を含むコメントをフォーマット\n        const formattedComments: Comment[] = (parentCommentsData || [])\n          .filter(Boolean)\n          .map(comment => {\n            // プロフィール情報を取得\n            const userProfile = comment.user_id ? userProfiles[comment.user_id] : null;\n            \n            // 親コメントをフォーマット\n            const formattedComment: Comment = {\n              id: comment.id as string,\n              postId,\n              userId: comment.user_id as string || 'guest',\n              content: comment.content as string,\n              createdAt: new Date(comment.created_at),\n              updatedAt: comment.updated_at ? new Date(comment.updated_at) : undefined,\n              likesCount: comment.likes_count || 0,\n              liked: userLikes[comment.id] || false,\n              guestNickname: comment.guest_nickname,\n              user: {\n                id: comment.user_id || 'guest',\n                name: comment.guest_nickname || \n                      (userProfile ? userProfile.username : null) || \n                      `ユーザー_${(comment.user_id || '').substring(0, 5)}`,\n                avatar: (userProfile ? userProfile.avatar_url : null) || \n                        '/placeholder-avatar.png'\n              },\n              replies: []\n            };\n            \n            // この親に返信を追加\n            const replies = repliesByParent[comment.id] || [];\n            if (replies.length > 0) {\n              formattedComment.replies = replies\n                .filter(Boolean)\n                .map(reply => {\n                  // 返信のユーザープロフィールを取得\n                  const replyUserProfile = reply.user_id ? userProfiles[reply.user_id] : null;\n                  \n                  return {\n                    id: reply.id as string,\n                    postId,\n                    userId: reply.user_id as string || 'guest',\n                    parentId: comment.id,\n                    content: reply.content as string,\n                    createdAt: new Date(reply.created_at),\n                    updatedAt: reply.updated_at ? new Date(reply.updated_at) : undefined,\n                    likesCount: reply.likes_count || 0,\n                    liked: userLikes[reply.id] || false,\n                    guestNickname: reply.guest_nickname,\n                    user: {\n                      id: reply.user_id || \"guest\",\n                      name: reply.guest_nickname || \n                            (replyUserProfile ? replyUserProfile.username : null) || \n                            `ユーザー_${(reply.user_id || '').substring(0, 5)}`,\n                      avatar: (replyUserProfile ? replyUserProfile.avatar_url : null) || \n                              '/placeholder-avatar.png'\n                    }\n                  };\n                });\n            }\n            \n            return formattedComment;\n          });\n        \n        setComments(formattedComments);\n        \n        // Update comment count in parent component\n        if (onCommentCountChange) {\n          const totalCount = parentCommentsData.length;\n          onCommentCountChange(totalCount);\n        }\n      } catch (err: any) {\n        console.error(\"コメント取得エラー:\", err);\n        setError(err.message || \"コメントの取得に失敗しました\");\n      } finally {\n        setLoading(false);\n      }\n    };\n    \n    fetchComments();\n  }, [postId, onCommentCountChange]);\n\n  return (\n    <div className=\"comments-section mt-8\">\n      <h2 className=\"text-xl font-semibold mb-4\">コメント ({comments.length})</h2>\n      \n      <CommentForm \n        postId={postId}\n        onSubmit={handleSubmitComment}\n        isSubmitting={submitting} \n      />\n      \n      <div className=\"mt-6 space-y-4\">\n        {loading ? (\n          <div>\n            <CommentSkeleton />\n            <CommentSkeleton />\n          </div>\n        ) : error ? (\n          <div className=\"p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-md\">\n            {error}\n          </div>\n        ) : comments.length === 0 ? (\n          <EmptyComments postOwnerId={postOwnerId} />\n        ) : (\n          comments.map(comment => (\n            <CommentItem\n              key={comment.id}\n              comment={comment}\n              replyTo={replyTo}\n              editContent={editContent}\n              submitting={submitting}\n              onSetReplyTo={setReplyTo}\n              onSetReplyContent={setReplyContent}\n              onSubmitReply={handleSubmitReply}\n              onSetEditContent={setEditContent}\n              onToggleLike={toggleLike}\n              onDeleteComment={deleteComment}\n              onStartEditing={handleStartEditing}\n              onCancelEditing={handleCancelEditing}\n              onSaveEdit={handleSaveEdit}\n            />\n          ))\n        )}\n      </div>\n    </div>\n  );\n};\n\nexport default CommentSection;\n
+import { useState } from "react";
+import { Comment } from "@/types";
+import CommentForm from "./CommentForm";
+import CommentItem from "./CommentItem";
+import { Loader2 } from "lucide-react";
+import { EmptyComments } from "./comment-empty";
+import { CommentSkeleton } from "./comment-loading";
+import { useCommentLikes } from "./hooks/useCommentLikes";
+import { useCommentEdit } from "./hooks/useCommentEdit";
+import { useCommentDelete } from "./hooks/useCommentDelete";
+import { supabase } from "@/integrations/supabase/client";
+import { useCommentsWithProfiles } from "./use-comments-view";
+
+interface CommentSectionProps {
+  postId: string;
+  postOwnerId?: string;
+  onCommentCountChange?: (count: number) => void;
+}
+
+const CommentSection = ({ postId, postOwnerId, onCommentCountChange }: CommentSectionProps) => {
+  // 作成したカスタムフックを使用
+  const { comments, loading, error: fetchError } = useCommentsWithProfiles(postId);
+  
+  // ローカル状態
+  const [commentsState, setCommentsState] = useState<Comment[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  
+  // 取得したコメントをローカル状態に反映
+  useState(() => {
+    if (comments.length > 0) {
+      setCommentsState(comments);
+      
+      // コメント数を更新
+      if (onCommentCountChange) {
+        onCommentCountChange(comments.length);
+      }
+    }
+  }, [comments, onCommentCountChange]);
+  
+  // エラーをローカル状態に反映
+  useState(() => {
+    if (fetchError) {
+      setError(fetchError);
+    }
+  }, [fetchError]);
+  
+  // Custom hooks for comment functionality
+  const { toggleLike } = useCommentLikes(commentsState, setCommentsState);
+  const { editContent, startEditing: editHookStartEditing, cancelEditing: editHookCancelEditing, saveEdit: editHookSaveEdit, handleSetEditContent: setEditContent } = useCommentEdit();
+  const { deleteComment } = useCommentDelete(commentsState, setCommentsState);
+  
+  // Wrapper functions to match expected interfaces
+  const handleStartEditing = (id: string, isReply?: boolean, parentId?: string) => {
+    editHookStartEditing(commentsState, setCommentsState, id, isReply, parentId);
+  };
+
+  const handleCancelEditing = (id: string) => {
+    editHookCancelEditing(commentsState, setCommentsState, id);
+  };
+
+  const handleSaveEdit = (id: string, isReply?: boolean, parentId?: string) => {
+    editHookSaveEdit(commentsState, setCommentsState, id, isReply, parentId);
+  };
+
+  // ユーザープロフィール情報を取得するヘルパー関数
+  const getProfileForUser = async (userId: string | null) => {
+    if (!userId) {
+      return null;
+    }
+    
+    try {
+      // プロフィール情報を取得する単純なクエリ
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .eq('id', userId)
+        .single();
+      
+      return error ? null : data;
+    } catch (e) {
+      console.error("Profile fetch error:", e);
+      return null;
+    }
+  };
+
+  // Function to handle comment submission
+  const handleSubmitComment = async (newComment: string, nickname?: string) => {
+    setSubmitting(true);
+    
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let userId = null;
+      if (user) {
+        userId = user.id;
+      }
+      
+      // Prepare comment data
+      const commentData = {
+        post_id: postId,
+        content: newComment,
+        user_id: userId,
+        guest_nickname: nickname
+      };
+      
+      // Insert comment into database - JOINなし
+      const { data: newCommentData, error: insertError } = await supabase
+        .from('comments')
+        .insert([commentData])
+        .select('id, post_id, user_id, content, created_at, updated_at, parent_id, likes_count, guest_nickname')
+        .single();
+        
+      if (insertError) {
+        throw insertError;
+      }
+      
+      if (!newCommentData) {
+        throw new Error("Failed to create comment");
+      }
+      
+      // 別途プロフィール情報を取得
+      let profile = null;
+      if (userId) {
+        profile = await getProfileForUser(userId);
+      }
+      
+      // Format the new comment
+      const formattedComment: Comment = {
+        id: newCommentData.id as string,
+        postId,
+        userId: (newCommentData.user_id as string) || 'guest',
+        content: newCommentData.content as string,
+        createdAt: new Date(newCommentData.created_at),
+        updatedAt: newCommentData.updated_at ? new Date(newCommentData.updated_at) : undefined,
+        likesCount: newCommentData.likes_count || 0,
+        liked: false,
+        guestNickname: newCommentData.guest_nickname,
+        user: {
+          id: newCommentData.user_id || 'guest',
+          name: newCommentData.guest_nickname || 
+                (profile ? profile.username : null) || 
+                `ユーザー_${(newCommentData.user_id || '').substring(0, 5)}`,
+          avatar: (profile ? profile.avatar_url : null) || '/placeholder-avatar.png'
+        },
+        replies: []
+      };
+      
+      setCommentsState(prevComments => [formattedComment, ...prevComments]);
+      
+      // Update comment count
+      if (onCommentCountChange) {
+        onCommentCountChange(commentsState.length + 1);
+      }
+    } catch (err: any) {
+      console.error("コメント投稿エラー:", err);
+      setError(err.message || "コメントの投稿に失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Function to handle reply submission
+  const handleSubmitReply = async (parentId: string, content?: string, nickname?: string) => {
+    // Use the content parameter if provided, otherwise use the state
+    const replyText = content || replyContent;
+    
+    if (!replyText.trim()) {
+      return;
+    }
+
+    setSubmitting(true);
+    
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let userId = null;
+      if (user) {
+        userId = user.id;
+      }
+      
+      // Prepare reply data
+      const replyData = {
+        post_id: postId,
+        content: replyText,
+        parent_id: parentId,
+        user_id: userId,
+        guest_nickname: nickname
+      };
+      
+      // Insert reply into database - JOINなし
+      const { data: newReplyData, error: insertError } = await supabase
+        .from('comments')
+        .insert([replyData])
+        .select('id, post_id, user_id, content, created_at, updated_at, parent_id, likes_count, guest_nickname')
+        .single();
+        
+      if (insertError) {
+        throw insertError;
+      }
+      
+      if (!newReplyData) {
+        throw new Error("Failed to create reply");
+      }
+      
+      // 別途プロフィール情報を取得
+      let profile = null;
+      if (userId) {
+        profile = await getProfileForUser(userId);
+      }
+      
+      // Format the new reply
+      const formattedReply: Comment = {
+        id: newReplyData.id as string,
+        postId,
+        userId: (newReplyData.user_id as string) || 'guest',
+        parentId,
+        content: newReplyData.content as string,
+        createdAt: new Date(newReplyData.created_at),
+        updatedAt: newReplyData.updated_at ? new Date(newReplyData.updated_at) : undefined,
+        likesCount: newReplyData.likes_count || 0,
+        liked: false,
+        guestNickname: newReplyData.guest_nickname,
+        user: {
+          id: newReplyData.user_id || 'guest',
+          name: newReplyData.guest_nickname || 
+                (profile ? profile.username : null) || 
+                `ユーザー_${(newReplyData.user_id || '').substring(0, 5)}`,
+          avatar: (profile ? profile.avatar_url : null) || 
+                '/placeholder-avatar.png'
+        }
+      };
+      
+      // Update comments state with the new reply
+      const updatedComments = commentsState.map(comment => {
+        if (comment.id === parentId) {
+          const updatedReplies = comment.replies ? [...comment.replies, formattedReply] : [formattedReply];
+          return { ...comment, replies: updatedReplies };
+        }
+        return comment;
+      });
+      
+      setCommentsState(updatedComments);
+      setReplyTo(null);
+      setReplyContent("");
+    } catch (err: any) {
+      console.error("返信投稿エラー:", err);
+      setError(err.message || "返信の投稿に失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="comments-section mt-8">
+      <h2 className="text-xl font-semibold mb-4">コメント ({commentsState.length})</h2>
+      
+      <CommentForm 
+        postId={postId}
+        onSubmit={handleSubmitComment}
+        isSubmitting={submitting} 
+      />
+      
+      <div className="mt-6 space-y-4">
+        {loading ? (
+          <div>
+            <CommentSkeleton />
+            <CommentSkeleton />
+          </div>
+        ) : error ? (
+          <div className="p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-md">
+            {error}
+          </div>
+        ) : commentsState.length === 0 ? (
+          <EmptyComments postOwnerId={postOwnerId} />
+        ) : (
+          commentsState.map(comment => (
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              replyTo={replyTo}
+              editContent={editContent}
+              submitting={submitting}
+              onSetReplyTo={setReplyTo}
+              onSetReplyContent={setReplyContent}
+              onSubmitReply={handleSubmitReply}
+              onSetEditContent={setEditContent}
+              onToggleLike={toggleLike}
+              onDeleteComment={deleteComment}
+              onStartEditing={handleStartEditing}
+              onCancelEditing={handleCancelEditing}
+              onSaveEdit={handleSaveEdit}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CommentSection;
