@@ -17,6 +17,12 @@ export function useReplyManagement(
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();  // 認証情報を取得
 
+  // Update the setReplyContent function to accept an optional nickname parameter
+  const setReplyContentWithNickname = (content: string, nickname?: string) => {
+    setReplyContent(content);
+    // If needed, we could store the nickname in a separate state here
+  };
+
   const handleSubmitReply = async (parentId: string, content?: string, nickname?: string) => {
     // コンテンツが直接渡されない場合はステートから取得
     const replyText = content || replyContent;
@@ -68,7 +74,7 @@ export function useReplyManagement(
     replyContent,
     submitting,
     setReplyTo,
-    setReplyContent,
+    setReplyContent: setReplyContentWithNickname,
     handleSubmitReply
   };
 }
