@@ -11,7 +11,7 @@ interface UsePostCreationProps {
   onPostCreated: () => void;
 }
 
-export const usePostCreation = ({ channelId, onPostCreated }: UsePostCreationProps) => {
+export const usePostCreation = ({ channelId: initialChannelId, onPostCreated }: UsePostCreationProps) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
@@ -19,7 +19,7 @@ export const usePostCreation = ({ channelId, onPostCreated }: UsePostCreationPro
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [guestNickname, setGuestNickname] = useState("");
-  const [channelId, setChannelId] = useState(channelId || "general");
+  const [channelId, setChannelId] = useState(initialChannelId || "general");
   
   // 認証情報の取得
   const { user } = useAuth();
