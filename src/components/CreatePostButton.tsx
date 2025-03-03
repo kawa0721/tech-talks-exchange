@@ -1,27 +1,29 @@
 
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface CreatePostButtonProps {
   onClick: () => void;
 }
 
 const CreatePostButton = ({ onClick }: CreatePostButtonProps) => {
-  const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleClick = () => {
+    if (!user) {
+      toast.error("投稿を作成するにはログインが必要です");
+      return;
+    }
     onClick();
-    toast({
-      title: "投稿作成",
-      description: "投稿フォームを起動します",
-    });
   };
 
   return (
     <Button
-      className="fixed bottom-6 right-6 shadow-lg rounded-full h-14 w-14 p-0 z-50"
       onClick={handleClick}
+      className="fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg"
+      size="icon"
     >
       <Plus className="h-6 w-6" />
     </Button>

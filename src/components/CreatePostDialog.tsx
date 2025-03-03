@@ -1,14 +1,14 @@
+
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import CreatePostForm from "@/components/CreatePostForm";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CreatePostDialogProps {
   isOpen: boolean;
@@ -19,14 +19,21 @@ interface CreatePostDialogProps {
 
 const CreatePostDialog = ({ isOpen, onClose, channelId, onPostCreated }: CreatePostDialogProps) => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(channelId);
+  const { user } = useAuth();
 
   useEffect(() => {
     // ダイアログが開かれた時に選択中のチャンネルをリセット
     if (isOpen) {
       console.log('CreatePostDialog opened with channelId:', channelId);
       setSelectedChannel(channelId);
+      
+      // ログインチェック
+      if (!user) {
+        toast.error("投稿を作成するにはログインが必要です");
+        onClose();
+      }
     }
-  }, [isOpen, channelId]);
+  }, [isOpen, channelId, user, onClose]);
 
   const handlePostCreated = () => {
     console.log('Post created successfully, closing dialog');
@@ -42,6 +49,9 @@ const CreatePostDialog = ({ isOpen, onClose, channelId, onPostCreated }: CreateP
       onPostCreated();
     }
   };
+
+  // ログインしていない場合はダイアログを表示しない
+  if (!user) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {

@@ -1,14 +1,16 @@
-
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Post } from "@/types";
 import PostCardHeader from "./PostCardHeader";
 import PostCardContent from "./PostCardContent";
 import PostCardFooter from "./PostCardFooter";
+import PostCardMenu from "./PostCardMenu";
 import ContentToggler from "./ContentToggler";
 import { supabase } from "@/integrations/supabase/client";
 import { getOrCreateGuestId, hasGuestId } from "@/utils/guestUtils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import EditPostForm from "../EditPostForm";
 
 interface PostCardProps {
   post: Post;
@@ -29,19 +31,18 @@ const PostCard = ({
   const [likesCount, setLikesCount] = useState(post.likesCount || 0);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
   const [showFullContent, setShowFullContent] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   // 投稿の詳細情報を取得する
   useEffect(() => {
     const fetchPostDetails = async () => {
       try {
-        // いいね状態の確認
         const { data: { user } } = await supabase.auth.getUser();
         
-        // いいね状態を確認
         let isLiked = false;
         
         if (user) {
-          // ログインユーザーの場合
           const { data: likeData } = await supabase
             .from('likes')
             .select('id')
@@ -50,7 +51,6 @@ const PostCard = ({
             
           isLiked = !!likeData;
         } else if (hasGuestId()) {
-          // 未ログインユーザーの場合
           const guestId = getOrCreateGuestId();
           const { data: likeData } = await supabase
             .from('likes')
@@ -63,7 +63,6 @@ const PostCard = ({
         
         setLiked(isLiked);
 
-        // コメント数を取得
         const { count, error: countError } = await supabase
           .from('comments')
           .select('id', { count: 'exact', head: true })
@@ -73,7 +72,6 @@ const PostCard = ({
           setCommentsCount(count);
         }
 
-        // いいね数を取得
         const { count: likesCountResult, error: likesCountError } = await supabase
           .from('likes')
           .select('id', { count: 'exact', head: true })
@@ -99,7 +97,6 @@ const PostCard = ({
   const hasLongContent = post.content.length > contentPreviewLength;
 
   const toggleLike = async () => {
-    // UI上の状態を即座に更新（オプティミスティックUI）
     setLiked(!liked);
     setLikesCount(liked ? likesCount - 1 : likesCount + 1);
   };
@@ -109,40 +106,74 @@ const PostCard = ({
     setShowFullContent(!showFullContent);
   };
 
+  const handleEditPost = () => {
+    setIsEditDialogOpen(true);
+  };
+
+  const handlePostUpdated = () => {
+    setIsEditDialogOpen(false);
+    navigate(0);
+  };
+
+  const handlePostDeleted = () => {
+    if (window.location.pathname.includes(`/post/${post.id}`)) {
+      navigate('/');
+    } else {
+      navigate(0);
+    }
+  };
+
   return (
-    <Card className={`mb-4 overflow-hidden hover:shadow-md transition-shadow ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
-      <PostCardHeader 
-        post={post} 
-        channelName={channelName} 
-        showChannel={showChannel}
-        isTrending={isTrending}
-        isPopular={isPopular}
-      />
-      
-      <Link to={`/post/${post.id}`}>
-        <PostCardContent 
+    <>
+      <Card className={`mb-4 overflow-hidden hover:shadow-md transition-shadow relative ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
+        <PostCardMenu 
+          postId={post.id} 
+          postUserId={post.userId} 
+          onEditPost={handleEditPost}
+          onPostDeleted={handlePostDeleted}
+        />
+        
+        <PostCardHeader 
           post={post} 
-          showFullContent={showFullContent} 
-          contentPreview={contentPreview} 
+          channelName={channelName} 
+          showChannel={showChannel}
+          isTrending={isTrending}
+          isPopular={isPopular}
         />
-      </Link>
-      
-      {/* 「全文表示」ボタン - 長い投稿のみ表示 */}
-      {hasLongContent && (
-        <ContentToggler 
-          showFullContent={showFullContent}
-          onToggle={handleContentToggle}
+        
+        <Link to={`/post/${post.id}`}>
+          <PostCardContent 
+            post={post} 
+            showFullContent={showFullContent} 
+            contentPreview={contentPreview} 
+          />
+        </Link>
+        
+        {hasLongContent && (
+          <ContentToggler 
+            showFullContent={showFullContent}
+            onToggle={handleContentToggle}
+          />
+        )}
+        
+        <PostCardFooter 
+          postId={post.id}
+          commentsCount={commentsCount}
+          likesCount={likesCount}
+          liked={liked}
+          onToggleLike={toggleLike}
         />
-      )}
-      
-      <PostCardFooter 
-        postId={post.id}
-        commentsCount={commentsCount}
-        likesCount={likesCount}
-        liked={liked}
-        onToggleLike={toggleLike}
-      />
-    </Card>
+      </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <EditPostForm
+            post={post}
+            onPostUpdated={handlePostUpdated}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
