@@ -59,10 +59,10 @@ export function useCommentsSubmit(postId: string) {
   };
 
   return {
-    submitting,
-    handleSubmitComment,
     comments,
     setComments,
-    loading
+    loading,
+    submitting,
+    handleSubmitComment
   };
 }

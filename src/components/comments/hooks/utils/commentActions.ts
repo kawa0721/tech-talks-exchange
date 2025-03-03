@@ -11,24 +11,28 @@ export async function submitComment(
   userId: string | null,
   nickname?: string
 ) {
-  // セッションを再確認 (念のため、ログインユーザーの場合)
-  if (userId) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error("セッションが期限切れです。再ログインしてください。");
-    }
-  }
-
   try {
+    // セッションを再確認 (念のため、ログインユーザーの場合)
+    if (userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("セッションが期限切れです。再ログインしてください。");
+      }
+    }
+
+    // Prepare comment data based on user status
+    const commentData = {
+      post_id: postId,
+      content: content,
+      // For anonymous users, set user_id to null and use nickname
+      user_id: userId || null,
+      guest_nickname: !userId ? (nickname || "ゲスト") : null
+    };
+
     // コメントをデータベースに追加
     const { data, error } = await supabase
       .from('comments')
-      .insert({
-        post_id: postId,
-        user_id: userId,
-        content: content,
-        guest_nickname: nickname || null
-      })
+      .insert(commentData)
       .select()
       .single();
 
@@ -57,25 +61,29 @@ export async function submitReply(
   userId: string | null,
   nickname?: string
 ) {
-  // セッションを再確認 (念のため、ログインユーザーの場合)
-  if (userId) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error("セッションが期限切れです。再ログインしてください。");
-    }
-  }
-  
   try {
+    // セッションを再確認 (念のため、ログインユーザーの場合)
+    if (userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("セッションが期限切れです。再ログインしてください。");
+      }
+    }
+    
+    // Prepare reply data based on user status
+    const replyData = {
+      post_id: postId,
+      content: content,
+      parent_id: parentId,
+      // For anonymous users, set user_id to null and use nickname
+      user_id: userId || null,
+      guest_nickname: !userId ? (nickname || "返信") : null
+    };
+    
     // 返信をデータベースに追加
     const { data, error } = await supabase
       .from('comments')
-      .insert({
-        post_id: postId,
-        user_id: userId,
-        content: content,
-        parent_id: parentId,
-        guest_nickname: nickname || null
-      })
+      .insert(replyData)
       .select()
       .single();
 

@@ -66,7 +66,7 @@ export type Database = {
           parent_id: string | null
           post_id: string
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           content: string
@@ -77,7 +77,7 @@ export type Database = {
           parent_id?: string | null
           post_id: string
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           content?: string
@@ -88,7 +88,7 @@ export type Database = {
           parent_id?: string | null
           post_id?: string
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
