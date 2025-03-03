@@ -53,6 +53,19 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
     
     return "U";
   };
+  
+  // プロフィールページへのナビゲーション
+  const navigateToProfile = () => {
+    if (user) {
+      // 直接ユーザーIDを使用してプロフィールページに遷移
+      navigate(`/user/${user.id}`, {
+        state: { fromProfileLink: true }
+      });
+    } else {
+      // 未ログインの場合はリダイレクト
+      navigate("/profile");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -116,11 +129,11 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link to="/profile" className="flex w-full">プロフィール</Link>
+                  <DropdownMenuItem onClick={navigateToProfile}>
+                    プロフィール
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/settings" className="flex w-full">設定</Link>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    設定
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
