@@ -8,261 +8,29 @@ import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
 import MainContent from "@/components/MainContent";
 import CreatePostButton from "@/components/CreatePostButton";
+import { usePostsWithPagination } from "@/hooks/usePostsWithPagination";
 
 const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
-  const [popularPosts, setPopularPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const PER_PAGE = 10; // 1ページあたりの表示件数
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const { toast } = useToast();
-  const [currentPage, setCurrentPage] = useState(0);
+  
+  // usePostsWithPaginationフックを使用する
+  const {
+    posts,
+    trendingPosts,
+    popularPosts,
+    loading,
+    loadingMore,
+    hasMore,
+    fetchPosts
+  } = usePostsWithPagination({
+    selectedChannel,
+    perPage: 10
+  });
 
-  // 投稿をフェッチする関数
-  const fetchPosts = async (reset = true) => {
-    console.log('=== FETCH POSTS START ===');
-    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}, currentPage=${currentPage}`);
-
-    // 初回ロード時またはチャンネル変更時はリセット
-    if (reset) {
-      console.log('Resetting posts state');
-      setLoading(true);
-      setPosts([]);
-      setHasMore(true);
-      setCurrentPage(0);
-    } else {
-      console.log('Loading more posts, page:', currentPage + 1);
-      setLoadingMore(true);
-    }
-
-    try {
-      const nextPage = reset ? 0 : currentPage + 1;
-      const offset = nextPage * PER_PAGE;
-      
-      console.log(`Using offset: ${offset}, limit: ${PER_PAGE}`);
-
-      // 1. 投稿を取得
-      let query = supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // チャンネルが選択されている場合、そのチャンネルの投稿のみを取得
-      if (selectedChannel) {
-        console.log(`Filtering by channel: ${selectedChannel}`);
-        query = query.eq('channel_id', selectedChannel);
-      }
-
-      // オフセットとリミットを設定
-      query = query.range(offset, offset + PER_PAGE - 1);
-      
-      console.log('Executing query...');
-      const { data: postsData, error: postsError } = await query;
-
-      if (postsError) {
-        console.error("Query error:", postsError);
-        toast({
-          title: "エラー",
-          description: "投稿の取得に失敗しました",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log(`Query returned ${postsData?.length || 0} posts`);
-      if (postsData && postsData.length > 0) {
-        console.log('First post in results:', {
-          id: postsData[0].id,
-          title: postsData[0].title,
-          created_at: postsData[0].created_at
-        });
-        console.log('Last post in results:', {
-          id: postsData[postsData.length - 1].id,
-          title: postsData[postsData.length - 1].title,
-          created_at: postsData[postsData.length - 1].created_at
-        });
-      }
-
-      // 次のページが存在するかチェック
-      setHasMore(postsData && postsData.length === PER_PAGE);
-      console.log(`Setting hasMore: ${postsData && postsData.length === PER_PAGE}`);
-
-      if (!postsData || postsData.length === 0) {
-        console.log('No posts returned from query');
-        if (reset) {
-          setPosts([]);
-          setTrendingPosts([]);
-          setPopularPosts([]);
-        }
-        setLoading(false);
-        setLoadingMore(false);
-        return;
-      }
-
-      // 2. 各投稿のユーザー情報を取得
-      console.log('Fetching user information for posts...');
-      const formattedPosts: Post[] = await Promise.all(
-        postsData.map(async (post) => {
-          let userData = {
-            id: post.user_id || "unknown",
-            name: "kawakitamasayuki@gmail.com",
-            avatar: undefined
-          };
-
-          if (post.user_id) {
-            // ユーザープロファイルを取得
-            try {
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', post.user_id)
-                .limit(1);
-
-              if (!profileError && profile && profile.length > 0) {
-                userData = {
-                  id: profile[0].id,
-                  name: profile[0].username || "kawakitamasayuki@gmail.com",
-                  avatar: profile[0].avatar_url
-                };
-              }
-            } catch (error) {
-              console.error("Error fetching profile:", error);
-            }
-          }
-
-          return {
-            id: post.id,
-            title: post.title,
-            content: post.content,
-            userId: post.user_id || "unknown",
-            user: userData,
-            channelId: post.channel_id,
-            createdAt: new Date(post.created_at),
-            updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
-            likesCount: post.likes_count,
-            commentsCount: post.comments_count,
-            liked: false,
-            images: post.images || []
-          };
-        })
-      );
-
-      console.log(`Formatted ${formattedPosts.length} posts with user data`);
-
-      // 新しいデータを追加または置き換え
-      if (reset) {
-        console.log('Setting posts state with new data');
-        setPosts(formattedPosts);
-      } else {
-        console.log('Appending new posts to existing posts');
-        // IDベースで重複を確認し、重複を除外して追加
-        const existingIds = new Set(posts.map(post => post.id));
-        const uniqueNewPosts = formattedPosts.filter(post => !existingIds.has(post.id));
-        
-        console.log(`Found ${uniqueNewPosts.length} unique new posts to add`);
-        
-        if (uniqueNewPosts.length > 0) {
-          setPosts(prev => [...prev, ...uniqueNewPosts]);
-          setCurrentPage(nextPage);
-        } else {
-          // 重複が全てだった場合でも、次のページを確認するためにページカウンタを進める
-          console.log('No unique new posts found, trying next page');
-          setCurrentPage(nextPage);
-          // 次のページが存在する可能性があるので、hasMoreはまだfalseにしない
-        }
-      }
-
-      // トレンド投稿と人気投稿の処理（チャンネルが選択されていない場合のみ）
-      if (!selectedChannel && reset) {
-        console.log('Processing trending and popular posts');
-        // トレンド投稿: 最新の投稿から選択
-        setTrendingPosts(formattedPosts.slice(0, 2));
-
-        // 人気投稿: いいね数が多い投稿から選択
-        const { data: popularData, error: popularError } = await supabase
-          .from('posts')
-          .select('*')
-          .order('likes_count', { ascending: false })
-          .limit(2);
-
-        if (!popularError && popularData && popularData.length > 0) {
-          console.log(`Found ${popularData.length} popular posts`);
-          const formattedPopularPosts: Post[] = await Promise.all(
-            popularData.map(async (post) => {
-              let userData = {
-                id: post.user_id || "unknown",
-                name: "kawakitamasayuki@gmail.com",
-                avatar: undefined
-              };
-
-              if (post.user_id) {
-                try {
-                  const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', post.user_id)
-                    .limit(1);
-
-                  if (!profileError && profile && profile.length > 0) {
-                    userData = {
-                      id: profile[0].id,
-                      name: profile[0].username || "kawakitamasayuki@gmail.com",
-                      avatar: profile[0].avatar_url
-                    };
-                  }
-                } catch (error) {
-                  console.error("Error fetching profile for popular post:", error);
-                }
-              }
-
-              return {
-                id: post.id,
-                title: post.title,
-                content: post.content,
-                userId: post.user_id || "unknown",
-                user: userData,
-                channelId: post.channel_id,
-                createdAt: new Date(post.created_at),
-                updatedAt: post.updated_at ? new Date(post.updated_at) : undefined,
-                likesCount: post.likes_count,
-                commentsCount: post.comments_count,
-                liked: false,
-                images: post.images || []
-              };
-            })
-          );
-          setPopularPosts(formattedPopularPosts);
-        } else {
-          console.log('No popular posts found');
-          setPopularPosts([]);
-        }
-      } else if (selectedChannel) {
-        console.log('Channel selected, clearing trending and popular posts');
-        setTrendingPosts([]);
-        setPopularPosts([]);
-      }
-
-    } catch (error) {
-      console.error("投稿取得エラー:", error);
-    } finally {
-      console.log('=== FETCH POSTS END ===');
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
-
-  // 初回レンダリング時とチャンネル変更時に投稿を取得
-  useEffect(() => {
-    console.log('Channel changed or component mounted, fetching posts');
-    fetchPosts(true);
-  }, [selectedChannel]);
-
-  // React状態の変化を監視
+  // デバッグログ (必要に応じて)
   useEffect(() => {
     console.log(`Posts state updated: ${posts.length} posts in state`);
   }, [posts]);
@@ -277,7 +45,8 @@ const Index = () => {
 
   // 「もっと読み込む」ボタンをクリックしたときの処理
   const handleLoadMore = () => {
-    console.log('Load more button clicked, currentPage =', currentPage);
+    console.log('Load more button clicked');
+    // usePostsWithPaginationフックのfetchPosts関数を呼び出す
     fetchPosts(false);
   };
 

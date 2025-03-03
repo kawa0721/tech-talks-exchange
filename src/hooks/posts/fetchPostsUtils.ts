@@ -52,6 +52,8 @@ export async function fetchPaginatedPosts(
   // Calculate offset
   const offset = page * perPage;
   
+  console.log(`[fetchPaginatedPosts] page: ${page}, perPage: ${perPage}, offset: ${offset}`);
+  
   // Build query
   let query = supabase
     .from('posts')
@@ -60,13 +62,23 @@ export async function fetchPaginatedPosts(
 
   // Filter by channel if selected
   if (selectedChannel) {
+    console.log(`[fetchPaginatedPosts] Filtering by channel: ${selectedChannel}`);
     query = query.eq('channel_id', selectedChannel);
   }
 
   // Apply pagination
   query = query.range(offset, offset + perPage - 1);
 
-  return await query;
+  // Execute query
+  const result = await query;
+  
+  // Log results for debugging
+  console.log(`[fetchPaginatedPosts] Query returned ${result.data?.length || 0} posts`);
+  if (result.error) {
+    console.error(`[fetchPaginatedPosts] Query error:`, result.error);
+  }
+  
+  return result;
 }
 
 // Fetch special posts (trending or popular)

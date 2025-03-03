@@ -99,9 +99,10 @@ export function usePostsWithPagination({
           setPage(currentPage + 1);
         } else if (hasMoreData) {
           // データはあるが全て重複の場合、次のページを試す
-          console.log("All posts were duplicates, trying next page");
+          console.log("All posts were duplicates, trying next page immediately");
           setPage(currentPage + 1);
           setLoadingMore(false);
+          // 再帰的に次のページを即時取得
           return fetchPosts(false);
         } else {
           console.log('No unique new posts found, setting hasMore to false');
