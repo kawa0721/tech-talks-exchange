@@ -1,83 +1,97 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { Input } from "../ui/input";
 
 interface ReplyFormProps {
   parentId: string;
-  userName: string;
-  onSubmit: (content: string, nickname?: string) => void;
+  content: string;
+  onSubmit: (parentId: string, content?: string, nickname?: string) => void;
   onCancel: () => void;
   isSubmitting: boolean;
+  replyToName?: string;
 }
 
-const ReplyForm = ({
+const ReplyForm: React.FC<ReplyFormProps> = ({
   parentId,
-  userName,
+  content: initialContent,
   onSubmit,
   onCancel,
   isSubmitting,
-}: ReplyFormProps) => {
-  const [content, setContent] = useState("");
-  const [nickname, setNickname] = useState("");
+  replyToName
+}) => {
+  const [content, setContent] = useState(initialContent);
+  const [nickname, setNickname] = useState("ゲスト");
   const { user } = useAuth();
 
-  const handleSubmit = () => {
-    if (!content.trim()) {
-      toast.error("返信を入力してください");
-      return;
-    }
+  // Handle changes to the reply content
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setContent(e.target.value);
+  };
 
-    // ログイン状態に応じて、ニックネームを渡すかどうか決定
-    if (user) {
-      // ログイン済みの場合はニックネームは不要（ユーザーIDを使用）
-      onSubmit(content);
-    } else {
-      // 未ログインの場合はニックネームを渡す
-      onSubmit(content, nickname);
-    }
+  // Handle changes to the nickname
+  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNickname(e.target.value);
+  };
+
+  // Submit the reply
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    setContent("");
+    // Use nickname only for guest users
+    if (user) {
+      onSubmit(parentId, content);
+    } else {
+      onSubmit(parentId, content, nickname);
+    }
   };
 
   return (
-    <div className="mt-3">
-      {/* 未ログインの場合のみニックネーム入力欄を表示 */}
-      {!user && (
-        <Input
-          placeholder="ニックネーム（任意）"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          className="mb-2 text-sm"
-        />
-      )}
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <div className="text-sm text-muted-foreground mb-1">
+        {replyToName ? `${replyToName}さんへの返信:` : "返信:"}
+      </div>
       
-      <Textarea
-        placeholder={`${userName}さんに返信...`}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className="min-h-[60px] text-sm mb-2"
-      />
-      <div className="flex gap-2">
-        <Button 
-          size="sm" 
-          onClick={handleSubmit}
+      <div className="flex flex-col space-y-2">
+        <Input
+          placeholder="返信を入力..."
+          value={content}
+          onChange={handleChange}
           disabled={isSubmitting}
-        >
-          {isSubmitting ? "投稿中..." : "返信"}
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
+          className="flex-grow"
+        />
+        
+        {!user && (
+          <Input
+            placeholder="ニックネーム"
+            value={nickname}
+            onChange={handleNicknameChange}
+            disabled={isSubmitting}
+            className="flex-grow"
+          />
+        )}
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={onCancel}
+          disabled={isSubmitting}
         >
           キャンセル
         </Button>
+        <Button 
+          type="submit" 
+          size="sm"
+          disabled={!content.trim() || isSubmitting}
+        >
+          {isSubmitting ? "送信中..." : "返信する"}
+        </Button>
       </div>
-    </div>
+    </form>
   );
 };
 

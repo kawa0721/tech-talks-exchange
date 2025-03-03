@@ -44,7 +44,7 @@ export const useComments = (postId: string) => {
     loading,
     editContent,
     setReplyTo,
-    setReplyContent, // This should now have the correct type signature
+    setReplyContent, // This should now have the correct type signature (content: string, nickname?: string) => void
     handleSubmitComment,
     handleSubmitReply,
     toggleLike,
