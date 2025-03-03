@@ -17,6 +17,9 @@ export async function mapCommentWithUserInfo(comment: any, postId: string, curre
   // If the comment has a user ID, fetch their profile - ログインステータスに関わらず情報を表示
   if (comment.user_id) {
     userInfo = await fetchUserProfile(comment.user_id);
+  } else if (comment.guest_nickname) {
+    // ゲストニックネームがある場合は表示名を設定
+    userInfo.name = comment.guest_nickname;
   }
 
   // Check if the current user has liked this comment
@@ -67,6 +70,9 @@ export async function mapReplyWithUserInfo(reply: any, postId: string, parentId:
   // If the reply has a user ID, fetch their profile - ログインステータスに関わらず情報を表示
   if (reply.user_id) {
     replyUserInfo = await fetchUserProfile(reply.user_id);
+  } else if (reply.guest_nickname) {
+    // ゲストニックネームがある場合は表示名を設定
+    replyUserInfo.name = reply.guest_nickname;
   }
 
   // Check if the current user has liked this reply

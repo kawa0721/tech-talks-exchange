@@ -9,6 +9,7 @@ import ReplyItem from "./ReplyItem";
 import ReplyForm from "./ReplyForm";
 import EditCommentForm from "./EditCommentForm";
 import CommentActions from "./CommentActions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface CommentItemProps {
   comment: Comment;
@@ -73,13 +74,10 @@ const CommentItem: React.FC<CommentItemProps> = ({
           {/* Comment header */}
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center">
-              <div className="avatar w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold mr-2">
-                {comment.user.avatar ? (
-                  <img src={comment.user.avatar} alt={comment.user.name} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <span>{comment.user.name.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
+              <Avatar className="w-8 h-8 mr-2">
+                <AvatarImage src={comment.user.avatar || ""} alt={comment.user.name} />
+                <AvatarFallback>{comment.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
               <div>
                 <div className="font-semibold">{comment.user.name}</div>
                 <div className="text-xs text-muted-foreground">

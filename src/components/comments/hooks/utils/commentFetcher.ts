@@ -15,12 +15,21 @@ export async function fetchUserProfile(userId: string) {
       .eq('id', userId)
       .maybeSingle();
 
-    if (userError || !userData) {
+    if (userError) {
+      console.log("User profile fetch error:", userError.message);
+      return {
+        id: userId,
+        name: "ユーザー",
+        avatar: undefined
+      };
+    }
+    
+    if (!userData) {
       // プロファイルが見つからない場合はデフォルト値を返す
       console.log("User profile not found:", userId);
       return {
         id: userId,
-        name: "ユーザー",
+        name: `ユーザー_${userId.substring(0, 5)}`,
         avatar: undefined
       };
     }
@@ -38,7 +47,7 @@ export async function fetchUserProfile(userId: string) {
     console.error("ユーザープロファイル取得エラー:", error);
     return {
       id: userId,
-      name: "ユーザー",
+      name: `ユーザー_${userId.substring(0, 5)}`,
       avatar: undefined
     };
   }
