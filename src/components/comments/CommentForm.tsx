@@ -101,18 +101,20 @@ const CommentForm = ({
           <AvatarFallback>{user ? (profileUsername?.[0] || "U").toUpperCase() : "G"}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          {/* 未ログインの場合のみニックネーム入力欄を表示 */}
-          {!user ? (
+          {/* ログイン状態に応じた表示切り替え */}
+          {user ? (
+            // ログイン済みユーザーには自分のユーザー名を表示
+            <div className="mb-2 text-sm text-muted-foreground">
+              {loadingProfile ? "ユーザー情報を読み込み中..." : `${profileUsername}としてコメント`}
+            </div>
+          ) : (
+            // 未ログインユーザーにはニックネーム入力欄を表示
             <Input
               placeholder="ニックネーム（任意）"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               className="mb-2"
             />
-          ) : (
-            <div className="mb-2 text-sm text-muted-foreground">
-              {loadingProfile ? "ユーザー情報を読み込み中..." : `${profileUsername}としてコメント`}
-            </div>
           )}
           <Textarea
             placeholder="コメントを追加..."
