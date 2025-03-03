@@ -1,5 +1,6 @@
 import { Post } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
+import { getOrCreateGuestId, hasGuestId } from "@/utils/guestUtils";
 
 // Formats post data from Supabase into our application's Post type
 export async function formatPostData(post: any): Promise<Post> {
@@ -37,12 +38,26 @@ export async function formatPostData(post: any): Promise<Post> {
   let userLiked = false;
   
   try {
+    // ログインしているかチェック
     const { data: { user } } = await supabase.auth.getUser();
+    
     if (user) {
+      // ログインユーザーの場合はuser_idでチェック
       const { data: likeData } = await supabase
         .from('likes')
         .select('id')
         .eq('user_id', user.id)
+        .eq('post_id', post.id)
+        .maybeSingle();
+        
+      userLiked = !!likeData;
+    } else if (hasGuestId()) {
+      // 未ログインユーザーの場合はguest_idでチェック
+      const guestId = getOrCreateGuestId();
+      const { data: likeData } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('guest_id', guestId)
         .eq('post_id', post.id)
         .maybeSingle();
         
