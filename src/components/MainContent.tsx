@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Post, Channel } from "@/types";
 import FeaturedPosts from "@/components/FeaturedPosts";
@@ -6,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import LoadMoreButton from "@/components/LoadMoreButton";
 
 interface MainContentProps {
   selectedChannel: string | null;
@@ -147,25 +149,13 @@ const MainContent = ({
         )}
 
         {/* 「もっと読み込む」ボタン - 改良版 */}
-        {!loading && posts.length > 0 && hasMore && (
-          <div className="flex justify-center mt-8">
-            <Button 
-              onClick={onLoadMore} 
-              disabled={loadingMore}
-              variant="outline"
-              className="w-full max-w-xs"
-              size="lg"
-            >
-              {loadingMore ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  <span>読み込み中... (現在{posts.length}件表示中)</span>
-                </>
-              ) : (
-                <span>さらに読み込む (現在{posts.length}件表示中)</span>
-              )}
-            </Button>
-          </div>
+        {!loading && posts.length > 0 && (
+          <LoadMoreButton 
+            onLoadMore={onLoadMore} 
+            loading={loadingMore}
+            hasMore={hasMore}
+            postsCount={posts.length}
+          />
         )}
 
         {/* データ終了メッセージ */}
@@ -176,7 +166,7 @@ const MainContent = ({
         )}
 
         {/* 読み込み中インジケータ - 初回ロード時 */}
-        {loading && (
+        {loading && posts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">投稿を読み込んでいます...</p>

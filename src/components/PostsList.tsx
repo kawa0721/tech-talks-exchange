@@ -1,3 +1,4 @@
+
 import { Post } from "@/types";
 import { Loader2 } from "lucide-react";
 import PostCard from "@/components/PostCard";
@@ -31,7 +32,7 @@ const PostsList = ({
     });
   }, [posts, loading, showChannel]);
 
-  if (loading) {
+  if (loading && posts.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -57,6 +58,12 @@ const PostsList = ({
           showChannel={showChannel}
         />
       ))}
+      
+      {loading && posts.length > 0 && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
     </div>
   );
 };

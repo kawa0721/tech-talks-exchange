@@ -1,3 +1,4 @@
+
 import { TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";

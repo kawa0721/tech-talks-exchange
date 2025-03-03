@@ -19,6 +19,7 @@ export function usePostsWithPagination({
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const { toast } = useToast();
 
   // 投稿をフェッチする関数
@@ -28,15 +29,17 @@ export function usePostsWithPagination({
       setLoading(true);
       setPosts([]);
       setHasMore(true);
+      setPage(0);
     } else {
       setLoadingMore(true);
     }
 
     try {
       // 現在のポスト数（次のオフセットとして使用）
-      const offset = reset ? 0 : posts.length;
+      const currentPage = reset ? 0 : page;
+      const offset = currentPage * perPage;
       
-      console.log(`Fetching posts with offset ${offset}, limit ${perPage}`);
+      console.log(`Fetching posts with page ${currentPage}, offset ${offset}, limit ${perPage}`);
 
       // 1. 投稿を取得
       let query = supabase
@@ -51,7 +54,6 @@ export function usePostsWithPagination({
 
       // limit と offset を使用してページネーション
       query = query
-        .limit(perPage)
         .range(offset, offset + perPage - 1);
 
       const { data: postsData, error: postsError } = await query;
@@ -130,8 +132,26 @@ export function usePostsWithPagination({
       if (reset) {
         setPosts(formattedPosts);
       } else {
-        // 既存の投稿に新しい投稿を追加
-        setPosts(prevPosts => [...prevPosts, ...formattedPosts]);
+        // 既存の投稿に新しい投稿を追加 (IDで重複確認)
+        const existingIds = new Set(posts.map(post => post.id));
+        const uniqueNewPosts = formattedPosts.filter(post => !existingIds.has(post.id));
+        
+        console.log(`Found ${uniqueNewPosts.length} unique new posts to add`);
+        
+        if (uniqueNewPosts.length > 0) {
+          setPosts(prevPosts => [...prevPosts, ...uniqueNewPosts]);
+          // 次のページを設定
+          setPage(currentPage + 1);
+        } else if (hasMoreData) {
+          // データはあるが全て重複の場合、次のページを試す
+          console.log("All posts were duplicates, trying next page");
+          setPage(currentPage + 1);
+          setLoadingMore(false);
+          return fetchPosts(false);
+        } else {
+          console.log('No unique new posts found, setting hasMore to false');
+          setHasMore(false);
+        }
       }
 
       // トレンド投稿と人気投稿の処理（チャンネルが選択されていない場合のみ）
@@ -160,7 +180,7 @@ export function usePostsWithPagination({
                   .from('profiles')
                   .select('*')
                   .eq('id', post.user_id)
-                  .single();
+                  .maybeSingle();
 
                 if (!profileError && profile) {
                   userData = {
@@ -191,7 +211,7 @@ export function usePostsWithPagination({
         } else {
           setPopularPosts([]);
         }
-      } else if (selectedChannel) {
+      } else if (selectedChannel && reset) {
         setTrendingPosts([]);
         setPopularPosts([]);
       }
