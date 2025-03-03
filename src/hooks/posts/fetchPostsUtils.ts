@@ -60,7 +60,10 @@ export async function fetchPaginatedPosts(
   // Filter by channel if selected
   if (selectedChannel) {
     console.log(`[fetchPaginatedPosts] Filtering by channel: ${selectedChannel}`);
+    console.log(`[fetchPaginatedPosts] Channel type: ${typeof selectedChannel}`);
     query = query.eq('channel_id', selectedChannel);
+  } else {
+    console.log(`[fetchPaginatedPosts] No channel filter applied`);
   }
 
   // カーソルベースのページネーション - 最後の投稿の日時より古いものを取得

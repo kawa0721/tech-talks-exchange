@@ -1,13 +1,13 @@
 
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Hash, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, Hash, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { CHANNELS, CHANNEL_CATEGORIES } from "@/lib/data";
-import { Channel } from "@/types";
+import { Channel, ChannelCategory } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChannelListProps {
   selectedChannel: string | null;
@@ -15,14 +15,81 @@ interface ChannelListProps {
 }
 
 const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => {
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [categories, setCategories] = useState<ChannelCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   // State to track which categories are expanded
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
-    // Initially expand all categories
-    return CHANNEL_CATEGORIES.reduce((acc, category) => {
-      acc[category.id] = true;
-      return acc;
-    }, {} as Record<string, boolean>);
-  });
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  // Fetch channels and categories from Supabase
+  useEffect(() => {
+    const fetchChannelsAndCategories = async () => {
+      setLoading(true);
+      try {
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('channel_categories')
+          .select('*')
+          .order('name');
+          
+        if (categoriesError) {
+          console.error("カテゴリー取得エラー:", categoriesError);
+          return;
+        }
+        
+        // Fetch channels
+        const { data: channelsData, error: channelsError } = await supabase
+          .from('channels')
+          .select('*')
+          .order('name');
+          
+        if (channelsError) {
+          console.error("チャンネル取得エラー:", channelsError);
+          return;
+        }
+        
+        // Format channels
+        const formattedChannels: Channel[] = channelsData.map(channel => ({
+          id: channel.id,
+          name: channel.name,
+          description: channel.description,
+          icon: channel.icon,
+          categoryId: channel.category_id
+        }));
+        
+        // Format categories
+        const formattedCategories: ChannelCategory[] = categoriesData.map(category => {
+          const categoryChannels = channelsData
+            .filter(channel => channel.category_id === category.id)
+            .map(channel => channel.id);
+            
+          return {
+            id: category.id,
+            name: category.name,
+            channels: categoryChannels
+          };
+        });
+        
+        setChannels(formattedChannels);
+        setCategories(formattedCategories);
+        
+        // Initially expand all categories
+        const initialExpandedState = formattedCategories.reduce((acc, category) => {
+          acc[category.id] = true;
+          return acc;
+        }, {} as Record<string, boolean>);
+        
+        setExpandedCategories(initialExpandedState);
+      } catch (error) {
+        console.error("データ取得エラー:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchChannelsAndCategories();
+  }, []);
 
   // Toggle category expansion
   const toggleCategory = (categoryId: string) => {
@@ -33,13 +100,22 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
   };
 
   // Group channels by category
-  const channelsByCategory = CHANNEL_CATEGORIES.map(category => {
-    const categoryChannels = CHANNELS.filter(channel => channel.categoryId === category.id);
+  const channelsByCategory = categories.map(category => {
+    const categoryChannels = channels.filter(channel => channel.categoryId === category.id);
     return {
       category,
       channels: categoryChannels
     };
   });
+
+  if (loading) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-2 text-sm text-muted-foreground">チャンネルを読み込み中...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -130,7 +206,7 @@ const ChannelButton = ({ channel, isSelected, onClick }: ChannelButtonProps) => 
       )}
       onClick={onClick}
     >
-      <span className="mr-3 text-lg">{channel.icon}</span>
+      <span className="mr-3 text-lg">{channel.icon || "#"}</span>
       <span className="truncate break-words whitespace-normal text-left">
         {channel.name}
       </span>
