@@ -1,14 +1,15 @@
+
 import { Comment } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicUserProfile } from "@/lib/data/userProfile";
 
 /**
  * Fetches user profile information from Supabase
- * ログインステータスに関わらずプロフィール情報を取得できるように修正
+ * RLSポリシー対応版 - 未ログインでもプロフィール情報を取得できる
  */
 export async function fetchUserProfile(userId: string) {
   try {
-    // getPublicUserProfileを使ってプロファイル情報を取得
+    // RLSポリシーで保護されたgetPublicUserProfileを使用
     const userData = await getPublicUserProfile(userId);
     
     if (!userData) {
@@ -20,7 +21,7 @@ export async function fetchUserProfile(userId: string) {
       };
     }
     
-    // 既に整形されたユーザー情報を返す
+    // 取得したプロフィール情報を返す
     return {
       id: userData.id,
       name: userData.name,

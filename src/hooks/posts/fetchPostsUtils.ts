@@ -1,3 +1,4 @@
+
 import { Post } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,10 +11,10 @@ export async function formatPostData(post: any): Promise<Post> {
   };
 
   if (post.user_id) {
-    // ユーザープロファイルを取得 - ログインステータスに関わらず情報を表示
+    // RLSポリシーにより未ログインでもプロフィールを取得可能
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, username, avatar_url')
       .eq('id', post.user_id)
       .maybeSingle();
 
@@ -28,6 +29,12 @@ export async function formatPostData(post: any): Promise<Post> {
       };
     } else {
       console.log("Profile not found for user:", post.user_id);
+      // プロフィールが見つからない場合のデフォルト情報
+      userData = {
+        id: post.user_id,
+        name: `ユーザー_${post.user_id.substring(0, 5)}`,
+        avatar: undefined
+      };
     }
   }
 

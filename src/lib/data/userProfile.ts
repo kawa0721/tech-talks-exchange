@@ -37,7 +37,7 @@ export const getUserProfile = async (userId: string): Promise<User | null> => {
   }
 };
 
-// 非認証状態でも直接プロフィール情報を取得する関数 - 改善版
+// 非認証状態でも直接プロフィール情報を取得する関数 - RLS対応版
 export const getPublicUserProfile = async (userId: string): Promise<User | null> => {
   console.log('Fetching public user profile for user ID:', userId);
   
@@ -52,7 +52,7 @@ export const getPublicUserProfile = async (userId: string): Promise<User | null>
   }
   
   try {
-    // Supabaseのanonキーを使用して直接公開データを取得 - 読み込み方法改善
+    // RLSポリシーで公開読み取りが許可されたので直接取得可能
     const { data, error } = await supabase
       .from('profiles')
       .select('id, username, avatar_url, profile')
