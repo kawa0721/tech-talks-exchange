@@ -6,6 +6,7 @@ import PostFormHeader from "./PostFormHeader";
 import PostFormEditor from "./PostFormEditor";
 import PostFormImageUpload from "./PostFormImageUpload";
 import PostFormFooter from "./PostFormFooter";
+import ChannelSelector from "./ChannelSelector";
 
 interface CreatePostFormContainerProps {
   channelId: string | null;
@@ -28,6 +29,8 @@ const CreatePostFormContainer = ({
     guestNickname,
     setGuestNickname,
     user,
+    channelId: selectedChannelId,
+    setChannelId,
     handleImageUpload,
     removeImage,
     handleSubmit
@@ -43,6 +46,13 @@ const CreatePostFormContainer = ({
             userAvatarUrl={user?.user_metadata?.avatar_url}
             userName={user?.user_metadata?.name}
           />
+          
+          <div className="mt-2">
+            <ChannelSelector 
+              selectedChannel={selectedChannelId} 
+              onChannelChange={setChannelId} 
+            />
+          </div>
           
           {!user && (
             <div className="mt-2">

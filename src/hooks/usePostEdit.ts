@@ -19,6 +19,7 @@ export const usePostEdit = ({ post, onPostUpdated }: UsePostEditProps) => {
   const [images, setImages] = useState<string[]>(post.images || []);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [channelId, setChannelId] = useState(post.channelId || "general");
   
   // 認証情報の取得
   const { user } = useAuth();
@@ -140,6 +141,7 @@ export const usePostEdit = ({ post, onPostUpdated }: UsePostEditProps) => {
       await updatePost(post.id, {
         title: title,
         content: markdownForSaving,
+        channel_id: channelId,
         images: finalImages.length > 0 ? finalImages : null
       });
 
@@ -162,6 +164,8 @@ export const usePostEdit = ({ post, onPostUpdated }: UsePostEditProps) => {
     setHtmlContent,
     images,
     isSubmitting,
+    channelId,
+    setChannelId,
     handleImageUpload,
     removeImage,
     handleSubmit

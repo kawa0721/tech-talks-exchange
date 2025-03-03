@@ -6,6 +6,7 @@ import { usePostEdit } from "@/hooks/usePostEdit";
 import PostFormEditor from "./post-form/PostFormEditor";
 import PostFormImageUpload from "./post-form/PostFormImageUpload";
 import EditPostFormFooter from "./post-form/EditPostFormFooter";
+import ChannelSelector from "./post-form/ChannelSelector";
 
 interface EditPostFormProps {
   post: Post;
@@ -22,6 +23,8 @@ const EditPostForm = ({ post, onPostUpdated }: EditPostFormProps) => {
     setHtmlContent,
     images,
     isSubmitting,
+    channelId,
+    setChannelId,
     handleImageUpload,
     removeImage,
     handleSubmit
@@ -37,6 +40,12 @@ const EditPostForm = ({ post, onPostUpdated }: EditPostFormProps) => {
             onChange={(e) => setTitle(e.target.value)}
             className="text-lg font-medium"
           />
+          <div className="mt-2">
+            <ChannelSelector 
+              selectedChannel={channelId} 
+              onChannelChange={setChannelId} 
+            />
+          </div>
         </CardHeader>
         <CardContent className="pb-2">
           <PostFormEditor 

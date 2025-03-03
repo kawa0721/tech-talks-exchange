@@ -19,6 +19,7 @@ export const usePostCreation = ({ channelId, onPostCreated }: UsePostCreationPro
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [guestNickname, setGuestNickname] = useState("");
+  const [channelId, setChannelId] = useState(channelId || "general");
   
   // 認証情報の取得
   const { user } = useAuth();
@@ -125,7 +126,7 @@ export const usePostCreation = ({ channelId, onPostCreated }: UsePostCreationPro
             title: title,
             content: markdownForSaving,
             user_id: user ? user.id : null,
-            channel_id: channelId || 'general',
+            channel_id: channelId,
             images: uploadedImageUrls.length > 0 ? uploadedImageUrls : 
                    images.length > 0 ? images : null,
             guest_nickname: !user && guestNickname ? guestNickname : null
@@ -165,6 +166,8 @@ export const usePostCreation = ({ channelId, onPostCreated }: UsePostCreationPro
     isSubmitting,
     guestNickname,
     setGuestNickname,
+    channelId,
+    setChannelId,
     user,
     handleImageUpload,
     removeImage,
