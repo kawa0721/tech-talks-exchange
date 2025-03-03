@@ -76,7 +76,6 @@ export const fetchReplies = async (postId: string, parentIds: string[]) => {
     return { allReplies: [], error };
   }
 };
-};
 
 // 現在のセッションユーザーIDを取得する関数
 export const getCurrentUserId = async (): Promise<string | undefined> => {
