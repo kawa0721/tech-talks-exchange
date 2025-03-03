@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Post, Channel } from "@/types";
 import FeaturedPosts from "@/components/FeaturedPosts";
@@ -145,6 +146,7 @@ const MainContent = ({
               selectedChannel={selectedChannel}
               loading={loading}
               loadingMore={loadingMore}
+              hasMore={hasMore}
               trendingHasMore={trendingHasMore}
               popularHasMore={popularHasMore}
               trendingLoading={trendingLoading}
@@ -175,6 +177,7 @@ const MainContent = ({
               selectedChannel={selectedChannel}
               loading={loading}
               loadingMore={loadingMore}
+              hasMore={hasMore}
               trendingHasMore={trendingHasMore}
               popularHasMore={popularHasMore}
               trendingLoading={trendingLoading}

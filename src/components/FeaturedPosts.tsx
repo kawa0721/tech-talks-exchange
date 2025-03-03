@@ -1,3 +1,4 @@
+
 import { TrendingUp, Star, Clock, ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";
@@ -26,6 +27,7 @@ interface FeaturedPostsProps {
   onLoadMoreTrending?: () => void;
   onLoadMorePopular?: () => void;
   onLoadMore: () => void; // 既存の通常投稿のさらに読み込み関数
+  hasMore: boolean; // 追加: 通常投稿のhasMoreプロパティ
 }
 
 const FeaturedPosts = ({
@@ -42,7 +44,8 @@ const FeaturedPosts = ({
   popularLoading = false,
   onLoadMoreTrending = () => {},
   onLoadMorePopular = () => {},
-  onLoadMore
+  onLoadMore,
+  hasMore
 }: FeaturedPostsProps) => {
   // Add detailed debug logs
   useEffect(() => {
