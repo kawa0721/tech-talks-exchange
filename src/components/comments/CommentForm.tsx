@@ -17,7 +17,7 @@ interface CommentFormProps {
 
 const CommentForm = ({ 
   postId, 
-  userAvatar,
+  userAvatar = "https://i.pravatar.cc/150?img=1",
   onSubmit,
   isSubmitting
 }: CommentFormProps) => {
@@ -27,7 +27,6 @@ const CommentForm = ({
   
   // ユーザープロファイル情報を取得
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
-  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   
   // 認証済みユーザーのプロファイル情報を取得
@@ -39,18 +38,31 @@ const CommentForm = ({
           // プロファイル情報をSupabaseから取得
           const { data: profile, error } = await supabase
             .from('profiles')
-            .select('username, avatar_url')
+            .select('username')
             .eq('id', user.id)
             .single();
           
           if (!error && profile) {
+            // プロファイルのユーザー名があればそれを使用
             setProfileUsername(profile.username || user.email || "ユーザー");
-            setProfileAvatar(profile.avatar_url || null);
           } else {
+            // プロファイルがない場合はユーザーのメールアドレスを使用
             setProfileUsername(user.email || "ユーザー");
+            
+            // プロファイルを作成（ない場合）
+            if (error && error.code === 'PGRST116') {
+              await supabase
+                .from('profiles')
+                .insert({
+                  id: user.id,
+                  username: user.email,
+                  avatar_url: user.user_metadata?.avatar_url
+                });
+            }
           }
         } catch (error) {
           console.error("プロファイル取得エラー:", error);
+          setProfileUsername(user.email || "ユーザー");
         } finally {
           setLoadingProfile(false);
         }
@@ -81,14 +93,11 @@ const CommentForm = ({
     // ニックネームはそのまま維持して次のコメントでも使えるようにする
   };
 
-  // プロフィールアバターか、設定されたアバター、またはデフォルトのアバターを使用
-  const displayAvatar = profileAvatar || user?.user_metadata?.avatar_url || userAvatar;
-
   return (
     <form onSubmit={handleSubmit} className="mb-6">
       <div className="flex items-start gap-3">
         <Avatar className="h-8 w-8">
-          <AvatarImage src={displayAvatar} alt="@user" />
+          <AvatarImage src={user?.user_metadata?.avatar_url || userAvatar} alt="@user" />
           <AvatarFallback>{user ? (profileUsername?.[0] || "U").toUpperCase() : "G"}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
