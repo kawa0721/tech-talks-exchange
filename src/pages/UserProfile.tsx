@@ -1,6 +1,6 @@
 
-import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +19,7 @@ const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const location = useLocation();
   
   const {
     isLoading,
@@ -36,6 +37,14 @@ const UserProfile = () => {
   
   // Fetch user's posts
   const { posts: userPosts, loading: postsLoading } = useUserPosts(userId);
+  
+  // 自分自身のプロフィールページにリダイレクトされた場合は編集モードにする
+  useEffect(() => {
+    // Automatically enter edit mode if this is current user and came from profile link
+    if (isCurrentUserProfile && location.state?.fromProfileLink) {
+      setIsEditing(true);
+    }
+  }, [isCurrentUserProfile, location]);
   
   const handleEditProfile = async () => {
     if (isEditing) {
