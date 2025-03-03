@@ -1,9 +1,9 @@
-
 import { Comment } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Fetches user profile information from Supabase
+ * ログインステータスに関わらずプロフィール情報を取得できるように修正
  */
 export async function fetchUserProfile(userId: string) {
   try {
@@ -16,6 +16,7 @@ export async function fetchUserProfile(userId: string) {
 
     if (userError || !userData) {
       // プロファイルが見つからない場合はデフォルト値を返す
+      console.log("User profile not found:", userId);
       return {
         id: userId,
         name: "ユーザー",
@@ -23,24 +24,13 @@ export async function fetchUserProfile(userId: string) {
       };
     }
 
-    // ユーザー名が設定されていない場合は現在のセッションのユーザー情報を参照
-    if (!userData.username) {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user && user.id === userId) {
-        // 現在ログイン中のユーザー自身の場合
-        return {
-          id: userId,
-          name: user.email || "ユーザー",
-          avatar: userData.avatar_url || user.user_metadata?.avatar_url
-        };
-      }
-    }
-
+    // ユーザー名が設定されていない場合はユーザーIDの一部を表示
+    const displayName = userData.username || `ユーザー_${userId.substring(0, 5)}`;
+    
     // プロファイルが存在する場合
     return {
       id: userData.id,
-      name: userData.username || "ユーザー", // usernameがnullの場合のフォールバック
+      name: displayName,
       avatar: userData.avatar_url
     };
   } catch (error) {

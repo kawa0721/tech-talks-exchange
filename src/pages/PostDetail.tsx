@@ -46,10 +46,10 @@ const PostDetail = () => {
           return;
         }
         
-        // 次にユーザー情報を取得
+        // 次にユーザー情報を取得 - ログインステータスに関わらず情報を表示
         let userData: User = {
           id: postData.user_id || "unknown",
-          name: "匿名ユーザー", // Changed from email address to "匿名ユーザー" (Anonymous User)
+          name: "匿名ユーザー",
           avatar: undefined
         };
         
@@ -61,11 +61,16 @@ const PostDetail = () => {
             .single();
           
           if (!userError && profile) {
+            // ユーザー名が設定されていない場合はユーザーIDの一部を表示
+            const displayName = profile.username || `ユーザー_${postData.user_id.substring(0, 5)}`;
+            
             userData = {
               id: profile.id,
-              name: profile.username || "匿名ユーザー", // Changed from email to "匿名ユーザー"
+              name: displayName,
               avatar: profile.avatar_url
             };
+          } else {
+            console.log("Failed to load user profile:", userError);
           }
         }
         
@@ -149,11 +154,11 @@ const PostDetail = () => {
             
             <PostCard 
               post={post} 
-              channelName={getChannelName(post.channelId)}
+              channelName={getChannelName(post?.channelId || "")}
               showChannel={true} 
             />
             
-            <CommentSection postId={post.id} />
+            <CommentSection postId={post?.id || ""} />
           </div>
         </div>
       </div>

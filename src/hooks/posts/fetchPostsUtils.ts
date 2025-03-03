@@ -1,4 +1,3 @@
-
 import { Post } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,7 +10,7 @@ export async function formatPostData(post: any): Promise<Post> {
   };
 
   if (post.user_id) {
-    // ユーザープロファイルを取得
+    // ユーザープロファイルを取得 - ログインステータスに関わらず情報を表示
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -19,11 +18,16 @@ export async function formatPostData(post: any): Promise<Post> {
       .maybeSingle();
 
     if (!profileError && profile) {
+      // ユーザー名が設定されていない場合はユーザーIDの一部を表示
+      const displayName = profile.username || `ユーザー_${post.user_id.substring(0, 5)}`;
+      
       userData = {
         id: profile.id,
-        name: profile.username || "匿名ユーザー",
+        name: displayName,
         avatar: profile.avatar_url
       };
+    } else {
+      console.log("Profile not found for user:", post.user_id);
     }
   }
 

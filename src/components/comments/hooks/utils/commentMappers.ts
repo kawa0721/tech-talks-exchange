@@ -14,7 +14,7 @@ export async function mapCommentWithUserInfo(comment: any, postId: string, curre
     avatar: undefined
   };
 
-  // If the comment has a user ID, fetch their profile
+  // If the comment has a user ID, fetch their profile - ログインステータスに関わらず情報を表示
   if (comment.user_id) {
     userInfo = await fetchUserProfile(comment.user_id);
   }
@@ -64,7 +64,7 @@ export async function mapReplyWithUserInfo(reply: any, postId: string, parentId:
     avatar: undefined
   };
 
-  // If the reply has a user ID, fetch their profile
+  // If the reply has a user ID, fetch their profile - ログインステータスに関わらず情報を表示
   if (reply.user_id) {
     replyUserInfo = await fetchUserProfile(reply.user_id);
   }

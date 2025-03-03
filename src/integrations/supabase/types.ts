@@ -185,6 +185,45 @@ export type Database = {
         }
         Relationships: []
       }
+      posts_backup: {
+        Row: {
+          channel_id: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          images: string[] | null
+          likes_count: number | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          channel_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          images?: string[] | null
+          likes_count?: number | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          channel_id?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          images?: string[] | null
+          likes_count?: number | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

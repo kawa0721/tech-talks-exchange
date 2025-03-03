@@ -20,6 +20,12 @@ const Index = () => {
   // Add detailed debug logs
   useEffect(() => {
     console.log('Index component mounted or updated');
+    // ログインステータスを確認するためのログ
+    const checkAuthStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current auth status:', session ? 'Logged in' : 'Not logged in');
+    };
+    checkAuthStatus();
   }, []);
   
   // 通常の投稿のページネーション用フック
