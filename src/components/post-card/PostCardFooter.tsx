@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getOrCreateGuestId } from "@/utils/guestUtils";
 
 interface PostCardFooterProps {
   postId: string;
@@ -35,23 +36,28 @@ const PostCardFooter = ({
     try {
       setIsLoading(true);
       
-      // Check if user is logged in
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("いいねするにはログインが必要です");
-        return;
-      }
-      
-      // Call the parent component's toggle like function
+      // Call the parent component's toggle like function for immediate UI feedback
       onToggleLike();
       
-      // Optimistically update UI before API call completes
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
       if (liked) {
         // Delete like from database
-        const { error } = await supabase
+        let query = supabase
           .from('likes')
-          .delete()
-          .match({ user_id: user.id, post_id: postId });
+          .delete();
+          
+        if (user) {
+          // ログインユーザーの場合はuser_idで検索
+          query = query.match({ user_id: user.id, post_id: postId });
+        } else {
+          // 未ログインユーザーの場合はguest_idで検索
+          const guestId = getOrCreateGuestId();
+          query = query.match({ guest_id: guestId, post_id: postId });
+        }
+        
+        const { error } = await query;
           
         if (error) {
           console.error("いいね削除エラー:", error);
@@ -60,10 +66,21 @@ const PostCardFooter = ({
           onToggleLike();
         }
       } else {
-        // Add like to database - fix the insert operation
+        // Add like to database
+        let likeData = {};
+        
+        if (user) {
+          // ログインユーザーの場合
+          likeData = { user_id: user.id, post_id: postId };
+        } else {
+          // 未ログインユーザーの場合
+          const guestId = getOrCreateGuestId();
+          likeData = { guest_id: guestId, post_id: postId };
+        }
+        
         const { error } = await supabase
           .from('likes')
-          .insert([{ user_id: user.id, post_id: postId }]);
+          .insert([likeData]);
           
         if (error) {
           console.error("いいね追加エラー:", error);
@@ -75,6 +92,8 @@ const PostCardFooter = ({
     } catch (error) {
       console.error("いいね処理エラー:", error);
       toast.error("いいね処理に失敗しました");
+      // Revert the optimistic update
+      onToggleLike();
     } finally {
       setIsLoading(false);
     }
