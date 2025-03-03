@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Post } from "@/types";
@@ -20,11 +21,12 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(0);
 
   // 投稿をフェッチする関数
   const fetchPosts = async (reset = true) => {
     console.log('=== FETCH POSTS START ===');
-    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}`);
+    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}, currentPage=${currentPage}`);
 
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
@@ -32,18 +34,17 @@ const Index = () => {
       setLoading(true);
       setPosts([]);
       setHasMore(true);
+      setCurrentPage(0);
     } else {
-      console.log('Loading more posts');
+      console.log('Loading more posts, page:', currentPage + 1);
       setLoadingMore(true);
     }
 
     try {
-      // カーソルとして使用する最後の投稿の日時を取得
-      const lastPostDate = reset || posts.length === 0
-        ? null
-        : posts[posts.length - 1].createdAt.toISOString();
+      const nextPage = reset ? 0 : currentPage + 1;
+      const offset = nextPage * PER_PAGE;
       
-      console.log(`Using cursor timestamp: ${lastPostDate || 'null'}`);
+      console.log(`Using offset: ${offset}, limit: ${PER_PAGE}`);
 
       // 1. 投稿を取得
       let query = supabase
@@ -57,13 +58,8 @@ const Index = () => {
         query = query.eq('channel_id', selectedChannel);
       }
 
-      // カーソルが存在する場合、そのタイムスタンプより古い投稿を取得
-      if (lastPostDate && !reset) {
-        query = query.lt('created_at', lastPostDate);
-      }
-
-      // 取得件数を制限
-      query = query.limit(PER_PAGE);
+      // オフセットとリミットを設定
+      query = query.range(offset, offset + PER_PAGE - 1);
       
       console.log('Executing query...');
       const { data: postsData, error: postsError } = await query;
@@ -120,18 +116,22 @@ const Index = () => {
 
           if (post.user_id) {
             // ユーザープロファイルを取得
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', post.user_id)
-              .single();
+            try {
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', post.user_id)
+                .limit(1);
 
-            if (!profileError && profile) {
-              userData = {
-                id: profile.id,
-                name: profile.username || "kawakitamasayuki@gmail.com",
-                avatar: profile.avatar_url
-              };
+              if (!profileError && profile && profile.length > 0) {
+                userData = {
+                  id: profile[0].id,
+                  name: profile[0].username || "kawakitamasayuki@gmail.com",
+                  avatar: profile[0].avatar_url
+                };
+              }
+            } catch (error) {
+              console.error("Error fetching profile:", error);
             }
           }
 
@@ -168,6 +168,7 @@ const Index = () => {
         
         if (uniqueNewPosts.length > 0) {
           setPosts(prev => [...prev, ...uniqueNewPosts]);
+          setCurrentPage(nextPage);
         } else {
           console.log('No unique new posts found, setting hasMore to false');
           setHasMore(false);
@@ -198,18 +199,22 @@ const Index = () => {
               };
 
               if (post.user_id) {
-                const { data: profile, error: profileError } = await supabase
-                  .from('profiles')
-                  .select('*')
-                  .eq('id', post.user_id)
-                  .single();
+                try {
+                  const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', post.user_id)
+                    .limit(1);
 
-                if (!profileError && profile) {
-                  userData = {
-                    id: profile.id,
-                    name: profile.username || "kawakitamasayuki@gmail.com",
-                    avatar: profile.avatar_url
-                  };
+                  if (!profileError && profile && profile.length > 0) {
+                    userData = {
+                      id: profile[0].id,
+                      name: profile[0].username || "kawakitamasayuki@gmail.com",
+                      avatar: profile[0].avatar_url
+                    };
+                  }
+                } catch (error) {
+                  console.error("Error fetching profile for popular post:", error);
                 }
               }
 
@@ -270,7 +275,7 @@ const Index = () => {
 
   // 「もっと読み込む」ボタンをクリックしたときの処理
   const handleLoadMore = () => {
-    console.log('Load more button clicked');
+    console.log('Load more button clicked, currentPage =', currentPage);
     fetchPosts(false);
   };
 

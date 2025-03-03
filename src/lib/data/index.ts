@@ -47,18 +47,22 @@ export const getPostsForChannel = async (channelId: string | null): Promise<Post
         };
         
         if (post.user_id) {
-          const { data: profile, error: userError } = await supabase
-            .from('profiles')
-            .select('id, username, avatar_url')
-            .eq('id', post.user_id)
-            .single();
-            
-          if (!userError && profile) {
-            userData = {
-              id: profile.id,
-              name: profile.username || "匿名ユーザー",
-              avatar: profile.avatar_url
-            };
+          try {
+            const { data: profile, error: userError } = await supabase
+              .from('profiles')
+              .select('id, username, avatar_url')
+              .eq('id', post.user_id)
+              .limit(1);
+              
+            if (!userError && profile && profile.length > 0) {
+              userData = {
+                id: profile[0].id,
+                name: profile[0].username || "匿名ユーザー",
+                avatar: profile[0].avatar_url
+              };
+            }
+          } catch (error) {
+            console.error("Error fetching profile:", error);
           }
         }
         
@@ -73,9 +77,9 @@ export const getPostsForChannel = async (channelId: string | null): Promise<Post
               user_id: user.id,
               post_id: post.id 
             })
-            .maybeSingle();
+            .limit(1);
             
-          liked = !!likeData;
+          liked = !!likeData && likeData.length > 0;
         }
         
         return {

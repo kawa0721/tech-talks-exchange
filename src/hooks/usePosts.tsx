@@ -53,19 +53,23 @@ export function usePosts(type: string = "trending") {
             };
 
             if (post.user_id) {
-              // Fetch the user profile
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', post.user_id)
-                .maybeSingle();  // single()ではなくmaybeSingleを使用
+              try {
+                // Fetch the user profile
+                const { data: profile, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', post.user_id)
+                  .limit(1);  
 
-              if (!profileError && profile) {
-                userData = {
-                  id: profile.id,
-                  name: profile.username || "kawakitamasayuki@gmail.com",
-                  avatar: profile.avatar_url
-                };
+                if (!profileError && profile && profile.length > 0) {
+                  userData = {
+                    id: profile[0].id,
+                    name: profile[0].username || "kawakitamasayuki@gmail.com",
+                    avatar: profile[0].avatar_url
+                  };
+                }
+              } catch (error) {
+                console.error("Error fetching profile:", error);
               }
             }
 
