@@ -185,15 +185,7 @@ const MainContent = ({
           </div>
         )}
 
-        {/* 「もっと読み込む」ボタン */}
-        {!loading && posts.length > 0 && (
-          <LoadMoreButton 
-            onLoadMore={handleLoadMore} 
-            loading={loadingMore}
-            hasMore={hasMore}
-            postsCount={posts.length}
-          />
-        )}
+        {/* 「もっと読み込む」ボタンは不要（FeaturedPosts内のタブで対応するため） */}
 
         {/* データ終了メッセージ */}
         {!loading && !loadingMore && posts.length > 0 && !hasMore && (

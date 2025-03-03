@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import PostsList from "@/components/PostsList";
 import PostCard from "@/components/PostCard";
 import { useEffect } from "react";
+import InfiniteScroll from "@/components/InfiniteScroll";
 
 interface FeaturedPostsProps {
   trendingPosts: Post[];
@@ -82,46 +83,33 @@ const FeaturedPosts = ({
 
       <TabsContent value="trending" className="mt-0">
         {trendingPosts.length > 0 ? (
-          <div className="space-y-4">
-            {trendingPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                channelName={getChannelName(post.channelId)}
-                showChannel={true}
-                isTrending={true}
-              />
-            ))}
-            
-            {/* トレンド投稿の「さらに読み込む」ボタン */}
-            {trendingHasMore && (
-              <div className="flex justify-center mt-8">
-                <Button 
-                  onClick={onLoadMoreTrending} 
-                  disabled={trendingLoading}
-                  variant="outline"
-                  className="w-full max-w-xs"
-                  size="lg"
-                >
-                  {trendingLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      <span>読み込み中... (現在{trendingPosts.length}件表示中)</span>
-                    </>
-                  ) : (
-                    <span>さらに読み込む (現在{trendingPosts.length}件表示中)</span>
-                  )}
-                </Button>
+          <InfiniteScroll
+            onLoadMore={onLoadMoreTrending}
+            hasMore={trendingHasMore}
+            isLoading={trendingLoading}
+            loadingComponent={
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            )}
-            
-            {/* 全ての結果を表示した場合のメッセージ */}
-            {!trendingHasMore && trendingPosts.length > 0 && (
-              <div className="text-center py-4 mt-4 text-muted-foreground text-sm">
+            }
+            endTextComponent={
+              <div className="text-center py-4 text-sm text-muted-foreground">
                 すべてのトレンド投稿を表示しています (計{trendingPosts.length}件)
               </div>
-            )}
-          </div>
+            }
+          >
+            <div className="space-y-4">
+              {trendingPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  channelName={getChannelName(post.channelId)}
+                  showChannel={true}
+                  isTrending={true}
+                />
+              ))}
+            </div>
+          </InfiniteScroll>
         ) : (
           <Card>
             <CardContent className="py-6 text-center text-muted-foreground">
@@ -133,46 +121,33 @@ const FeaturedPosts = ({
 
       <TabsContent value="popular" className="mt-0">
         {popularPosts.length > 0 ? (
-          <div className="space-y-4">
-            {popularPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                channelName={getChannelName(post.channelId)}
-                showChannel={true}
-                isPopular={true}
-              />
-            ))}
-            
-            {/* 人気投稿の「さらに読み込む」ボタン */}
-            {popularHasMore && (
-              <div className="flex justify-center mt-8">
-                <Button 
-                  onClick={onLoadMorePopular} 
-                  disabled={popularLoading}
-                  variant="outline"
-                  className="w-full max-w-xs"
-                  size="lg"
-                >
-                  {popularLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      <span>読み込み中... (現在{popularPosts.length}件表示中)</span>
-                    </>
-                  ) : (
-                    <span>さらに読み込む (現在{popularPosts.length}件表示中)</span>
-                  )}
-                </Button>
+          <InfiniteScroll
+            onLoadMore={onLoadMorePopular}
+            hasMore={popularHasMore}
+            isLoading={popularLoading}
+            loadingComponent={
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            )}
-            
-            {/* 全ての結果を表示した場合のメッセージ */}
-            {!popularHasMore && popularPosts.length > 0 && (
-              <div className="text-center py-4 mt-4 text-muted-foreground text-sm">
+            }
+            endTextComponent={
+              <div className="text-center py-4 text-sm text-muted-foreground">
                 すべての人気投稿を表示しています (計{popularPosts.length}件)
               </div>
-            )}
-          </div>
+            }
+          >
+            <div className="space-y-4">
+              {popularPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  channelName={getChannelName(post.channelId)}
+                  showChannel={true}
+                  isPopular={true}
+                />
+              ))}
+            </div>
+          </InfiniteScroll>
         ) : (
           <Card>
             <CardContent className="py-6 text-center text-muted-foreground">
@@ -186,6 +161,9 @@ const FeaturedPosts = ({
         <PostsList
           posts={posts}
           loading={loading}
+          loadingMore={loadingMore}
+          hasMore={hasMore}
+          onLoadMore={onLoadMore}
           getChannelName={getChannelName}
           showChannel={!selectedChannel}
           emptyMessage="このチャンネルで最初のディスカッションを始めましょう！"

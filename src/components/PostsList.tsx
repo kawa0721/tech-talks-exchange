@@ -3,10 +3,14 @@ import { Post } from "@/types";
 import { Loader2 } from "lucide-react";
 import PostCard from "@/components/PostCard";
 import { useEffect } from "react";
+import InfiniteScroll from "@/components/InfiniteScroll";
 
 interface PostsListProps {
   posts: Post[];
   loading: boolean;
+  loadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
   getChannelName: (channelId: string) => string;
   showChannel?: boolean;
   emptyMessage?: string;
@@ -16,6 +20,9 @@ interface PostsListProps {
 const PostsList = ({
   posts,
   loading,
+  loadingMore = false,
+  hasMore = false,
+  onLoadMore = () => {},
   getChannelName,
   showChannel = true,
   emptyMessage = "投稿はまだありません",
@@ -48,22 +55,32 @@ const PostsList = ({
   }
 
   return (
-    <div className="space-y-6">
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          channelName={getChannelName(post.channelId)}
-          showChannel={showChannel}
-        />
-      ))}
-      
-      {loading && posts.length > 0 && (
+    <InfiniteScroll
+      onLoadMore={onLoadMore}
+      hasMore={hasMore}
+      isLoading={loadingMore}
+      loadingComponent={
         <div className="flex justify-center py-4">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      )}
-    </div>
+      }
+      endTextComponent={
+        <div className="text-center py-4 text-sm text-muted-foreground">
+          すべての投稿を表示しています (計{posts.length}件)
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {posts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            channelName={getChannelName(post.channelId)}
+            showChannel={showChannel}
+          />
+        ))}
+      </div>
+    </InfiniteScroll>
   );
 };
 
