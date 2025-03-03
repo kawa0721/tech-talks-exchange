@@ -54,23 +54,50 @@ const PostDetail = () => {
         };
         
         if (postData.user_id) {
-          const { data: profile, error: userError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', postData.user_id)
-            .single();
-          
-          if (!userError && profile) {
-            // ユーザー名が設定されていない場合はユーザーIDの一部を表示
-            const displayName = profile.username || `ユーザー_${postData.user_id.substring(0, 5)}`;
-            
-            userData = {
-              id: profile.id,
-              name: displayName,
-              avatar: profile.avatar_url
-            };
-          } else {
-            console.log("Failed to load user profile:", userError);
+          // 複数の方法でプロフィール取得を試みる
+          try {
+            console.log('Trying to fetch profile with JOIN first...');
+            const { data: profile, error: userError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', postData.user_id)
+              .single();
+              
+            if (!userError && profile) {
+              // ユーザー名が設定されていない場合はユーザーIDの一部を表示
+              const displayName = profile.username || `ユーザー_${postData.user_id.substring(0, 5)}`;
+              
+              userData = {
+                id: profile.id,
+                name: displayName,
+                avatar: profile.avatar_url
+              };
+              
+              console.log('Successfully fetched user profile:', userData);
+            } else {
+              console.log("Failed to load user profile with standard method:", userError);
+              
+              console.log('Falling back to basic profile query...');
+              // 直接シンプルなクエリでリトライ
+              const { data: basicProfile, error: basicError } = await supabase
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .eq('id', postData.user_id)
+                .single();
+                
+              if (!basicError && basicProfile) {
+                userData = {
+                  id: basicProfile.id,
+                  name: basicProfile.username || `ユーザー_${postData.user_id.substring(0, 5)}`,
+                  avatar: basicProfile.avatar_url
+                };
+                console.log('Successfully fetched basic user profile:', userData);
+              } else {
+                console.log("Failed to load basic user profile:", basicError);
+              }
+            }
+          } catch (fetchError) {
+            console.error("Error during profile fetching:", fetchError);
           }
         }
         

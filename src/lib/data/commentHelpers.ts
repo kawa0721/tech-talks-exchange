@@ -51,6 +51,14 @@ export const formatComment = (
 ): Comment => {
   const profileData = comment.profiles || {};
   
+  // デバッグログを追加
+  console.log('Formatting comment with profile data:', {
+    commentId: comment.id,
+    userId: comment.user_id,
+    profileData: profileData,
+    guestNickname: comment.guest_nickname
+  });
+  
   return {
     id: comment.id,
     postId,
@@ -79,6 +87,14 @@ export const formatReply = (
   userLikes: Record<string, boolean>
 ): Comment => {
   const replyProfileData = reply.profiles || {};
+  
+  // デバッグログを追加
+  console.log('Formatting reply with profile data:', {
+    replyId: reply.id,
+    userId: reply.user_id,
+    profileData: replyProfileData,
+    guestNickname: reply.guest_nickname
+  });
   
   return {
     id: reply.id,
