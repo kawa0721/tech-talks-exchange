@@ -747,7 +747,8 @@ const PostFormEditor = ({
       
       // 選択状態をリセット
       setTableSelection(null);
-      setShowTableMenu(false);
+      setShowTableModal(false);
+      setShowTablePopover(false);
     } catch (error) {
       console.error('行の削除に失敗しました:', error);
     }
@@ -775,7 +776,8 @@ const PostFormEditor = ({
       
       // 選択状態をリセット
       setTableSelection(null);
-      setShowTableMenu(false);
+      setShowTableModal(false);
+      setShowTablePopover(false);
     } catch (error) {
       console.error('列の削除に失敗しました:', error);
     }
