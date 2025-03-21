@@ -51,7 +51,7 @@ interface Command {
 const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   value,
   onChange,
-  placeholder = "/'を入力して書式を選択するか、マークダウン記法を使用してください..."
+  placeholder = "/を入力して書式を選択するか、マークダウン記法を使用してください..."
 }) => {
   const [selectionEmpty, setSelectionEmpty] = useState(true);
   const [showSlashCommands, setShowSlashCommands] = useState(false);

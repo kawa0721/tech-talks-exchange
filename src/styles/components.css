@@ -7,8 +7,15 @@
     transform: translateX(0);
   }
   
-  .sidebar.closed {
+  /* 閉じた状態のサイドバー */
+  .sidebar.closed:not(.pinned) {
     transform: translateX(-100%);
+  }
+  
+  /* ピン留め状態のサイドバー - 常に表示 */
+  .sidebar.pinned {
+    @apply lg:transform-none;
+    transform: translateX(0) !important; /* 確実に表示されるよう強制 */
   }
   
   .sidebar-content {
@@ -25,11 +32,12 @@
     }
     
     /* サイドバーが開いているときのみマージンを適用 */
-    .sidebar:not(.closed) + .main-content {
+    .sidebar:not(.closed) + .main-content,
+    .main-content.with-sidebar {
       @apply ml-72;
     }
     
-    /* PCでも閉じることができるように !important を削除 */
+    /* サイドバーが開いているときのみマージンを適用 */
     .sidebar {
       @apply shadow-lg;
     }

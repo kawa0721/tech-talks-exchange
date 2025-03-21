@@ -52,7 +52,7 @@ const PostFormEditor = ({
         <NotionLikeEditor
           value={htmlContent}
           onChange={handleHtmlChange}
-          placeholder="/'を入力して書式を選択するか、マークダウン記法が使えます。例：# 見出し 1, - リスト項目, 1. 番号付きリスト, > 引用"
+          placeholder="/を入力して書式を選択するか、マークダウン記法が使えます。例：# 見出し 1, - リスト項目, 1. 番号付きリスト, > 引用"
         />
       </TabsContent>
       <TabsContent value="preview" className={`mt-0 w-full ${getEditorHeight()} overflow-auto border rounded-md p-4`}>
