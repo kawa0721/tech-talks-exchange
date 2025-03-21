@@ -1,4 +1,3 @@
-
 import { Comment } from "@/types";
 import { toast } from "sonner";
 import { toggleCommentLike } from "./utils/commentActions";
@@ -10,14 +9,7 @@ export function useCommentLikes(
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>
 ) {
   const toggleLike = async (commentId: string) => {
-    // Check authentication
-    const user = await checkUserAuthentication();
-    if (!user) {
-      toast.error("いいねするにはログインが必要です");
-      return;
-    }
-
-    const userId = user.id;
+    // コメントを検索
     const commentToUpdate = findCommentById(comments, commentId);
     
     if (!commentToUpdate) {
@@ -26,8 +18,15 @@ export function useCommentLikes(
     }
 
     try {
-      // Call API to toggle like
+      // Check authentication
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      
+      // ログイン状態を確認し、適切なIDを取得
+      const userId = user ? user.id : null;
       const isLiked = commentToUpdate.liked;
+      
+      // Call API to toggle like
       await toggleCommentLike(commentId, userId, isLiked);
       
       // Update UI state

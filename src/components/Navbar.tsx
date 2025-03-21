@@ -1,4 +1,4 @@
-import { Menu, MessageSquare, Search, Bell } from "lucide-react";
+import { Menu, Search, Bell } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +78,11 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
             <div className="rounded-md bg-primary p-1">
-              <MessageSquare className="h-6 w-6 text-primary-foreground" />
+              <img 
+                src="/aiau_19.svg" 
+                alt="AIAU Logo" 
+                className="h-6 w-6"
+              />
             </div>
             {/* Removed テックトーク text as requested */}
           </Link>
@@ -90,7 +94,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             <Input
               type="search"
               placeholder="トピックを検索..."
-              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+              className="pl-8 sm:w-[350px] md:w-[300px] lg:w-[400px]"
             />
           </form>
 

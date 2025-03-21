@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getOrCreateGuestId } from "@/utils/guestUtils";
 
 /**
  * Submits a new comment to the database
@@ -128,21 +128,32 @@ export async function submitReply(
 /**
  * Toggles like status for a comment
  */
-export async function toggleCommentLike(commentId: string, userId: string, isLiked: boolean) {
-  // セッションを再確認
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    throw new Error("セッションが期限切れです。再ログインしてください。");
-  }
-  
+export async function toggleCommentLike(commentId: string, userId: string | null, isLiked: boolean) {
   try {
+    // セッションを再確認（ログインユーザーの場合のみ）
+    if (userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("セッションが期限切れです。再ログインしてください。");
+      }
+    }
+    
     if (isLiked) {
       // いいねを削除
-      const { error } = await supabase
+      let query = supabase
         .from('likes')
-        .delete()
-        .eq('user_id', userId)
-        .eq('comment_id', commentId);
+        .delete();
+        
+      if (userId) {
+        // ログインユーザーの場合
+        query = query.match({ user_id: userId, comment_id: commentId });
+      } else {
+        // 未ログインユーザーの場合
+        const guestId = getOrCreateGuestId();
+        query = query.match({ guest_id: guestId, comment_id: commentId });
+      }
+      
+      const { error } = await query;
 
       if (error) {
         console.error("いいね削除エラー:", error);
@@ -151,13 +162,21 @@ export async function toggleCommentLike(commentId: string, userId: string, isLik
       
       return false;
     } else {
-      // いいねを追加 - fix the array syntax
+      // いいねを追加
+      let likeData = {};
+      
+      if (userId) {
+        // ログインユーザーの場合
+        likeData = { user_id: userId, comment_id: commentId };
+      } else {
+        // 未ログインユーザーの場合
+        const guestId = getOrCreateGuestId();
+        likeData = { guest_id: guestId, comment_id: commentId };
+      }
+      
       const { error } = await supabase
         .from('likes')
-        .insert([{
-          user_id: userId,
-          comment_id: commentId
-        }]);
+        .insert([likeData]);
 
       if (error) {
         console.error("いいね追加エラー:", error);

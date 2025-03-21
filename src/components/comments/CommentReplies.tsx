@@ -1,4 +1,3 @@
-
 import React from "react";
 import ReplyItem from "./ReplyItem";
 import { Comment } from "@/types";
@@ -15,6 +14,8 @@ interface CommentRepliesProps {
   onCancelEditing: (id: string) => void;
   onSaveEdit: (id: string, isReply: boolean, parentId: string) => void;
   submitting: boolean;
+  replyTo: string | null;
+  onSetReplyTo: (id: string | null) => void;
 }
 
 const CommentReplies: React.FC<CommentRepliesProps> = ({
@@ -28,11 +29,22 @@ const CommentReplies: React.FC<CommentRepliesProps> = ({
   onStartEditing,
   onCancelEditing,
   onSaveEdit,
-  submitting
+  submitting,
+  replyTo,
+  onSetReplyTo
 }) => {
   if (!comment.replies || comment.replies.length === 0) {
     return null;
   }
+
+  // 返信ボタンがクリックされた時の処理
+  const handleReplyClick = (replyId: string) => {
+    if (replyTo === replyId) {
+      onSetReplyTo(null);
+    } else {
+      onSetReplyTo(replyId);
+    }
+  };
 
   return (
     <div className="mt-4">
@@ -59,6 +71,7 @@ const CommentReplies: React.FC<CommentRepliesProps> = ({
               onSaveEdit={onSaveEdit}
               isEditing={reply.isEditing || false}
               submitting={submitting}
+              onReplyClick={handleReplyClick}
             />
           ))}
         </div>

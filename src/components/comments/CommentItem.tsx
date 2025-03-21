@@ -5,6 +5,8 @@ import EditCommentForm from "./EditCommentForm";
 import CommentHeader from "./CommentHeader";
 import CommentBody from "./CommentBody";
 import CommentReplies from "./CommentReplies";
+import { ThumbsUp, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CommentItemProps {
   comment: Comment;
@@ -53,6 +55,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
     }
   }, [comment.id, replyTo, onSetReplyTo]);
 
+  // Handle like button click - メモ化
+  const handleToggleLike = useCallback(() => {
+    onToggleLike(comment.id);
+  }, [comment.id, onToggleLike]);
+
   // コールバック関数をメモ化
   const handleCancelEditing = useCallback(() => {
     onCancelEditing(comment.id);
@@ -91,12 +98,40 @@ const CommentItem: React.FC<CommentItemProps> = ({
             comment={comment}
             onStartEditing={onStartEditing}
             onDeleteComment={onDeleteComment}
-            onToggleLike={onToggleLike}
-            onReplyClick={handleReplyClick}
           />
           <CommentBody 
             comment={comment} 
           />
+          
+          {/* アクションボタン - コメント本文の下に配置 */}
+          <div className="flex items-center justify-between mt-2 px-2">
+            {/* 返信ボタンを左側に配置 */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center space-x-1 px-2 h-8"
+              onClick={handleReplyClick}
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="text-xs">返信</span>
+            </Button>
+            
+            {/* いいねボタンを真ん中に配置 */}
+            <div className="flex justify-center flex-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center space-x-1 px-2 h-8 ${comment.liked ? 'text-blue-500' : ''}`}
+                onClick={handleToggleLike}
+              >
+                <ThumbsUp className="w-4 h-4" />
+                <span className="text-xs">{comment.likesCount > 0 ? comment.likesCount : ""}</span>
+              </Button>
+            </div>
+            
+            {/* 右側の空スペース（バランスのため） */}
+            <div className="w-[72px]"></div>
+          </div>
         </>
       )}
       
@@ -126,7 +161,22 @@ const CommentItem: React.FC<CommentItemProps> = ({
         onCancelEditing={onCancelEditing}
         onSaveEdit={onSaveEdit}
         submitting={submitting}
+        replyTo={replyTo}
+        onSetReplyTo={onSetReplyTo}
       />
+      
+      {/* 返信の返信フォームを表示 */}
+      {replyTo && replyTo !== comment.id && comment.replies?.some(reply => reply.id === replyTo) && (
+        <div className="mt-3 pl-4 border-l-2 border-muted">
+          <ReplyForm
+            parentId={replyTo}
+            userName={comment.replies.find(r => r.id === replyTo)?.user.name || ''}
+            onSubmit={onSubmitReply}
+            onCancel={handleCancelReply}
+            isSubmitting={submitting}
+          />
+        </div>
+      )}
     </div>
   );
 };

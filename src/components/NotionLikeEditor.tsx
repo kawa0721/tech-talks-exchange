@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, KeyboardEvent } from 'react';
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -128,7 +127,7 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     // マークダウン入力をリッチテキストに変換するキーマップ
     editorProps: {
       attributes: {
-        class: 'prose prose-sm dark:prose-invert min-h-[200px] max-w-none p-4 focus:outline-none',
+        class: 'prose prose-sm dark:prose-invert min-h-[350px] max-w-none p-4 focus:outline-none',
       },
       handleKeyDown: (view, event) => {
         // スラッシュメニューが表示されている場合、キーボードナビゲーションを処理

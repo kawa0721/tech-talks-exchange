@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -53,11 +52,19 @@ export function useCommentReply(
         userId = user.id;
       }
       
+      // 親コメント情報を取得（トップレベルコメントか返信か）
+      const parentInfo = findCommentById(comments, parentId);
+      if (!parentInfo) {
+        throw new Error("親コメントが見つかりません");
+      }
+      
+      const postId = getPostIdFromParentComment(parentId);
+      
       // Prepare reply data
       const replyData = {
-        post_id: getPostIdFromParentComment(parentId),
+        post_id: postId,
         content: replyText,
-        parent_id: parentId,
+        parent_id: parentId, // 常に直接の親を参照
         user_id: userId,
         guest_nickname: nickname
       };
@@ -105,14 +112,45 @@ export function useCommentReply(
         }
       };
       
-      // Update comments state with the new reply
-      const updatedComments = comments.map(comment => {
-        if (comment.id === parentId) {
-          const updatedReplies = comment.replies ? [...comment.replies, formattedReply] : [formattedReply];
-          return { ...comment, replies: updatedReplies };
-        }
-        return comment;
-      });
+      // 親がトップレベルコメントか返信かに応じてコメントツリーを更新
+      let updatedComments;
+      
+      // 親の親IDが存在する場合（親が返信の場合）
+      if (parentInfo.parentId) {
+        // 親コメントを取得
+        const topLevelParentId = parentInfo.parentId;
+        
+        updatedComments = comments.map(comment => {
+          if (comment.id === topLevelParentId) {
+            // トップレベルコメントを見つけた
+            const updatedReplies = comment.replies ? 
+              comment.replies.map(reply => {
+                if (reply.id === parentId) {
+                  // 返信元の返信を見つけた
+                  const nestedReplies = reply.replies || [];
+                  return {
+                    ...reply,
+                    replies: [...nestedReplies, formattedReply]
+                  };
+                }
+                return reply;
+              }) : 
+              [];
+              
+            return { ...comment, replies: updatedReplies };
+          }
+          return comment;
+        });
+      } else {
+        // 親がトップレベルコメントの場合
+        updatedComments = comments.map(comment => {
+          if (comment.id === parentId) {
+            const updatedReplies = comment.replies ? [...comment.replies, formattedReply] : [formattedReply];
+            return { ...comment, replies: updatedReplies };
+          }
+          return comment;
+        });
+      }
       
       setComments(updatedComments);
       setReplyTo(null);
@@ -131,8 +169,35 @@ export function useCommentReply(
 
   // Helper function to get the post ID from a parent comment
   const getPostIdFromParentComment = (parentId: string): string => {
-    const parentComment = comments.find(c => c.id === parentId);
-    return parentComment?.postId || '';
+    const comment = findCommentById(comments, parentId);
+    return comment?.postId || '';
+  };
+  
+  // Helper function to find a comment by ID (either top-level or reply)
+  const findCommentById = (comments: Comment[], commentId: string): Comment | undefined => {
+    // トップレベルのコメントを検索
+    for (const comment of comments) {
+      if (comment.id === commentId) {
+        return comment;
+      }
+      
+      // 返信を検索
+      if (comment.replies) {
+        for (const reply of comment.replies) {
+          if (reply.id === commentId) {
+            return reply;
+          }
+          
+          // ネストした返信を検索
+          if (reply.replies) {
+            const nestedReply = reply.replies.find(r => r.id === commentId);
+            if (nestedReply) return nestedReply;
+          }
+        }
+      }
+    }
+    
+    return undefined;
   };
 
   return {

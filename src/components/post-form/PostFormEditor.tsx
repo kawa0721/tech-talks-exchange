@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotionLikeEditor from "@/components/NotionLikeEditor";
@@ -31,11 +30,11 @@ const PostFormEditor = ({
   // 書き込みエリアの高さを取得するための関数
   const getEditorHeight = () => {
     if (content.split('\n').length < 5) {
-      return 'min-h-[150px]';
+      return 'min-h-[350px]';
     } else if (content.split('\n').length < 10) {
-      return 'min-h-[200px]';
+      return 'min-h-[450px]';
     } else {
-      return 'min-h-[300px]';
+      return 'min-h-[550px]';
     }
   };
 

@@ -5,6 +5,15 @@
     @apply w-full text-foreground;
   }
 
+  /* 追加：エディターとプレビューのテキストを左寄せにする */
+  .prose {
+    @apply text-left;
+  }
+  
+  .prose * {
+    @apply text-left;
+  }
+
   .markdown-content h1 {
     @apply text-2xl font-bold mt-6 mb-4;
   }

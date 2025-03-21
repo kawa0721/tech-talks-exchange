@@ -30,7 +30,7 @@ const PostFormFooter = ({ isSubmitting, handleImageUpload }: PostFormFooterProps
           />
         </Button>
       </div>
-      <div className="flex justify-end">
+      <div className="flex ml-auto">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "投稿中..." : "投稿"}
         </Button>

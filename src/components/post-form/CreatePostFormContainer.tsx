@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { usePostCreation } from "@/hooks/usePostCreation";
@@ -78,7 +77,7 @@ const CreatePostFormContainer = ({
             removeImage={removeImage} 
           />
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex justify-end">
           <PostFormFooter 
             isSubmitting={isSubmitting} 
             handleImageUpload={handleImageUpload} 
