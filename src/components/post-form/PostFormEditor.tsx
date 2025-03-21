@@ -90,6 +90,10 @@ const PostFormEditor = ({
       
       // リッチテキストモードに入る場合
       if (activeTab === "richtext") {
+        // 表選択状態をいったんリセットする
+        setTableSelection(null);
+        setShowTableMenu(false);
+        
         // DOMが確実に更新された後にHTMLを設定
         requestAnimationFrame(() => {
           if (contentEditableRef.current) {
@@ -98,6 +102,105 @@ const PostFormEditor = ({
             
             // フォーカスを当てる
             contentEditableRef.current.focus();
+            
+            // 表のイベントハンドラを再設定（タブ切り替え時も動作するように）
+            setTimeout(() => {
+              console.log('🔄 リッチテキストモードで表のイベントハンドラを再初期化');
+              if (contentEditableRef.current) {
+                const tables = contentEditableRef.current.querySelectorAll('table');
+                console.log(`📊 再初期化対象の表: ${tables.length}個`);
+                
+                // 既存の表にイベントハンドラとスタイルを適用
+                tables.forEach((table, index) => {
+                  console.log(`📊 表${index+1}を再初期化中`);
+                  // スタイルを設定
+                  table.style.border = '2px solid #3b82f6';
+                  table.style.borderCollapse = 'collapse';
+                  table.style.cursor = 'pointer';
+                  table.style.position = 'relative';
+                  
+                  // 表ホバー時のツールバー表示処理
+                  let tableToolbarElem: HTMLDivElement | null = null;
+                  
+                  // ホバーイベントを再設定
+                  table.onmouseenter = () => {
+                    // すでにツールバーがあれば除去
+                    if (tableToolbarElem) {
+                      tableToolbarElem.remove();
+                    }
+                    
+                    // 新しいツールバーを作成
+                    tableToolbarElem = document.createElement('div');
+                    tableToolbarElem.className = 'table-toolbar';
+                    tableToolbarElem.style.position = 'absolute';
+                    tableToolbarElem.style.top = '-30px';
+                    tableToolbarElem.style.left = '50%';
+                    tableToolbarElem.style.transform = 'translateX(-50%)';
+                    tableToolbarElem.style.backgroundColor = '#3b82f6';
+                    tableToolbarElem.style.color = 'white';
+                    tableToolbarElem.style.padding = '5px 10px';
+                    tableToolbarElem.style.borderRadius = '4px';
+                    tableToolbarElem.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                    tableToolbarElem.style.zIndex = '1000';
+                    tableToolbarElem.style.cursor = 'pointer';
+                    tableToolbarElem.innerHTML = '<span style="display:flex;align-items:center;gap:5px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>表を編集</span>';
+                    
+                    // 表に追加
+                    table.appendChild(tableToolbarElem);
+                    
+                    // クリックイベント
+                    tableToolbarElem.onclick = (e) => {
+                      e.stopPropagation();
+                      console.log('表ツールバーがクリックされました（再初期化後）');
+                      
+                      // 表選択状態を更新
+                      setTableSelection({ 
+                        table: table, 
+                        row: 0, 
+                        col: 0 
+                      });
+                      setShowTableMenu(true);
+                    };
+                  };
+                  
+                  table.onmouseleave = () => {
+                    // マウスが表から離れたときにツールバーを削除
+                    setTimeout(() => {
+                      if (tableToolbarElem && table.contains(tableToolbarElem)) {
+                        tableToolbarElem.remove();
+                      }
+                    }, 200);
+                  };
+                  
+                  // セルのスタイルとイベント
+                  const cells = table.querySelectorAll('td, th');
+                  cells.forEach(cell => {
+                    cell.style.border = '1px solid #cbd5e1';
+                    cell.style.padding = '8px';
+                    
+                    // セルクリックイベントを再設定
+                    cell.onclick = (e) => {
+                      e.stopPropagation();
+                      const cellEl = e.currentTarget as HTMLTableCellElement;
+                      const rowEl = cellEl.parentElement as HTMLTableRowElement;
+                      
+                      console.log('セルがクリックされました（再初期化後）:', {
+                        row: rowEl.rowIndex,
+                        col: cellEl.cellIndex
+                      });
+                      
+                      // 表選択状態を更新
+                      setTableSelection({
+                        table: table,
+                        row: rowEl.rowIndex,
+                        col: cellEl.cellIndex
+                      });
+                      setShowTableMenu(true);
+                    };
+                  });
+                });
+              }
+            }, 200); // DOMが確実に更新された後に実行
           }
         });
       }
@@ -201,6 +304,27 @@ const PostFormEditor = ({
       if (markdown !== content) {
         setContent(markdown);
       }
+      
+      // 表要素が存在するかチェックし、存在すれば強調表示
+      if (contentEditableRef.current) {
+        const tables = contentEditableRef.current.querySelectorAll('table');
+        if (tables.length > 0) {
+          console.log('📊 表を検出・強調:', tables.length);
+          // 表のスタイルを設定（クリック可能に見せる）
+          tables.forEach(table => {
+            table.style.border = '2px solid #3b82f6';
+            table.style.borderCollapse = 'collapse';
+            table.style.cursor = 'pointer';
+            
+            // セルのスタイルも設定
+            const cells = table.querySelectorAll('td, th');
+            cells.forEach(cell => {
+              cell.style.border = '1px solid #cbd5e1';
+              cell.style.padding = '8px';
+            });
+          });
+        }
+      }
     }, 50);
   };
 
@@ -239,6 +363,94 @@ const PostFormEditor = ({
       if (contentEditableRef.current) {
         const tables = contentEditableRef.current.querySelectorAll('table');
         console.log('エディタ内の表数:', tables.length);
+        
+        // 表が挿入されたら、表にクリックイベントを直接追加
+        tables.forEach((table, index) => {
+          console.log(`表${index+1}にクリックイベントを追加`);
+          // スタイルを設定
+          table.style.border = '2px solid #3b82f6';
+          table.style.borderCollapse = 'collapse';
+          table.style.cursor = 'pointer';
+          
+          // 表ホバー時にオーバーレイを表示するイベントリスナー
+          let tableToolbarElem: HTMLDivElement | null = null;
+          
+          table.onmouseenter = () => {
+            // すでにツールバーがあれば除去
+            if (tableToolbarElem) {
+              tableToolbarElem.remove();
+            }
+            
+            // 新しいツールバーを作成
+            tableToolbarElem = document.createElement('div');
+            tableToolbarElem.className = 'table-toolbar';
+            tableToolbarElem.style.position = 'absolute';
+            tableToolbarElem.style.top = '-30px';
+            tableToolbarElem.style.left = '50%';
+            tableToolbarElem.style.transform = 'translateX(-50%)';
+            tableToolbarElem.style.backgroundColor = '#3b82f6';
+            tableToolbarElem.style.color = 'white';
+            tableToolbarElem.style.padding = '5px 10px';
+            tableToolbarElem.style.borderRadius = '4px';
+            tableToolbarElem.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            tableToolbarElem.style.zIndex = '1000';
+            tableToolbarElem.style.cursor = 'pointer';
+            tableToolbarElem.innerHTML = '<span style="display:flex;align-items:center;gap:5px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>表を編集</span>';
+            
+            // 表の相対位置を考慮してツールバーを配置
+            table.style.position = 'relative';
+            table.appendChild(tableToolbarElem);
+            
+            // ツールバークリック時の処理
+            tableToolbarElem.onclick = (e) => {
+              e.stopPropagation();
+              console.log('表ツールバーがクリックされました');
+              
+              // 表選択状態を更新
+              setTableSelection({ 
+                table: table, 
+                row: 0, // デフォルト位置
+                col: 0  // デフォルト位置
+              });
+              setShowTableMenu(true);
+            };
+          };
+          
+          table.onmouseleave = () => {
+            // マウスが表から離れたときにツールバーを削除
+            setTimeout(() => {
+              if (tableToolbarElem && table.contains(tableToolbarElem)) {
+                tableToolbarElem.remove();
+              }
+            }, 200);
+          };
+          
+          // セルクリック時のイベント - 実際の表編集機能
+          const cells = table.querySelectorAll('td, th');
+          cells.forEach(cell => {
+            cell.style.border = '1px solid #cbd5e1';
+            cell.style.padding = '8px';
+            
+            cell.onclick = (e) => {
+              e.stopPropagation();
+              const cellEl = e.currentTarget as HTMLTableCellElement;
+              const rowEl = cellEl.parentElement as HTMLTableRowElement;
+              
+              console.log('セルがクリックされました:', {
+                row: rowEl.rowIndex,
+                col: cellEl.cellIndex
+              });
+              
+              // 表選択状態を更新（セル位置を含む）
+              setTableSelection({
+                table: table,
+                row: rowEl.rowIndex,
+                col: cellEl.cellIndex
+              });
+              setShowTableMenu(true);
+            };
+          });
+        });
       }
     }, 100);
   };
@@ -286,47 +498,36 @@ const PostFormEditor = ({
   useEffect(() => {
     // リッチテキストモードがアクティブな場合のみ
     if (activeTab === "richtext" && contentEditableRef.current) {
-      console.log('🔍 リッチテキストモードが有効になりました');
-      
-      // 前のタブから切り替えた場合、表選択状態をリセット
-      // 注: 最初はリセットせず、既存の表選択状態を保持する
-      if (tableSelection) {
-        console.log('📊 既存の表選択状態:', tableSelection);
-      } else {
-        console.log('📊 表選択状態なし');
-      }
-      
-      // 表の選択を検出するためのグローバルクリックイベントリスナー
+      // 表の選択を検出するためのクリックイベントリスナー
       const handleTableClick = (e: MouseEvent) => {
-        console.log('🖱️ 表クリックイベント発生');
+        // イベント伝播を止める
+        e.stopPropagation();
+        
         let target = e.target as HTMLElement;
         let cell: HTMLTableCellElement | null = null;
-        
-        console.log('🔍 クリック要素:', target.tagName);
         
         // クリックした要素またはその親がtdまたはthかをチェック
         while (target && !cell) {
           if (target.tagName === 'TD' || target.tagName === 'TH') {
-            console.log('✅ セル要素を検出しました:', target.tagName);
             cell = target as HTMLTableCellElement;
             break;
           } else if (target === contentEditableRef.current) {
-            console.log('❌ エディタのルート要素に到達');
             break;
           }
           
-          if (!target.parentElement) {
-            console.log('❌ 親要素がありません');
-            break;
-          }
+          if (!target.parentElement) break;
           target = target.parentElement;
-          console.log('🔍 親要素をチェック:', target.tagName);
+        }
+        
+        // セルが選択されていない場合は選択状態をクリア
+        if (!cell) {
+          setTableSelection(null);
+          setShowTableMenu(false);
+          return;
         }
         
         // セルが選択された場合
         if (cell) {
-          console.log('📌 セルが選択されました');
-          
           // セルの親要素を辿って表を取得
           let tableElement: HTMLTableElement | null = null;
           let current = cell.parentElement;
@@ -334,7 +535,6 @@ const PostFormEditor = ({
           while (current) {
             if (current.tagName === 'TABLE') {
               tableElement = current as HTMLTableElement;
-              console.log('📊 表要素を検出しました');
               break;
             }
             current = current.parentElement;
@@ -342,52 +542,19 @@ const PostFormEditor = ({
           
           if (tableElement) {
             // 行と列のインデックスを取得
-            try {
-              const rowElement = cell.parentElement as HTMLTableRowElement;
-              const row = rowElement.rowIndex;
-              const col = cell.cellIndex;
-              
-              // 表の選択状態を更新
-              const selection = { table: tableElement, row, col };
-              console.log('✅ 表が選択されました:', { row, col });
-              
-              // React状態を更新
-              setTableSelection(selection);
-              setShowTableMenu(true);
-            } catch (error) {
-              console.error('❌ 表選択の処理中にエラー:', error);
-            }
-          } else {
-            console.log('❌ 表要素が見つかりませんでした');
+            const rowElement = cell.parentElement as HTMLTableRowElement;
+            const row = rowElement.rowIndex;
+            const col = cell.cellIndex;
+            
+            // 表の選択状態を更新
+            setTableSelection({ table: tableElement, row, col });
+            setShowTableMenu(true);
           }
-        } else {
-          console.log('❌ セル要素は検出されませんでした');
         }
       };
       
-      // 直接エディタにイベントリスナーを追加
-      contentEditableRef.current.addEventListener('click', handleTableClick);
-      console.log('✅ 表クリックイベントリスナーを追加しました');
-      
-      // 表が既に存在するか確認
-      if (contentEditableRef.current) {
-        const tables = contentEditableRef.current.querySelectorAll('table');
-        console.log('📊 エディタ内の表数:', tables.length);
-        
-        // 既存の表にもイベントリスナーを付加（冗長だが確実にするため）
-        tables.forEach((table, index) => {
-          console.log(`📊 表${index+1}を処理中`);
-          table.style.cursor = 'pointer';
-          table.style.border = '1px solid #ccc';
-          table.style.borderCollapse = 'collapse';
-          
-          const cells = table.querySelectorAll('td, th');
-          cells.forEach(cell => {
-            cell.style.border = '1px solid #ddd';
-            cell.style.padding = '4px';
-          });
-        });
-      }
+      // mousedownイベントに変更
+      contentEditableRef.current.addEventListener('mousedown', handleTableClick);
       
       // ドキュメント全体のクリックイベント（表メニューを閉じるため）
       const handleDocumentClick = (e: MouseEvent) => {
@@ -402,19 +569,16 @@ const PostFormEditor = ({
           contentEditableRef.current && 
           !contentEditableRef.current.contains(e.target as Node)
         ) {
-          console.log('📋 エディタ外クリック - メニューを閉じます');
           setShowTableMenu(false);
         }
       };
       
       document.addEventListener('mousedown', handleDocumentClick);
-      console.log('✅ ドキュメントクリックイベントリスナーを追加しました');
       
       // クリーンアップ関数
       return () => {
-        console.log('🧹 クリーンアップ: イベントリスナーを削除します');
         if (contentEditableRef.current) {
-          contentEditableRef.current.removeEventListener('click', handleTableClick);
+          contentEditableRef.current.removeEventListener('mousedown', handleTableClick);
         }
         document.removeEventListener('mousedown', handleDocumentClick);
         
@@ -422,8 +586,6 @@ const PostFormEditor = ({
           clearTimeout(updateTimerRef.current);
         }
       };
-    } else if (activeTab !== "richtext") {
-      console.log('🔍 リッチテキストモード以外になりました:', activeTab);
     }
   }, [activeTab]);
 
@@ -612,12 +774,177 @@ const PostFormEditor = ({
     }
   };
 
+  useEffect(() => {
+    // リッチテキストの変更を監視して表のツールバーを設定
+    if (activeTab === "richtext" && contentEditableRef.current) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach(() => {
+          // 表のスタイルとイベントリスナーを再設定
+          if (contentEditableRef.current) {
+            const tables = contentEditableRef.current.querySelectorAll('table');
+            if (tables.length > 0) {
+              tables.forEach(table => {
+                table.style.border = '2px solid #3b82f6';
+                table.style.borderCollapse = 'collapse';
+                table.style.cursor = 'pointer';
+                table.style.position = 'relative';
+                
+                // セルのスタイル
+                const cells = table.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                  cell.style.border = '1px solid #cbd5e1';
+                  cell.style.padding = '8px';
+                });
+              });
+            }
+          }
+        });
+      });
+      
+      observer.observe(contentEditableRef.current, { 
+        childList: true, 
+        subtree: true,
+        characterData: true,
+        attributes: true
+      });
+      
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, [activeTab]);
+
   return (
-    <Tabs 
-      value={activeTab} 
-      onValueChange={(value) => setActiveTab(value as "write" | "richtext" | "html" | "preview")}
-      className="w-full"
-    >
+    <>
+      {/* 表編集用のモーダルダイアログ */}
+      {tableSelection && showTableMenu && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          onClick={() => setShowTableMenu(false)}
+        >
+          <div 
+            className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl border p-4 max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-base font-medium">表の編集</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 rounded-full"
+                onClick={() => setShowTableMenu(false)}
+              >
+                ×
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  addTableRow('before');
+                  // メニューは閉じない
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                上に行を追加
+              </Button>
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  addTableRow('after');
+                  // メニューは閉じない
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                下に行を追加
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  addTableColumn('before');
+                  // メニューは閉じない
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                左に列を追加
+              </Button>
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  addTableColumn('after');
+                  // メニューは閉じない
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                右に列を追加
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                type="button"
+                variant="destructive" 
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  deleteTableRow();
+                  // 操作後もメニューは閉じない
+                }}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                行を削除
+              </Button>
+              <Button 
+                type="button"
+                variant="destructive" 
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  deleteTableColumn();
+                  // 操作後もメニューは閉じない
+                }}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                列を削除
+              </Button>
+            </div>
+            
+            <div className="mt-3 pt-2 border-t">
+              <Button 
+                type="button"
+                variant="default" 
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => setShowTableMenu(false)}
+              >
+                完了
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Tabs 
+        value={activeTab} 
+        onValueChange={(value) => setActiveTab(value as "write" | "richtext" | "html" | "preview")}
+        className="w-full"
+      >
       <TabsList className="mb-2 w-full grid grid-cols-4">
         <TabsTrigger value="write">マークダウン</TabsTrigger>
         <TabsTrigger value="richtext">リッチテキスト</TabsTrigger>
@@ -796,7 +1123,7 @@ const PostFormEditor = ({
           />
           
           {/* 表が選択されているときに表示する表編集ボタン - 表の位置に合わせて表示 */}
-          {console.log('メニュー表示条件確認:', {tableSelection, showTableMenu}), tableSelection && (
+          {tableSelection && (
             <div 
               className="fixed z-50" // z-indexを上げて確実に表示されるようにする
               style={{
@@ -835,11 +1162,11 @@ const PostFormEditor = ({
                 <PopoverTrigger asChild>
                   <Button 
                     type="button"
-                    variant="outline" 
+                    variant="default" 
                     size="sm"
-                    className="h-8 w-8 p-0 rounded-full bg-background shadow-md border"
+                    className="h-10 w-10 p-0 rounded-full bg-primary text-white hover:bg-primary-600 shadow-lg border-2 border-white animate-pulse"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-5 w-5" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-2" align="start" side="right" sideOffset={5}>
@@ -975,6 +1302,7 @@ const PostFormEditor = ({
         `}
       </style>
     </Tabs>
+    </>
   );
 };
 
