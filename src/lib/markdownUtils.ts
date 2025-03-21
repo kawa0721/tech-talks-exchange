@@ -1,14 +1,16 @@
 import Showdown from 'showdown';
-import { htmlToMarkdown } from 'html-to-markdown';
+import TurndownService from 'turndown';
+// TurndownはHTMLをMarkdownに変換するもの
+// ShowdownはMarkdownをHTMLに変換するもの
 
 // HTML -> Markdown変換
 export const convertHtmlToMarkdown = (html: string): string => {
-  if (!html) return '';
   try {
-    return htmlToMarkdown(html);
+    const turndownService = new TurndownService();
+    return turndownService.turndown(html);
   } catch (error) {
     console.error('HTML to Markdown conversion error:', error);
-    return '';
+    return html;
   }
 };
 

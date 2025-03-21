@@ -1,4 +1,3 @@
-
 import { useState, ChangeEvent } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
@@ -69,6 +68,12 @@ export const usePostCreation = ({ channelId: initialChannelId, onPostCreated }: 
       return;
     }
 
+    if (!user) {
+      toast.error("現在、ゲスト投稿機能はメンテナンス中です。ログインしてお試しください。");
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -128,8 +133,7 @@ export const usePostCreation = ({ channelId: initialChannelId, onPostCreated }: 
             user_id: user ? user.id : null,
             channel_id: channelId,
             images: uploadedImageUrls.length > 0 ? uploadedImageUrls : 
-                   images.length > 0 ? images : null,
-            guest_nickname: !user && guestNickname ? guestNickname : null
+                   images.length > 0 ? images : null
           }
         ])
         .select();
