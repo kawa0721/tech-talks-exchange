@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader } from "@/components/ui/card";
 import { 
@@ -9,10 +8,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Star } from "lucide-react";
+import { TrendingUp, Star, Edit, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Post } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { deletePost } from "@/utils/postActions";
+import { toast } from "sonner";
 
 interface PostCardHeaderProps {
   post: Post;
@@ -20,6 +34,8 @@ interface PostCardHeaderProps {
   showChannel?: boolean;
   isTrending?: boolean;
   isPopular?: boolean;
+  onEditPost?: () => void;
+  onPostDeleted?: () => void;
 }
 
 const PostCardHeader = ({ 
@@ -27,8 +43,34 @@ const PostCardHeader = ({
   channelName, 
   showChannel = false,
   isTrending = false,
-  isPopular = false 
+  isPopular = false,
+  onEditPost,
+  onPostDeleted
 }: PostCardHeaderProps) => {
+  const { user } = useAuth();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // 自分の投稿かどうかをチェック
+  const isCurrentUserLoggedIn = user !== null && user !== undefined;
+  const postHasUserId = post.userId !== null && post.userId !== undefined && post.userId !== '';
+  const isOwnPost = isCurrentUserLoggedIn && postHasUserId && post.userId === user.id;
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await deletePost(post.id);
+      toast.success("投稿が削除されました");
+      if (onPostDeleted) onPostDeleted();
+      setShowDeleteDialog(false);
+    } catch (error) {
+      console.error("削除エラー:", error);
+      toast.error("投稿の削除に失敗しました");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <CardHeader className="pb-3 pt-4">
       <div className="flex items-start justify-between">
@@ -89,11 +131,43 @@ const PostCardHeader = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>保存</DropdownMenuItem>
-            <DropdownMenuItem>報告</DropdownMenuItem>
+            {isOwnPost === true ? (
+              <>
+                <DropdownMenuItem onClick={onEditPost}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  編集
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  削除
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <>
+                <DropdownMenuItem>保存</DropdownMenuItem>
+                <DropdownMenuItem>報告</DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>この投稿を削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              この操作は元に戻せません。投稿が完全に削除されます。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "削除中..." : "削除"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </CardHeader>
   );
 };

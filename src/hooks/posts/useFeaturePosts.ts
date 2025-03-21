@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Post } from "@/types";
 import { fetchSpecialPosts, formatPostsData } from "./fetchPostsUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseFeaturePostsProps {
   selectedChannel?: string | null;
@@ -23,8 +24,136 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
   
   const PER_PAGE = 10; // 1回に取得する件数
 
+  // キャッシュをバイパスして最新のトレンド投稿を取得
+  const fetchLatestTrendingPosts = useCallback(async () => {
+    console.log('=== FETCH FRESH TRENDING POSTS START ===');
+    setTrendingLoading(true);
+    
+    try {
+      // 直接supabaseクエリを使用して最新データを直接取得
+      let query = supabase
+        .from('posts')
+        .select(`
+          id, title, content, user_id, channel_id, created_at, updated_at, 
+          likes_count, comments_count, images
+        `)
+        .order('created_at', { ascending: false }); // トレンドは最新順
+      
+      // チャンネルフィルタリングがある場合は追加
+      if (selectedChannel) {
+        query = query.eq('channel_id', selectedChannel);
+      }
+      
+      // 取得数制限
+      query = query.limit(PER_PAGE);
+      
+      // 実行
+      const { data: latestTrendingData, error } = await query;
+      
+      if (error) {
+        console.error("最新トレンド取得エラー:", error);
+        return;
+      }
+      
+      if (!latestTrendingData || latestTrendingData.length === 0) {
+        setTrendingPosts([]);
+        return;
+      }
+      
+      // 最新データをフォーマット
+      const formattedLatestTrending = await formatPostsData(latestTrendingData);
+      
+      // 全てのキャッシュをバイパスして最新データをセット
+      setTrendingPosts(formattedLatestTrending);
+      
+      // 最後の投稿日時を更新
+      if (latestTrendingData.length > 0) {
+        const lastPost = latestTrendingData[latestTrendingData.length - 1];
+        setLastTrendingDate(lastPost.created_at);
+      }
+      
+      // 次のページの有無をチェック
+      setTrendingHasMore(latestTrendingData.length === PER_PAGE);
+      
+    } catch (error) {
+      console.error("最新トレンド取得エラー:", error);
+    } finally {
+      setTrendingLoading(false);
+      console.log('=== FETCH FRESH TRENDING POSTS END ===');
+    }
+  }, [PER_PAGE, selectedChannel]);
+
+  // キャッシュをバイパスして最新の人気投稿を取得
+  const fetchLatestPopularPosts = useCallback(async () => {
+    console.log('=== FETCH FRESH POPULAR POSTS START ===');
+    setPopularLoading(true);
+    
+    try {
+      // 直接supabaseクエリを使用して最新データを直接取得
+      let query = supabase
+        .from('posts')
+        .select(`
+          id, title, content, user_id, channel_id, created_at, updated_at, 
+          likes_count, comments_count, images
+        `)
+        .order('likes_count', { ascending: false }); // 人気投稿はいいね数順
+      
+      // チャンネルフィルタリングがある場合は追加
+      if (selectedChannel) {
+        query = query.eq('channel_id', selectedChannel);
+      }
+      
+      // 取得数制限
+      query = query.limit(PER_PAGE);
+      
+      // 実行
+      const { data: latestPopularData, error } = await query;
+      
+      if (error) {
+        console.error("最新人気投稿取得エラー:", error);
+        return;
+      }
+      
+      if (!latestPopularData || latestPopularData.length === 0) {
+        setPopularPosts([]);
+        return;
+      }
+      
+      // 最新データをフォーマット
+      const formattedLatestPopular = await formatPostsData(latestPopularData);
+      
+      // 全てのキャッシュをバイパスして最新データをセット
+      setPopularPosts(formattedLatestPopular);
+      
+      // 最後の投稿情報を更新
+      if (latestPopularData.length > 0) {
+        const lastPost = latestPopularData[latestPopularData.length - 1];
+        setLastPopularInfo({
+          date: lastPost.created_at,
+          likesCount: lastPost.likes_count
+        });
+      }
+      
+      // 次のページの有無をチェック
+      setPopularHasMore(latestPopularData.length === PER_PAGE);
+      
+    } catch (error) {
+      console.error("最新人気投稿取得エラー:", error);
+    } finally {
+      setPopularLoading(false);
+      console.log('=== FETCH FRESH POPULAR POSTS END ===');
+    }
+  }, [PER_PAGE, selectedChannel]);
+
   // トレンド投稿の取得（ページネーション対応）- 最適化版
-  const fetchTrendingPosts = async (reset = true) => {
+  const fetchTrendingPosts = async (reset = true, forceRefresh = false) => {
+    // 強制リフレッシュの場合は完全にキャッシュをバイパスする方法を使用
+    if (forceRefresh) {
+      console.log('強制リフレッシュモード - キャッシュをバイパスして最新トレンドを取得');
+      await fetchLatestTrendingPosts();
+      return;
+    }
+    
     if (reset) {
       setTrendingLoading(true);
       setTrendingPosts([]);
@@ -90,7 +219,14 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
   };
   
   // 人気投稿の取得（ページネーション対応）- 最適化版
-  const fetchPopularPosts = async (reset = true) => {
+  const fetchPopularPosts = async (reset = true, forceRefresh = false) => {
+    // 強制リフレッシュの場合は完全にキャッシュをバイパスする方法を使用
+    if (forceRefresh) {
+      console.log('強制リフレッシュモード - キャッシュをバイパスして最新の人気投稿を取得');
+      await fetchLatestPopularPosts();
+      return;
+    }
+    
     if (reset) {
       setPopularLoading(true);
       setPopularPosts([]);
@@ -159,10 +295,10 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
   };
 
   // すべての特集投稿を取得（並列処理で高速化）
-  const fetchFeaturePosts = async () => {
+  const fetchFeaturePosts = async (forceRefresh = false) => {
     await Promise.all([
-      fetchTrendingPosts(true),
-      fetchPopularPosts(true)
+      fetchTrendingPosts(true, forceRefresh),
+      fetchPopularPosts(true, forceRefresh)
     ]);
   };
 
@@ -180,6 +316,8 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
     // 取得関数
     fetchTrendingPosts,
     fetchPopularPosts,
-    fetchFeaturePosts
+    fetchFeaturePosts,
+    fetchLatestTrendingPosts,
+    fetchLatestPopularPosts
   };
 }

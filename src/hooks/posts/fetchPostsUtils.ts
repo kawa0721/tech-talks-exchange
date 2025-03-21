@@ -135,6 +135,9 @@ export async function fetchPaginatedPosts(
 ) {
   console.log(`[fetchPaginatedPosts] perPage: ${perPage}, lastPostDate: ${lastPostDate || 'none'}`);
   
+  // 最新のタイムスタンプを記録
+  const queryTimestamp = new Date().getTime();
+  
   // クエリを構築 - プロフィール情報も一緒に取得
   let query = supabase
     .from('posts')
@@ -142,7 +145,7 @@ export async function fetchPaginatedPosts(
       id, title, content, user_id, channel_id, created_at, updated_at, 
       likes_count, comments_count, images
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }); // 確実に最新順にソート
 
   // チャンネルによるフィルタリング
   if (selectedChannel) {
@@ -155,7 +158,7 @@ export async function fetchPaginatedPosts(
     console.log(`[fetchPaginatedPosts] Using cursor: posts older than ${lastPostDate}`);
     query = query.lt('created_at', lastPostDate);
   }
-
+  
   // 取得する件数を制限
   query = query.limit(perPage);
   
@@ -163,7 +166,15 @@ export async function fetchPaginatedPosts(
   const result = await query;
   
   // 結果をログ
-  console.log(`[fetchPaginatedPosts] Query returned ${result.data?.length || 0} posts`);
+  console.log(`[fetchPaginatedPosts] Query returned ${result.data?.length || 0} posts at ${queryTimestamp}`);
+  
+  // 新しい投稿がある場合はログに表示（デバッグ用）
+  if (result.data && result.data.length > 0) {
+    const newestPost = result.data[0];
+    const postTime = new Date(newestPost.created_at).getTime();
+    const timeDiff = queryTimestamp - postTime;
+    console.log(`Newest post is ${timeDiff}ms old, created at ${newestPost.created_at}`);
+  }
   
   return result;
 }

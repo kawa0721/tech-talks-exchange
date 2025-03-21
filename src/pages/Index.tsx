@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Post } from "@/types";
@@ -15,6 +14,7 @@ const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("trending"); // 現在のアクティブタブ
   const { toast } = useToast();
   
   // Add detailed debug logs
@@ -34,7 +34,8 @@ const Index = () => {
     loading,
     loadingMore,
     hasMore,
-    fetchPosts
+    fetchPosts,
+    fetchLatestPosts
   } = usePostsWithPagination({
     selectedChannel,
     perPage: 10
@@ -49,7 +50,8 @@ const Index = () => {
     trendingLoading,
     popularLoading,
     fetchTrendingPosts,
-    fetchPopularPosts
+    fetchPopularPosts,
+    fetchFeaturePosts
   } = useFeaturePosts({ selectedChannel });
 
   // さらに詳細なデバッグログ
@@ -62,9 +64,10 @@ const Index = () => {
       hasMore,
       trendingPostsLength: trendingPosts.length,
       popularPostsLength: popularPosts.length,
-      selectedChannel
+      selectedChannel,
+      activeTab
     });
-  }, [posts, loading, loadingMore, hasMore, trendingPosts, popularPosts, selectedChannel]);
+  }, [posts, loading, loadingMore, hasMore, trendingPosts, popularPosts, selectedChannel, activeTab]);
 
   // 初回レンダリング時に特集投稿を取得
   useEffect(() => {
@@ -101,10 +104,40 @@ const Index = () => {
 
   const handlePostCreated = () => {
     // 新しい投稿が作成された後、投稿リストを更新
-    console.log('New post created, refreshing posts');
-    fetchPosts(true);
-    fetchTrendingPosts(true);
-    fetchPopularPosts(true);
+    console.log('New post created, refreshing posts and switching to recent tab');
+    
+    // 「最近の投稿」タブに切り替え
+    setActiveTab("recent");
+    
+    // すぐに再取得すると、DBの反映前にデータを取得してしまう可能性があるため、
+    // 短い遅延を入れた後にデータを再取得する
+    setTimeout(async () => {
+      try {
+        // 完全に新しいデータを取得（キャッシュをバイパス）
+        await fetchLatestPosts();
+        
+        // 特集投稿も強制リフレッシュモードで更新
+        fetchFeaturePosts(true);
+        
+        // 成功トースト表示
+        toast({
+          title: "投稿が作成されました",
+          description: "新しい投稿が正常に表示されています。"
+        });
+      } catch (error) {
+        console.error("投稿後のデータ更新エラー:", error);
+        
+        // エラーが発生した場合は従来の方法を試みる
+        fetchPosts(true, true);
+        fetchFeaturePosts(true);
+        
+        toast({
+          title: "投稿が作成されました",
+          description: "投稿は作成されましたが、表示の更新に問題が発生しました。リロードしてください。",
+          variant: "default"
+        });
+      }
+    }, 1000); // 遅延を1000msに増やして、より確実にDBに反映されるようにする
   };
 
   return (
@@ -138,6 +171,7 @@ const Index = () => {
           popularLoading={popularLoading}
           onLoadMoreTrending={handleLoadMoreTrending}
           onLoadMorePopular={handleLoadMorePopular}
+          defaultTab={activeTab}
         />
       </div>
 

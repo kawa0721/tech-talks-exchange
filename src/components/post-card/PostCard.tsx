@@ -9,7 +9,7 @@ import PostCardMenu from "./PostCardMenu";
 import ContentToggler from "./ContentToggler";
 import { supabase } from "@/integrations/supabase/client";
 import { getOrCreateGuestId, hasGuestId } from "@/utils/guestUtils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import EditPostForm from "../EditPostForm";
 
 interface PostCardProps {
@@ -126,12 +126,14 @@ const PostCard = ({
   return (
     <>
       <Card className={`mb-4 overflow-hidden hover:shadow-md transition-shadow relative ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
+        {/* PostCardMenuはPostCardHeaderに統合したため削除
         <PostCardMenu 
           postId={post.id} 
           postUserId={post.userId} 
           onEditPost={handleEditPost}
           onPostDeleted={handlePostDeleted}
         />
+        */}
         
         <PostCardHeader 
           post={post} 
@@ -139,6 +141,8 @@ const PostCard = ({
           showChannel={showChannel}
           isTrending={isTrending}
           isPopular={isPopular}
+          onEditPost={handleEditPost}
+          onPostDeleted={handlePostDeleted}
         />
         
         <Link to={`/post/${post.id}`}>
@@ -167,6 +171,7 @@ const PostCard = ({
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogTitle className="text-xl font-semibold">投稿を編集</DialogTitle>
           <EditPostForm
             post={post}
             onPostUpdated={handlePostUpdated}

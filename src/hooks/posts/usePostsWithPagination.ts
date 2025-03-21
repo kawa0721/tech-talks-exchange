@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Post } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { fetchPaginatedPosts, formatPostsData } from "./fetchPostsUtils";
 import { useFeaturePosts } from "./useFeaturePosts";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UsePostsWithPaginationProps {
   selectedChannel: string | null;
@@ -27,9 +28,84 @@ export function usePostsWithPagination({
     fetchFeaturePosts 
   } = useFeaturePosts();
 
+  // 完全に新しいデータを取得する関数（キャッシュをバイパス）
+  const fetchLatestPosts = useCallback(async () => {
+    console.log('=== FETCH FRESH POSTS START ===');
+    setLoading(true);
+    
+    try {
+      // 直接supabaseクエリを使用して最新データを直接取得
+      let query = supabase
+        .from('posts')
+        .select(`
+          id, title, content, user_id, channel_id, created_at, updated_at, 
+          likes_count, comments_count, images
+        `)
+        .order('created_at', { ascending: false });
+      
+      // チャンネルフィルタリングがある場合は追加
+      if (selectedChannel) {
+        query = query.eq('channel_id', selectedChannel);
+      }
+      
+      // 取得数制限
+      query = query.limit(perPage);
+      
+      // 実行
+      const { data: latestPostsData, error } = await query;
+      
+      if (error) {
+        console.error("最新データ取得エラー:", error);
+        return;
+      }
+      
+      if (!latestPostsData || latestPostsData.length === 0) {
+        setPosts([]);
+        return;
+      }
+      
+      // 最新データをフォーマット
+      const formattedLatestPosts = await formatPostsData(latestPostsData);
+      
+      console.log('最新のデータを取得しました:', formattedLatestPosts.length, '件');
+      if (formattedLatestPosts.length > 0) {
+        console.log('最初の投稿:', {
+          title: formattedLatestPosts[0]?.title,
+          id: formattedLatestPosts[0]?.id,
+          date: formattedLatestPosts[0]?.createdAt
+        });
+      }
+      
+      // 全てのキャッシュをバイパスして最新データをセット
+      setPosts(formattedLatestPosts);
+      
+      // 最後の投稿日時を更新
+      if (latestPostsData.length > 0) {
+        const lastPost = latestPostsData[latestPostsData.length - 1];
+        setLastPostDate(lastPost.created_at);
+      }
+      
+      // 次のページの有無をチェック
+      setHasMore(latestPostsData.length === perPage);
+      
+    } catch (error) {
+      console.error("最新データ取得エラー:", error);
+    } finally {
+      console.log('=== FETCH FRESH POSTS END ===');
+      setLoading(false);
+    }
+  }, [perPage, selectedChannel]);
+
   // パフォーマンス改善版の投稿取得関数
-  const fetchPosts = async (reset = true) => {
+  const fetchPosts = async (reset = true, forceRefresh = false) => {
     console.log('=== FETCH POSTS START ===');
+    
+    // 強制リフレッシュの場合は完全にキャッシュをバイパスする方法を使用
+    if (forceRefresh) {
+      console.log('強制リフレッシュモード - キャッシュをバイパスして最新データを取得');
+      await fetchLatestPosts();
+      return;
+    }
     
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
@@ -90,7 +166,11 @@ export function usePostsWithPagination({
         
         if (uniqueNewPosts.length > 0) {
           // 新しいユニークな投稿がある場合はそれらを追加
-          setPosts(prevPosts => [...prevPosts, ...uniqueNewPosts]);
+          setPosts(prevPosts => {
+            // 全ての投稿を日付順で並べ直し
+            const allPosts = [...prevPosts, ...uniqueNewPosts];
+            return allPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          });
         } else if (hasMoreData) {
           // データはあるが全て重複の場合、非同期で次のページを試す
           setTimeout(() => {
@@ -131,5 +211,6 @@ export function usePostsWithPagination({
     loadingMore,
     hasMore,
     fetchPosts,
+    fetchLatestPosts, // 新しい関数をエクスポート
   };
 }

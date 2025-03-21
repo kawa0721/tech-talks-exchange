@@ -1,21 +1,26 @@
-
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Comment } from "@/types";
 import CommentActions from "./CommentActions";
+import { Heart, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CommentHeaderProps {
   comment: Comment;
   onStartEditing: (id: string, isReply?: boolean, parentId?: string) => void;
   onDeleteComment: (id: string, isReply?: boolean, parentId?: string) => void;
+  onToggleLike: (id: string) => void;
+  onReplyClick: () => void;
 }
 
 const CommentHeader: React.FC<CommentHeaderProps> = ({
   comment,
   onStartEditing,
-  onDeleteComment
+  onDeleteComment,
+  onToggleLike,
+  onReplyClick
 }) => {
   // Format date
   const formatDate = (date: Date) => {
@@ -39,11 +44,33 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({
           </div>
         </div>
       </div>
-      <CommentActions 
-        comment={comment}
-        onStartEditing={onStartEditing}
-        onDeleteComment={onDeleteComment}
-      />
+      <div className="flex items-center space-x-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className={`flex items-center space-x-1 px-2 h-8 ${comment.liked ? 'text-destructive' : ''}`}
+          onClick={() => onToggleLike(comment.id)}
+        >
+          <Heart className="w-4 h-4" fill={comment.liked ? "currentColor" : "none"} />
+          <span className="text-xs">{comment.likesCount > 0 ? comment.likesCount : ""}</span>
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center space-x-1 px-2 h-8"
+          onClick={onReplyClick}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span className="text-xs">返信</span>
+        </Button>
+        
+        <CommentActions 
+          comment={comment}
+          onStartEditing={onStartEditing}
+          onDeleteComment={onDeleteComment}
+        />
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
-
-import { ThumbsUp, Reply, MoreHorizontal, Trash2, Edit } from "lucide-react";
+import React from "react";
+import { MoreHorizontal, Trash2, Edit, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,21 +23,31 @@ const CommentActions = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
           <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">メニューを開く</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onDeleteComment(comment.id)}>
-          <Trash2 className="h-4 w-4 mr-2" />
-          削除
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onStartEditing(comment.id)}>
+      <DropdownMenuContent align="end" sideOffset={5} className="w-36">
+        <DropdownMenuItem 
+          onClick={() => onStartEditing(comment.id)}
+          className="cursor-pointer flex items-center"
+        >
           <Edit className="h-4 w-4 mr-2" />
-          編集
+          <span>編集</span>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          報告
+        
+        <DropdownMenuItem 
+          onClick={() => onDeleteComment(comment.id)}
+          className="cursor-pointer flex items-center text-destructive focus:text-destructive"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          <span>削除</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem className="cursor-pointer flex items-center">
+          <Flag className="h-4 w-4 mr-2" />
+          <span>報告</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

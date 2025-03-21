@@ -1,4 +1,3 @@
-
 import { TrendingUp, Star, Clock, ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Post } from "@/types";
@@ -28,6 +27,8 @@ interface FeaturedPostsProps {
   onLoadMorePopular?: () => void;
   onLoadMore: () => void; // 既存の通常投稿のさらに読み込み関数
   hasMore: boolean; // 追加: 通常投稿のhasMoreプロパティ
+  activeTab?: string; // 追加: アクティブなタブを指定するプロパティ
+  onTabChange?: (tab: string) => void; // 追加: タブ変更時のコールバック
 }
 
 const FeaturedPosts = ({
@@ -45,7 +46,9 @@ const FeaturedPosts = ({
   onLoadMoreTrending = () => {},
   onLoadMorePopular = () => {},
   onLoadMore,
-  hasMore
+  hasMore,
+  activeTab = "trending", // デフォルト値を "trending" に設定
+  onTabChange
 }: FeaturedPostsProps) => {
   // Add detailed debug logs
   useEffect(() => {
@@ -55,12 +58,25 @@ const FeaturedPosts = ({
       postsCount: posts.length,
       selectedChannel,
       loading,
+      activeTab,
       postIds: posts.map(post => post.id)
     });
-  }, [trendingPosts, popularPosts, posts, selectedChannel, loading]);
+  }, [trendingPosts, popularPosts, posts, selectedChannel, loading, activeTab]);
+
+  // タブ変更のハンドラー
+  const handleTabChange = (value: string) => {
+    if (onTabChange) {
+      onTabChange(value);
+    }
+  };
 
   return (
-    <Tabs defaultValue="trending" className="w-full">
+    <Tabs 
+      defaultValue={activeTab} 
+      value={activeTab}
+      onValueChange={handleTabChange}
+      className="w-full"
+    >
       <div className="flex items-center justify-between mb-4">
         <TabsList>
           <TabsTrigger value="trending" className="flex items-center gap-1">

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Comment } from "@/types";
 import ReplyForm from "./ReplyForm";
@@ -75,12 +74,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
             comment={comment}
             onStartEditing={onStartEditing}
             onDeleteComment={onDeleteComment}
-          />
-          
-          <CommentBody 
-            comment={comment} 
             onToggleLike={onToggleLike}
             onReplyClick={handleReplyClick}
+          />
+          <CommentBody 
+            comment={comment} 
           />
         </>
       )}
