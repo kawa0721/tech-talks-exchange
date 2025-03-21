@@ -148,18 +148,18 @@ const PostFormEditor = ({
                     // 表に追加
                     table.appendChild(tableToolbarElem);
                     
-                    // クリックイベント
+                    // クリックイベント - ポップオーバーのみ表示
                     tableToolbarElem.onclick = (e) => {
                       e.stopPropagation();
                       console.log('表ツールバーがクリックされました（再初期化後）');
                       
-                      // 表選択状態を更新
+                      // 表選択状態を更新 - モーダルは表示せずポップオーバーだけ表示する
                       setTableSelection({ 
                         table: table, 
                         row: 0, 
                         col: 0 
                       });
-                      setShowTableMenu(true);
+                      // モーダルは表示しない
                     };
                   };
                   
@@ -195,7 +195,7 @@ const PostFormEditor = ({
                         row: rowEl.rowIndex,
                         col: cellEl.cellIndex
                       });
-                      setShowTableMenu(true);
+                      // セルクリック時はポップオーバーのみを表示する（モーダルは表示しない）
                     };
                   });
                 });
@@ -401,7 +401,7 @@ const PostFormEditor = ({
             table.style.position = 'relative';
             table.appendChild(tableToolbarElem);
             
-            // ツールバークリック時の処理
+            // ツールバークリック時の処理 - ポップオーバーのみ表示
             tableToolbarElem.onclick = (e) => {
               e.stopPropagation();
               console.log('表ツールバーがクリックされました');
@@ -412,7 +412,7 @@ const PostFormEditor = ({
                 row: 0, // デフォルト位置
                 col: 0  // デフォルト位置
               });
-              setShowTableMenu(true);
+              // モーダルは表示しない
             };
           };
           
@@ -447,7 +447,7 @@ const PostFormEditor = ({
                 row: rowEl.rowIndex,
                 col: cellEl.cellIndex
               });
-              setShowTableMenu(true);
+              // セルクリック時はポップオーバーのみを表示する（モーダルは表示しない）
             };
           });
         });
@@ -548,7 +548,7 @@ const PostFormEditor = ({
             
             // 表の選択状態を更新
             setTableSelection({ table: tableElement, row, col });
-            setShowTableMenu(true);
+            // 通常のクリックではモーダルを表示しない（ポップオーバーのみ）
           }
         }
       };
@@ -1172,6 +1172,15 @@ const PostFormEditor = ({
                 <PopoverContent className="w-auto p-2" align="start" side="right" sideOffset={5}>
                   <div className="bg-background flex flex-col gap-2">
                     <div className="text-xs font-medium text-muted-foreground mb-1">表の編集</div>
+                    <Button 
+                      type="button"
+                      variant="default" 
+                      size="sm"
+                      className="w-full mb-2 text-xs"
+                      onClick={() => setShowTableMenu(true)}
+                    >
+                      詳細な表編集を開く
+                    </Button>
                     <div className="flex gap-2">
                       <Button 
                         type="button"
