@@ -35,7 +35,8 @@ const PostFormEditor = ({
   
   // リッチテキストエディタ状態
   const [tableSelection, setTableSelection] = useState<TableSelectionState | null>(null);
-  const [showTableMenu, setShowTableMenu] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false); // モーダル表示用
+  const [showTablePopover, setShowTablePopover] = useState(false); // ポップオーバー表示用
   const [isDragging, setIsDragging] = useState(false);
   
   // リッチテキストエディタの参照
@@ -50,8 +51,8 @@ const PostFormEditor = ({
   
   // デバッグ用
   useEffect(() => {
-    console.log('現在のエディタステート:', {activeTab, tableSelection, showTableMenu});
-  }, [activeTab, tableSelection, showTableMenu]);
+    console.log('現在のエディタステート:', {activeTab, tableSelection, showTableModal, showTablePopover});
+  }, [activeTab, tableSelection, showTableModal, showTablePopover]);
 
   // タブ切り替え時の処理
   useEffect(() => {
@@ -92,7 +93,8 @@ const PostFormEditor = ({
       if (activeTab === "richtext") {
         // 表選択状態をいったんリセットする
         setTableSelection(null);
-        setShowTableMenu(false);
+        setShowTableModal(false);
+        setShowTablePopover(false);
         
         // DOMが確実に更新された後にHTMLを設定
         requestAnimationFrame(() => {
@@ -153,13 +155,14 @@ const PostFormEditor = ({
                       e.stopPropagation();
                       console.log('表ツールバーがクリックされました（再初期化後）');
                       
-                      // 表選択状態を更新 - モーダルは表示せずポップオーバーだけ表示する
+                      // 表選択状態を更新
                       setTableSelection({ 
                         table: table, 
                         row: 0, 
                         col: 0 
                       });
-                      // モーダルは表示しない
+                      // ポップオーバーを表示
+                      setShowTablePopover(true)
                     };
                   };
                   
@@ -195,7 +198,8 @@ const PostFormEditor = ({
                         row: rowEl.rowIndex,
                         col: cellEl.cellIndex
                       });
-                      // セルクリック時はポップオーバーのみを表示する（モーダルは表示しない）
+                      // ポップオーバーを表示
+                      setShowTablePopover(true);
                     };
                   });
                 });
@@ -412,7 +416,8 @@ const PostFormEditor = ({
                 row: 0, // デフォルト位置
                 col: 0  // デフォルト位置
               });
-              // モーダルは表示しない
+              // ポップオーバーを表示
+              setShowTablePopover(true)
             };
           };
           
@@ -447,7 +452,8 @@ const PostFormEditor = ({
                 row: rowEl.rowIndex,
                 col: cellEl.cellIndex
               });
-              // セルクリック時はポップオーバーのみを表示する（モーダルは表示しない）
+              // ポップオーバーを表示
+              setShowTablePopover(true);
             };
           });
         });
@@ -548,7 +554,8 @@ const PostFormEditor = ({
             
             // 表の選択状態を更新
             setTableSelection({ table: tableElement, row, col });
-            // 通常のクリックではモーダルを表示しない（ポップオーバーのみ）
+            // ポップオーバーを表示
+            setShowTablePopover(true);
           }
         }
       };
@@ -564,12 +571,12 @@ const PostFormEditor = ({
           return;
         }
         
-        // エディタ外のクリックで表メニューを閉じる
+        // エディタ外のクリックでポップオーバーを閉じる
         if (
           contentEditableRef.current && 
           !contentEditableRef.current.contains(e.target as Node)
         ) {
-          setShowTableMenu(false);
+          setShowTablePopover(false);
         }
       };
       
@@ -817,10 +824,10 @@ const PostFormEditor = ({
   return (
     <>
       {/* 表編集用のモーダルダイアログ */}
-      {tableSelection && showTableMenu && (
+      {tableSelection && showTableModal && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
-          onClick={() => setShowTableMenu(false)}
+          onClick={() => setShowTableModal(false)}
         >
           <div 
             className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl border p-4 max-w-md w-full"
@@ -832,7 +839,7 @@ const PostFormEditor = ({
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0 rounded-full"
-                onClick={() => setShowTableMenu(false)}
+                onClick={() => setShowTableModal(false)}
               >
                 ×
               </Button>
@@ -931,7 +938,7 @@ const PostFormEditor = ({
                 variant="default" 
                 size="sm"
                 className="w-full text-xs"
-                onClick={() => setShowTableMenu(false)}
+                onClick={() => setShowTableModal(false)}
               >
                 完了
               </Button>
@@ -1158,7 +1165,7 @@ const PostFormEditor = ({
                 })(),
               }}
             >
-              <Popover open={showTableMenu} onOpenChange={setShowTableMenu}>
+              <Popover open={showTablePopover} onOpenChange={setShowTablePopover}>
                 <PopoverTrigger asChild>
                   <Button 
                     type="button"
@@ -1177,7 +1184,7 @@ const PostFormEditor = ({
                       variant="default" 
                       size="sm"
                       className="w-full mb-2 text-xs"
-                      onClick={() => setShowTableMenu(true)}
+                      onClick={() => setShowTableModal(true)}
                     >
                       詳細な表編集を開く
                     </Button>
