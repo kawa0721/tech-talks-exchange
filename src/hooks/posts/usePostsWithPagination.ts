@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Post } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { fetchPaginatedPosts, formatPostData } from "./fetchPostsUtils";
+import { fetchPaginatedPosts, formatPostsData } from "./fetchPostsUtils";
 import { useFeaturePosts } from "./useFeaturePosts";
 
 interface UsePostsWithPaginationProps {
@@ -21,18 +20,17 @@ export function usePostsWithPagination({
   const [lastPostDate, setLastPostDate] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   
-  // Use our feature posts hook
+  // 特集投稿フックを使用
   const { 
     trendingPosts, 
     popularPosts, 
     fetchFeaturePosts 
   } = useFeaturePosts();
 
-  // 投稿をフェッチする関数
+  // パフォーマンス改善版の投稿取得関数
   const fetchPosts = async (reset = true) => {
     console.log('=== FETCH POSTS START ===');
-    console.log(`Parameters: reset=${reset}, current posts count=${posts.length}, lastPostDate=${lastPostDate || 'none'}`);
-
+    
     // 初回ロード時またはチャンネル変更時はリセット
     if (reset) {
       setLoading(true);
@@ -61,22 +59,6 @@ export function usePostsWithPagination({
         return;
       }
 
-      console.log(`Fetched ${postsData?.length || 0} posts`);
-      
-      // 詳細なデバッグログを追加
-      if (postsData && postsData.length > 0) {
-        console.log('First post in results:', {
-          id: postsData[0].id,
-          title: postsData[0].title,
-          created_at: postsData[0].created_at
-        });
-        console.log('Last post in results:', {
-          id: postsData[postsData.length - 1].id,
-          title: postsData[postsData.length - 1].title,
-          created_at: postsData[postsData.length - 1].created_at
-        });
-      }
-
       // 次のページが存在するかチェック
       const hasMoreData = postsData && postsData.length === perPage;
       setHasMore(hasMoreData);
@@ -85,58 +67,37 @@ export function usePostsWithPagination({
         if (reset) {
           setPosts([]);
         }
-        console.log('No posts returned from query, setting hasMore to false');
         setHasMore(false);
-        setLoading(false);
-        setLoadingMore(false);
         return;
       }
 
-      // 2. 各投稿のユーザー情報を取得
-      const formattedPosts: Post[] = await Promise.all(
-        postsData.map(formatPostData)
-      );
+      // 2. 投稿データをバッチで処理
+      const formattedPosts: Post[] = await formatPostsData(postsData);
+
+      // 最後の投稿の日時を保存（次回のカーソルとして使用）
+      if (postsData.length > 0) {
+        const lastPost = postsData[postsData.length - 1];
+        setLastPostDate(lastPost.created_at);
+      }
 
       // 新しいデータを追加または置き換え
       if (reset) {
-        console.log('Setting posts state with new data');
         setPosts(formattedPosts);
-        
-        // 最後の投稿の日時を保存（次回のカーソルとして使用）
-        if (postsData.length > 0) {
-          const lastPost = postsData[postsData.length - 1];
-          setLastPostDate(lastPost.created_at);
-          console.log(`Setting lastPostDate to ${lastPost.created_at} from post ID ${lastPost.id}`);
-        }
       } else {
-        console.log('Appending new posts to existing posts');
         // IDベースで重複を確認し、重複を除外して追加
         const existingIds = new Set(posts.map(post => post.id));
         const uniqueNewPosts = formattedPosts.filter(post => !existingIds.has(post.id));
-        
-        console.log(`Found ${uniqueNewPosts.length} unique new posts out of ${formattedPosts.length} fetched posts`);
-        
-        // 最後の投稿の日時を保存（次回のカーソルとして使用）
-        if (postsData.length > 0) {
-          const lastPost = postsData[postsData.length - 1];
-          setLastPostDate(lastPost.created_at);
-          console.log(`Setting lastPostDate to ${lastPost.created_at} from post ID ${lastPost.id}`);
-        }
         
         if (uniqueNewPosts.length > 0) {
           // 新しいユニークな投稿がある場合はそれらを追加
           setPosts(prevPosts => [...prevPosts, ...uniqueNewPosts]);
         } else if (hasMoreData) {
           // データはあるが全て重複の場合、非同期で次のページを試す
-          console.log("All posts were duplicates, trying next page via setTimeout");
-          // 非同期で次のページを取得（再帰の代わりに非同期タイマーを使用）
           setTimeout(() => {
-            console.log("Executing delayed fetch for next page");
             fetchPosts(false);
           }, 0);
         } else {
           // 次のページがなく重複もある場合は終了
-          console.log('No unique new posts found and no more pages, setting hasMore to false');
           setHasMore(false);
         }
       }

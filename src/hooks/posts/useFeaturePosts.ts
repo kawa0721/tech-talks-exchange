@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Post } from "@/types";
-import { fetchSpecialPosts, formatPostData } from "./fetchPostsUtils";
+import { fetchSpecialPosts, formatPostsData } from "./fetchPostsUtils";
 
 interface UseFeaturePostsProps {
   selectedChannel?: string | null;
@@ -24,10 +23,8 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
   
   const PER_PAGE = 10; // 1回に取得する件数
 
-  // トレンド投稿の取得（ページネーション対応）
+  // トレンド投稿の取得（ページネーション対応）- 最適化版
   const fetchTrendingPosts = async (reset = true) => {
-    console.log(`Fetching trending posts, reset=${reset}, current count=${trendingPosts.length}, channel=${selectedChannel || 'all'}`);
-    
     if (reset) {
       setTrendingLoading(true);
       setTrendingPosts([]);
@@ -36,7 +33,6 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
     } else {
       // すでに全ての投稿を取得している場合は何もしない
       if (!trendingHasMore) {
-        console.log('No more trending posts to fetch');
         return;
       }
       setTrendingLoading(true);
@@ -59,19 +55,15 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
       
       // 取得したデータがない場合
       if (!trendingData || trendingData.length === 0) {
-        console.log('No trending posts returned');
         setTrendingHasMore(false);
-        setTrendingLoading(false);
         return;
       }
       
       // 次のページがあるかどうか
       setTrendingHasMore(trendingData.length === PER_PAGE);
       
-      // フォーマットして投稿データを整形
-      const formattedTrendingPosts = await Promise.all(
-        trendingData.map(formatPostData)
-      );
+      // バッチ処理で投稿データを整形
+      const formattedTrendingPosts = await formatPostsData(trendingData);
       
       // 最後の投稿の日時を保存（次回のカーソルとして使用）
       if (trendingData.length > 0) {
@@ -97,10 +89,8 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
     }
   };
   
-  // 人気投稿の取得（ページネーション対応）
+  // 人気投稿の取得（ページネーション対応）- 最適化版
   const fetchPopularPosts = async (reset = true) => {
-    console.log(`Fetching popular posts, reset=${reset}, current count=${popularPosts.length}, channel=${selectedChannel || 'all'}`);
-    
     if (reset) {
       setPopularLoading(true);
       setPopularPosts([]);
@@ -109,7 +99,6 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
     } else {
       // すでに全ての投稿を取得している場合は何もしない
       if (!popularHasMore) {
-        console.log('No more popular posts to fetch');
         return;
       }
       setPopularLoading(true);
@@ -132,19 +121,15 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
       
       // 取得したデータがない場合
       if (!popularData || popularData.length === 0) {
-        console.log('No popular posts returned');
         setPopularHasMore(false);
-        setPopularLoading(false);
         return;
       }
       
       // 次のページがあるかどうか
       setPopularHasMore(popularData.length === PER_PAGE);
       
-      // フォーマットして投稿データを整形
-      const formattedPopularPosts = await Promise.all(
-        popularData.map(formatPostData)
-      );
+      // バッチ処理で投稿データを整形
+      const formattedPopularPosts = await formatPostsData(popularData);
       
       // 最後の投稿の情報を保存（次回のカーソルとして使用）
       if (popularData.length > 0) {
@@ -173,9 +158,8 @@ export function useFeaturePosts({ selectedChannel = null }: UseFeaturePostsProps
     }
   };
 
-  // すべての特集投稿を取得（後方互換性のため）
+  // すべての特集投稿を取得（並列処理で高速化）
   const fetchFeaturePosts = async () => {
-    console.log('Fetching all feature posts');
     await Promise.all([
       fetchTrendingPosts(true),
       fetchPopularPosts(true)

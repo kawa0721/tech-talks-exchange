@@ -117,9 +117,13 @@ export function useCommentReply(
       setComments(updatedComments);
       setReplyTo(null);
       setReplyContent("");
+      
+      // ユーザーに成功を通知
+      toast.success("返信が投稿されました");
     } catch (err: any) {
       console.error("返信投稿エラー:", err);
       setError(err.message || "返信の投稿に失敗しました");
+      toast.error("返信の投稿に失敗しました");
     } finally {
       setSubmitting(false);
     }

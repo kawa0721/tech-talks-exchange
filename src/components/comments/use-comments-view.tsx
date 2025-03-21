@@ -1,6 +1,5 @@
-
 // 作成したビューを使用してコメントとプロフィール情報を一度に取得するカスタムフック
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Comment } from '@/types';
 
@@ -9,8 +8,16 @@ export function useCommentsWithProfiles(postId: string) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // コメントを再取得するための関数をエクスポート
+  const refreshComments = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchComments = async () => {
       try {
         setLoading(true);
@@ -26,6 +33,8 @@ export function useCommentsWithProfiles(postId: string) {
         if (parentError) {
           throw parentError;
         }
+        
+        if (!isMounted) return;
         
         if (!parentComments || parentComments.length === 0) {
           setComments([]);
@@ -47,6 +56,8 @@ export function useCommentsWithProfiles(postId: string) {
         if (repliesError) {
           throw repliesError;
         }
+        
+        if (!isMounted) return;
         
         // 4. いいね状態を確認
         const { data: { user } } = await supabase.auth.getUser();
@@ -71,6 +82,8 @@ export function useCommentsWithProfiles(postId: string) {
             return acc;
           }, {});
         }
+        
+        if (!isMounted) return;
         
         // 5. 返信を親コメントごとに整理
         const repliesByParent: Record<string, any[]> = {};
@@ -135,17 +148,26 @@ export function useCommentsWithProfiles(postId: string) {
           return formattedComment;
         });
         
-        setComments(formattedComments);
+        if (isMounted) {
+          setComments(formattedComments);
+          setLoading(false);
+        }
       } catch (err: any) {
         console.error('コメント取得エラー:', err);
-        setError(err.message || 'コメントの取得に失敗しました');
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setError(err.message || 'コメントの取得に失敗しました');
+          setLoading(false);
+        }
       }
     };
     
     fetchComments();
-  }, [postId]);
+    
+    // クリーンアップ関数
+    return () => {
+      isMounted = false;
+    };
+  }, [postId, refreshTrigger]); // refreshTriggerを依存配列に追加
   
-  return { comments, loading, error };
+  return { comments, loading, error, refreshComments };
 }

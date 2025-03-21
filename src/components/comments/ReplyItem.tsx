@@ -1,4 +1,3 @@
-
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,7 +69,7 @@ const ReplyItem = ({
             isReply={true}
           />
         ) : (
-          <p className="mt-1 text-xs">{reply.content}</p>
+          <p className="mt-1 text-xs text-left">{reply.content}</p>
         )}
       </div>
     </div>

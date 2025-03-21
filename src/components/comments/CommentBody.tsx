@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Heart, MessageSquare } from "lucide-react";
 import { Comment } from "@/types";
@@ -17,7 +16,7 @@ const CommentBody: React.FC<CommentBodyProps> = ({
   return (
     <>
       {/* Comment content */}
-      <div className="comment-content mt-2 mb-3 break-words">
+      <div className="comment-content mt-2 mb-3 break-words text-left">
         {comment.content}
       </div>
       
