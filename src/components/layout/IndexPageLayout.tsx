@@ -1,4 +1,3 @@
-
 import { ReactNode, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
@@ -36,7 +35,9 @@ const IndexPageLayout = ({
         />
 
         {/* Main Content */}
-        {children}
+        <main className={`main-content ${sidebarOpen ? 'with-sidebar' : ''}`}>
+          {children}
+        </main>
       </div>
 
       {/* 投稿ボタン（右下に固定） */}

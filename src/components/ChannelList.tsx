@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, Hash, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -121,24 +120,26 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold tracking-tight">チャンネル</h2>
-          <Button variant="ghost" size="icon">
-            <Plus className="h-5 w-5" />
-            <span className="sr-only">チャンネルを追加</span>
-          </Button>
+      <div className="px-3 py-2">
+        <div className="relative flex flex-col items-center mb-1">
+          <div className="w-full flex items-center justify-between">
+            <div className="w-7"></div> {/* 左側のスペーサー */}
+            <h2 className="text-xl font-semibold tracking-tight">チャンネル</h2>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            テックコミュニティに参加して、学び、共有しましょう
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          テックコミュニティに参加して、学び、共有しましょう
-        </p>
       </div>
-      <Separator className="my-3" />
-      <ScrollArea className="flex-1 px-2">
-        <div className="space-y-1.5 p-2">
+      <Separator className="my-2" />
+      <ScrollArea className="flex-1 px-1">
+        <div className="space-y-0.5 p-1">
           <Button
             variant={!selectedChannel ? "secondary" : "ghost"}
-            className="w-full justify-start font-normal text-base py-5"
+            className="w-full justify-start font-normal text-base py-1 h-8"
             onClick={() => onSelectChannel(null)}
           >
             <Hash className="mr-2 h-5 w-5" />
@@ -147,33 +148,33 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
           
           {/* Display channels grouped by category */}
           {channelsByCategory.map(({ category, channels }) => (
-            <div key={category.id} className="mt-4">
+            <div key={category.id} className="mt-1">
               <Collapsible
                 open={expandedCategories[category.id]}
                 onOpenChange={() => toggleCategory(category.id)}
-                className="space-y-2"
+                className="space-y-0.5"
               >
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between font-medium text-base pl-2 py-2 hover:bg-secondary/50"
+                    className="w-full justify-between font-medium text-base pl-1 py-0.5 h-7 hover:bg-secondary/50"
                   >
                     <div className="flex items-center min-w-0">
                       {expandedCategories[category.id] ? (
-                        <ChevronDown className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <ChevronDown className="mr-1 h-4 w-4 flex-shrink-0" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <ChevronRight className="mr-1 h-4 w-4 flex-shrink-0" />
                       )}
-                      <span className="truncate break-words whitespace-normal text-left">
+                      <span className="font-medium truncate min-w-0">
                         {category.name}
                       </span>
                     </div>
-                    <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                    <span className="text-xs text-muted-foreground ml-1 flex-shrink-0">
                       {channels.length}
                     </span>
                   </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-1 pl-4">
+                <CollapsibleContent className="space-y-0.5 pl-2">
                   {channels.map((channel) => (
                     <ChannelButton
                       key={channel.id}
@@ -203,12 +204,12 @@ const ChannelButton = ({ channel, isSelected, onClick }: ChannelButtonProps) => 
     <Button
       variant={isSelected ? "secondary" : "ghost"}
       className={cn(
-        "w-full justify-start font-normal text-base py-4 transition-all",
+        "w-full justify-start font-normal text-base py-0.5 h-7 transition-all",
         isSelected ? "bg-secondary" : "hover:bg-secondary/50"
       )}
       onClick={onClick}
     >
-      <span className="mr-3 text-lg">{channel.icon || "#"}</span>
+      <span className="mr-2 text-lg">{channel.icon || "#"}</span>
       <span className="truncate break-words whitespace-normal text-left">
         {channel.name}
       </span>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { Post } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -140,10 +140,27 @@ const Index = () => {
     }, 1000); // 遅延を1000msに増やして、より確実にDBに反映されるようにする
   };
 
+  // サイドバー開閉関数をメモ化
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prevState => {
+      const newState = !prevState;
+      console.log('Toggling sidebar to:', newState);
+      return newState;
+    });
+  }, []);
+
+  // サイドバーの状態変化を追跡
+  useEffect(() => {
+    console.log('Sidebar state changed:', sidebarOpen);
+  }, [sidebarOpen]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar - 固定ヘッダー */}
-      <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <Navbar 
+        onToggleSidebar={toggleSidebar} 
+        isSidebarOpen={sidebarOpen} 
+      />
 
       <div className="flex">
         {/* Sidebar Component */}
@@ -176,7 +193,7 @@ const Index = () => {
       </div>
 
       {/* 投稿ボタン（右下に固定） */}
-      <CreatePostButton onClick={() => setIsPostDialogOpen(true)} />
+      <CreatePostButton channelId={selectedChannel ?? undefined} />
 
       {/* 投稿ダイアログ */}
       <CreatePostDialog

@@ -1,4 +1,4 @@
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Search, Bell, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +17,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface NavbarProps {
   onToggleSidebar: () => void;
+  isSidebarOpen?: boolean;
 }
 
-const Navbar = ({ onToggleSidebar }: NavbarProps) => {
+const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -66,30 +67,38 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <Button 
-          variant="ghost" 
-          className="mr-2 px-2 lg:hidden" 
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative z-1000 mr-2 sidebar-toggle"
           onClick={onToggleSidebar}
+          aria-label="サイドバーを切り替え"
         >
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">サイドバーを切り替え</span>
+          {/* デバッグ用コメント */}
+          {/* サイドバーの状態: {isSidebarOpen ? 'Open' : 'Closed'} */}
+          {isSidebarOpen ? (
+            <X className="h-6 w-6 text-primary" />
+          ) : (
+            <Menu className="h-6 w-6 text-primary" />
+          )}
         </Button>
         
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
-            <div className="rounded-md bg-primary p-1">
+            <div className={`rounded-md bg-primary p-1 min-w-10 min-h-10 flex items-center justify-center z-10 relative ${isSidebarOpen ? 'ml-12' : ''}`}>
               <img 
                 src="/aiau_19.svg" 
                 alt="AIAU Logo" 
-                className="h-6 w-6"
+                className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
               />
             </div>
             {/* Removed テックトーク text as requested */}
           </Link>
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-2">
-          <form className="relative w-full max-w-sm lg:max-w-md">
+        {/* 検索フォームを中央に配置 */}
+        <div className="flex-1 flex justify-center">
+          <form className="relative w-full max-w-md">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
@@ -97,7 +106,10 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
               className="pl-8 sm:w-[350px] md:w-[300px] lg:w-[400px]"
             />
           </form>
+        </div>
 
+        {/* 右側にユーザーコントロールを配置 */}
+        <div className="flex items-center gap-2">
           <ThemeToggle />
 
           {user ? (
