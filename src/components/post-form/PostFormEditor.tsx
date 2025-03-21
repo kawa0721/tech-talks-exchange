@@ -48,6 +48,11 @@ const PostFormEditor = ({
   // 前のタブを追跡
   const [previousTab, setPreviousTab] = useState<"write" | "richtext" | "html" | "preview">("write");
   
+  // デバッグ用
+  useEffect(() => {
+    console.log('現在のエディタステート:', {activeTab, tableSelection, showTableMenu});
+  }, [activeTab, tableSelection, showTableMenu]);
+
   // タブ切り替え時の処理
   useEffect(() => {
     // タブが変わった場合のみ処理
@@ -201,6 +206,7 @@ const PostFormEditor = ({
 
   // テーブル挿入
   const insertTable = () => {
+    console.log('表の挿入を開始');
     const tableHtml = `
       <table>
         <thead>
@@ -226,6 +232,15 @@ const PostFormEditor = ({
     `;
     
     executeCommand('insertHTML', tableHtml);
+    
+    // 表の挿入後、クリック可能な状態にするためのディレイ
+    setTimeout(() => {
+      console.log('表の挿入後の状態確認');
+      if (contentEditableRef.current) {
+        const tables = contentEditableRef.current.querySelectorAll('table');
+        console.log('エディタ内の表数:', tables.length);
+      }
+    }, 100);
   };
 
   // 画像アップロード処理
@@ -271,26 +286,47 @@ const PostFormEditor = ({
   useEffect(() => {
     // リッチテキストモードがアクティブな場合のみ
     if (activeTab === "richtext" && contentEditableRef.current) {
-      // 表の選択を検出するためのクリックイベントリスナー
+      console.log('🔍 リッチテキストモードが有効になりました');
+      
+      // 前のタブから切り替えた場合、表選択状態をリセット
+      // 注: 最初はリセットせず、既存の表選択状態を保持する
+      if (tableSelection) {
+        console.log('📊 既存の表選択状態:', tableSelection);
+      } else {
+        console.log('📊 表選択状態なし');
+      }
+      
+      // 表の選択を検出するためのグローバルクリックイベントリスナー
       const handleTableClick = (e: MouseEvent) => {
+        console.log('🖱️ 表クリックイベント発生');
         let target = e.target as HTMLElement;
         let cell: HTMLTableCellElement | null = null;
+        
+        console.log('🔍 クリック要素:', target.tagName);
         
         // クリックした要素またはその親がtdまたはthかをチェック
         while (target && !cell) {
           if (target.tagName === 'TD' || target.tagName === 'TH') {
+            console.log('✅ セル要素を検出しました:', target.tagName);
             cell = target as HTMLTableCellElement;
             break;
           } else if (target === contentEditableRef.current) {
+            console.log('❌ エディタのルート要素に到達');
             break;
           }
           
-          if (!target.parentElement) break;
+          if (!target.parentElement) {
+            console.log('❌ 親要素がありません');
+            break;
+          }
           target = target.parentElement;
+          console.log('🔍 親要素をチェック:', target.tagName);
         }
         
         // セルが選択された場合
         if (cell) {
+          console.log('📌 セルが選択されました');
+          
           // セルの親要素を辿って表を取得
           let tableElement: HTMLTableElement | null = null;
           let current = cell.parentElement;
@@ -298,6 +334,7 @@ const PostFormEditor = ({
           while (current) {
             if (current.tagName === 'TABLE') {
               tableElement = current as HTMLTableElement;
+              console.log('📊 表要素を検出しました');
               break;
             }
             current = current.parentElement;
@@ -305,21 +342,52 @@ const PostFormEditor = ({
           
           if (tableElement) {
             // 行と列のインデックスを取得
-            const rowElement = cell.parentElement as HTMLTableRowElement;
-            const row = rowElement.rowIndex;
-            const col = cell.cellIndex;
-            
-            // 表の選択状態を更新
-            setTableSelection({ table: tableElement, row, col });
-            setShowTableMenu(true);
-            
-            // 伝播は継続（バブリングを止めない）
+            try {
+              const rowElement = cell.parentElement as HTMLTableRowElement;
+              const row = rowElement.rowIndex;
+              const col = cell.cellIndex;
+              
+              // 表の選択状態を更新
+              const selection = { table: tableElement, row, col };
+              console.log('✅ 表が選択されました:', { row, col });
+              
+              // React状態を更新
+              setTableSelection(selection);
+              setShowTableMenu(true);
+            } catch (error) {
+              console.error('❌ 表選択の処理中にエラー:', error);
+            }
+          } else {
+            console.log('❌ 表要素が見つかりませんでした');
           }
+        } else {
+          console.log('❌ セル要素は検出されませんでした');
         }
       };
       
-      // イベントリスナーを追加
+      // 直接エディタにイベントリスナーを追加
       contentEditableRef.current.addEventListener('click', handleTableClick);
+      console.log('✅ 表クリックイベントリスナーを追加しました');
+      
+      // 表が既に存在するか確認
+      if (contentEditableRef.current) {
+        const tables = contentEditableRef.current.querySelectorAll('table');
+        console.log('📊 エディタ内の表数:', tables.length);
+        
+        // 既存の表にもイベントリスナーを付加（冗長だが確実にするため）
+        tables.forEach((table, index) => {
+          console.log(`📊 表${index+1}を処理中`);
+          table.style.cursor = 'pointer';
+          table.style.border = '1px solid #ccc';
+          table.style.borderCollapse = 'collapse';
+          
+          const cells = table.querySelectorAll('td, th');
+          cells.forEach(cell => {
+            cell.style.border = '1px solid #ddd';
+            cell.style.padding = '4px';
+          });
+        });
+      }
       
       // ドキュメント全体のクリックイベント（表メニューを閉じるため）
       const handleDocumentClick = (e: MouseEvent) => {
@@ -334,14 +402,17 @@ const PostFormEditor = ({
           contentEditableRef.current && 
           !contentEditableRef.current.contains(e.target as Node)
         ) {
+          console.log('📋 エディタ外クリック - メニューを閉じます');
           setShowTableMenu(false);
         }
       };
       
       document.addEventListener('mousedown', handleDocumentClick);
+      console.log('✅ ドキュメントクリックイベントリスナーを追加しました');
       
       // クリーンアップ関数
       return () => {
+        console.log('🧹 クリーンアップ: イベントリスナーを削除します');
         if (contentEditableRef.current) {
           contentEditableRef.current.removeEventListener('click', handleTableClick);
         }
@@ -351,6 +422,8 @@ const PostFormEditor = ({
           clearTimeout(updateTimerRef.current);
         }
       };
+    } else if (activeTab !== "richtext") {
+      console.log('🔍 リッチテキストモード以外になりました:', activeTab);
     }
   }, [activeTab]);
 
@@ -722,9 +795,42 @@ const PostFormEditor = ({
             suppressContentEditableWarning={true}
           />
           
-          {/* 表が選択されているときに表示する表編集ボタン */}
-          {tableSelection && (
-            <div className="absolute top-2 right-2 z-10">
+          {/* 表が選択されているときに表示する表編集ボタン - 表の位置に合わせて表示 */}
+          {console.log('メニュー表示条件確認:', {tableSelection, showTableMenu}), tableSelection && (
+            <div 
+              className="fixed z-50" // z-indexを上げて確実に表示されるようにする
+              style={{
+                // 選択されたセルの位置を基に表示位置を計算
+                top: (() => {
+                  try {
+                    // 表自体の位置を取得
+                    if (tableSelection.table) {
+                      const tableRect = tableSelection.table.getBoundingClientRect();
+                      // 位置をわかりやすく表の上部に固定
+                      return tableRect.top - 40; // 表の上に表示
+                    }
+                    return window.innerHeight / 2; // 画面中央に表示
+                  } catch (error) {
+                    console.error("表の位置取得に失敗:", error);
+                    return 100; // より安全なfallback値
+                  }
+                })(),
+                left: (() => {
+                  try {
+                    // 表の位置を取得
+                    if (tableSelection.table) {
+                      const tableRect = tableSelection.table.getBoundingClientRect();
+                      // 表の中央に配置
+                      return tableRect.left + tableRect.width / 2 - 20;
+                    }
+                    return window.innerWidth / 2; // 画面中央に表示
+                  } catch (error) {
+                    console.error("表の位置取得に失敗:", error);
+                    return window.innerWidth / 2; // 画面中央に表示
+                  }
+                })(),
+              }}
+            >
               <Popover open={showTableMenu} onOpenChange={setShowTableMenu}>
                 <PopoverTrigger asChild>
                   <Button 
@@ -736,7 +842,7 @@ const PostFormEditor = ({
                     <Settings className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-2" align="end" sideOffset={5}>
+                <PopoverContent className="w-auto p-2" align="start" side="right" sideOffset={5}>
                   <div className="bg-background flex flex-col gap-2">
                     <div className="text-xs font-medium text-muted-foreground mb-1">表の編集</div>
                     <div className="flex gap-2">

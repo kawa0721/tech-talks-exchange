@@ -886,9 +886,50 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       <div className="relative">
         <EditorContent editor={editor} className="notion-like-editor" />
 
-        {/* 表が選択されているときに表示する表編集ボタン */}
-        {isTableSelected && (
-          <div className="absolute top-2 right-2 z-10">
+        {/* 表が選択されているときに表示する表編集ボタン - 表の位置に合わせて表示 */}
+        {isTableSelected && editor.view && (
+          <div 
+            className="fixed z-20"
+            style={{
+              // Selection の位置から表示位置を計算
+              top: (() => {
+                // 選択位置の座標を取得
+                const { state } = editor.view;
+                const { selection } = state;
+                const { from } = selection;
+                const coords = editor.view.coordsAtPos(from);
+                return coords.top + 2; // 少し下にオフセット
+              })(),
+              left: (() => {
+                // 選択位置の座標を取得
+                const { state } = editor.view;
+                const { selection } = state;
+                const { from } = selection;
+                const coords = editor.view.coordsAtPos(from);
+                // 選択された表の右端を特定
+                const tableElement = editor.view.nodeDOM(from) as HTMLElement;
+                let tableNode = tableElement;
+                
+                // 親をたどって表ノードを探す
+                while (tableNode && tableNode.tagName !== 'TABLE') {
+                  if (tableNode.parentElement) {
+                    tableNode = tableNode.parentElement;
+                  } else {
+                    break;
+                  }
+                }
+                
+                // 表の右端に配置
+                if (tableNode && tableNode.tagName === 'TABLE') {
+                  const rect = tableNode.getBoundingClientRect();
+                  return rect.right + 8; // 表の右側に配置
+                }
+                
+                // 表が見つからない場合はカーソル位置の右に配置
+                return coords.right + 8;
+              })(),
+            }}
+          >
             <Popover open={showTableMenu} onOpenChange={setShowTableMenu}>
               <PopoverTrigger asChild>
                 <Button 
