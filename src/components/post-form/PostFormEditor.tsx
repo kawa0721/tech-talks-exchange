@@ -150,8 +150,9 @@ const PostFormEditor = ({
                     // 表に追加
                     table.appendChild(tableToolbarElem);
                     
-                    // クリックイベント - ポップオーバーのみ表示
+                    // クリックイベント - ポップオーバーを表示
                     tableToolbarElem.onclick = (e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       console.log('表ツールバーがクリックされました（再初期化後）');
                       
@@ -161,7 +162,7 @@ const PostFormEditor = ({
                         row: 0, 
                         col: 0 
                       });
-                      // ポップオーバーを表示
+                      // ポップオーバーを表示 (状態をトグル)
                       setShowTablePopover(true)
                     };
                   };
@@ -407,6 +408,7 @@ const PostFormEditor = ({
             
             // ツールバークリック時の処理 - ポップオーバーのみ表示
             tableToolbarElem.onclick = (e) => {
+              e.preventDefault();
               e.stopPropagation();
               console.log('表ツールバーがクリックされました');
               
@@ -504,74 +506,78 @@ const PostFormEditor = ({
   useEffect(() => {
     // リッチテキストモードがアクティブな場合のみ
     if (activeTab === "richtext" && contentEditableRef.current) {
-      // 表の選択を検出するためのクリックイベントリスナー
+      // テーブル関連のクリックを処理するハンドラー
       const handleTableClick = (e: MouseEvent) => {
-        // イベント伝播を止める
-        e.stopPropagation();
-        
-        let target = e.target as HTMLElement;
-        let cell: HTMLTableCellElement | null = null;
-        
-        // クリックした要素またはその親がtdまたはthかをチェック
-        while (target && !cell) {
-          if (target.tagName === 'TD' || target.tagName === 'TH') {
-            cell = target as HTMLTableCellElement;
-            break;
-          } else if (target === contentEditableRef.current) {
-            break;
-          }
-          
-          if (!target.parentElement) break;
-          target = target.parentElement;
-        }
-        
-        // セルが選択されていない場合は選択状態をクリア
-        if (!cell) {
-          setTableSelection(null);
-          setShowTableMenu(false);
+        // 表ツールバーのクリックは既に他の場所で処理されるのでここでは無視
+        if ((e.target as HTMLElement).closest('.table-toolbar')) {
           return;
         }
         
-        // セルが選択された場合
-        if (cell) {
-          // セルの親要素を辿って表を取得
-          let tableElement: HTMLTableElement | null = null;
-          let current = cell.parentElement;
-          
-          while (current) {
-            if (current.tagName === 'TABLE') {
-              tableElement = current as HTMLTableElement;
-              break;
-            }
-            current = current.parentElement;
-          }
-          
-          if (tableElement) {
-            // 行と列のインデックスを取得
-            const rowElement = cell.parentElement as HTMLTableRowElement;
-            const row = rowElement.rowIndex;
-            const col = cell.cellIndex;
-            
-            // 表の選択状態を更新
-            setTableSelection({ table: tableElement, row, col });
-            // ポップオーバーを表示
-            setShowTablePopover(true);
-          }
+        // クリック位置の要素を取得
+        let target = e.target as HTMLElement;
+        
+        // クリックした要素が表の外部ならテーブル選択をクリア
+        const isOutsideTable = !target.closest('table');
+        if (isOutsideTable) {
+          setTableSelection(null);
+          setShowTablePopover(false);
+          return;
+        }
+        
+        // イベント伝播を止める (テーブル内のクリックの場合)
+        e.stopPropagation();
+        
+        // クリックした要素またはその親がセル(td/th)かを判定
+        let cell: HTMLTableCellElement | null = null;
+        if (target.tagName === 'TD' || target.tagName === 'TH') {
+          cell = target as HTMLTableCellElement;
+        } else {
+          cell = target.closest('td, th') as HTMLTableCellElement;
+        }
+        
+        // セルが見つからない場合は何もしない
+        if (!cell) {
+          return;
+        }
+        
+        // セルが見つかった場合、より効率的に処理する
+        const tableElement = cell.closest('table') as HTMLTableElement;
+        if (!tableElement) return;
+        
+        // 行と列のインデックスを取得
+        const rowElement = cell.parentElement as HTMLTableRowElement;
+        if (!rowElement) return;
+        
+        const row = rowElement.rowIndex;
+        const col = cell.cellIndex;
+        
+        console.log('テーブルセルが選択されました:', { row, col });
+        
+        // 表の選択状態を更新
+        setTableSelection({ table: tableElement, row, col });
+        
+        // ポップオーバーを表示（既に表示されている場合は状態を維持）
+        if (!showTablePopover) {
+          setShowTablePopover(true);
         }
       };
       
-      // mousedownイベントに変更
-      contentEditableRef.current.addEventListener('mousedown', handleTableClick);
+      // clickイベントを使用 (マウスボタンが離された時に発火するため、より安定)
+      contentEditableRef.current.addEventListener('click', handleTableClick);
       
       // ドキュメント全体のクリックイベント（表メニューを閉じるため）
       const handleDocumentClick = (e: MouseEvent) => {
+        // 既にポップオーバーが非表示の場合は何もしない
+        if (!showTablePopover) return;
+        
         // ポップオーバー内のクリックは無視
         const popoverContent = document.querySelector('[data-radix-popper-content-wrapper]');
         if (popoverContent && popoverContent.contains(e.target as Node)) {
           return;
         }
         
-        // エディタ外のクリックでポップオーバーを閉じる
+        // エディタ内の正規のクリックは上記のハンドラで処理されるので、
+        // ここではエディタ外のクリックのみを考慮する
         if (
           contentEditableRef.current && 
           !contentEditableRef.current.contains(e.target as Node)
@@ -580,21 +586,22 @@ const PostFormEditor = ({
         }
       };
       
-      document.addEventListener('mousedown', handleDocumentClick);
+      // キャプチャフェーズでイベントを処理（より優先度が高い）
+      document.addEventListener('click', handleDocumentClick, { capture: true });
       
       // クリーンアップ関数
       return () => {
         if (contentEditableRef.current) {
-          contentEditableRef.current.removeEventListener('mousedown', handleTableClick);
+          contentEditableRef.current.removeEventListener('click', handleTableClick);
         }
-        document.removeEventListener('mousedown', handleDocumentClick);
+        document.removeEventListener('click', handleDocumentClick, { capture: true });
         
         if (updateTimerRef.current) {
           clearTimeout(updateTimerRef.current);
         }
       };
     }
-  }, [activeTab]);
+  }, [activeTab, showTablePopover]);
 
   // エディタの高さを計算
   const getEditorHeight = () => {
@@ -786,13 +793,36 @@ const PostFormEditor = ({
   useEffect(() => {
     // リッチテキストの変更を監視して表のツールバーを設定
     if (activeTab === "richtext" && contentEditableRef.current) {
+      let animationFrameId: number | null = null;
+      
       const observer = new MutationObserver((mutations) => {
-        mutations.forEach(() => {
+        // 複数の変更を一つのアニメーションフレームにまとめて処理
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        
+        animationFrameId = requestAnimationFrame(() => {
+          // DOM変更がテーブルに関連するか確認
+          const tableAffected = mutations.some(mutation => {
+            return mutation.target.nodeName === 'TABLE' || 
+                   mutation.target.closest('table') || 
+                   Array.from(mutation.addedNodes).some(node => 
+                     (node as HTMLElement).nodeName === 'TABLE' || 
+                     (node as HTMLElement).querySelector?.('table')
+                   );
+          });
+          
+          // テーブル関連の変更がない場合はスキップ
+          if (!tableAffected && mutations.length < 5) return;
+          
           // 表のスタイルとイベントリスナーを再設定
           if (contentEditableRef.current) {
             const tables = contentEditableRef.current.querySelectorAll('table');
+            console.log('MutationObserver: テーブル更新', tables.length);
+            
             if (tables.length > 0) {
               tables.forEach(table => {
+                // テーブルスタイル
                 table.style.border = '2px solid #3b82f6';
                 table.style.borderCollapse = 'collapse';
                 table.style.cursor = 'pointer';
@@ -817,8 +847,12 @@ const PostFormEditor = ({
         attributes: true
       });
       
+      // クリーンアップ
       return () => {
         observer.disconnect();
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
       };
     }
   }, [activeTab]);
