@@ -1,4 +1,3 @@
-
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChangeEvent } from "react";
@@ -10,8 +9,8 @@ interface PostFormFooterProps {
 
 const PostFormFooter = ({ isSubmitting, handleImageUpload }: PostFormFooterProps) => {
   return (
-    <div className="flex justify-between border-t p-3">
-      <div className="flex items-center">
+    <div className="flex flex-row items-center border-t p-3">
+      <div className="flex-1">
         <Button
           type="button"
           variant="ghost"
@@ -31,9 +30,11 @@ const PostFormFooter = ({ isSubmitting, handleImageUpload }: PostFormFooterProps
           />
         </Button>
       </div>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "投稿中..." : "投稿"}
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "投稿中..." : "投稿"}
+        </Button>
+      </div>
     </div>
   );
 };

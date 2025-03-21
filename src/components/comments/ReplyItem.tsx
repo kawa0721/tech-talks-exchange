@@ -36,7 +36,7 @@ const ReplyItem = ({
     <div className="flex gap-3">
       <Avatar className="h-6 w-6">
         <AvatarImage src={reply.user.avatar} alt={reply.user.name} />
-        <AvatarFallback>{reply.user.name.substring(0, 2)}</AvatarFallback>
+        <AvatarFallback>{reply.user.name.substring(0, 1)}</AvatarFallback>
       </Avatar>
       <div className="flex-1">
         <div className="flex items-center justify-between">

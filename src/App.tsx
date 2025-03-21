@@ -1,4 +1,3 @@
-
 // Import the migration utility
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -13,6 +12,7 @@ import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./pages/UserProfile";
 import ProfileRedirect from "./pages/ProfileRedirect";
 import NotFound from "./pages/NotFound";
+import CreatePost from "./pages/CreatePost";
 import { migrateChannelsData } from "./utils/migrateChannelsData";
 import "./App.css";
 
@@ -35,6 +35,7 @@ function App() {
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/profile" element={<ProfileRedirect />} />
             <Route path="/settings" element={<ProfileRedirect />} />
+            <Route path="/create-post" element={<CreatePost />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

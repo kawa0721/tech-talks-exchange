@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -99,10 +98,11 @@ const CommentForm = ({
       // ログイン済みの場合はニックネームは不要（バックエンドでユーザーIDを使用）
       onSubmit(content);
     } else {
-      // 未ログインの場合はニックネームを渡す
-      onSubmit(content, nickname);
+      // 未ログインの場合はニックネームを渡す（空でも可能）
+      onSubmit(content, nickname || undefined);
     }
     
+    // 送信後は内容をクリア
     setContent("");
     // ニックネームはそのまま維持して次のコメントでも使えるようにする
   };

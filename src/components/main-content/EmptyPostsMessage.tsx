@@ -1,9 +1,24 @@
-
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
-const EmptyPostsMessage = () => {
+const EmptyPostsMessage = ({ channelId }: { channelId?: string }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const handleCreatePostClick = () => {
-    document.querySelector('.create-post-button')?.dispatchEvent(new Event('click'));
+    if (!user) {
+      toast.error("投稿を作成するにはログインが必要です");
+      return;
+    }
+    
+    // チャンネルIDがある場合はクエリパラメータとして渡す
+    if (channelId) {
+      navigate(`/create-post?channelId=${channelId}`);
+    } else {
+      navigate("/create-post");
+    }
   };
 
   return (

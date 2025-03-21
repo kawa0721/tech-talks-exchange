@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { MoreHorizontal, Trash2, Edit, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +15,20 @@ interface CommentActionsProps {
   onDeleteComment: (id: string, isReply?: boolean, parentId?: string) => void;
 }
 
-const CommentActions = ({
+const CommentActions: React.FC<CommentActionsProps> = ({
   comment,
   onStartEditing,
   onDeleteComment
-}: CommentActionsProps) => {
+}) => {
+  // メモ化したコールバックを使用して不要な再レンダリングを防止
+  const handleEdit = useCallback(() => {
+    onStartEditing(comment.id);
+  }, [comment.id, onStartEditing]);
+
+  const handleDelete = useCallback(() => {
+    onDeleteComment(comment.id);
+  }, [comment.id, onDeleteComment]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,7 +39,7 @@ const CommentActions = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={5} className="w-36">
         <DropdownMenuItem 
-          onClick={() => onStartEditing(comment.id)}
+          onClick={handleEdit}
           className="cursor-pointer flex items-center"
         >
           <Edit className="h-4 w-4 mr-2" />
@@ -38,7 +47,7 @@ const CommentActions = ({
         </DropdownMenuItem>
         
         <DropdownMenuItem 
-          onClick={() => onDeleteComment(comment.id)}
+          onClick={handleDelete}
           className="cursor-pointer flex items-center text-destructive focus:text-destructive"
         >
           <Trash2 className="h-4 w-4 mr-2" />
@@ -54,4 +63,4 @@ const CommentActions = ({
   );
 };
 
-export default CommentActions;
+export default React.memo(CommentActions);

@@ -80,7 +80,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
             <div className="rounded-md bg-primary p-1">
               <MessageSquare className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="hidden font-bold sm:inline-block">テックトーク</span>
+            {/* Removed テックトーク text as requested */}
           </Link>
         </div>
 

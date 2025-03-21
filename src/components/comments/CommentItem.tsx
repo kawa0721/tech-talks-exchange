@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Comment } from "@/types";
 import ReplyForm from "./ReplyForm";
 import EditCommentForm from "./EditCommentForm";
@@ -39,19 +39,36 @@ const CommentItem: React.FC<CommentItemProps> = ({
 }) => {
   const [showReplies, setShowReplies] = useState(true);
   
-  // Toggle replies visibility
-  const toggleReplies = () => {
-    setShowReplies(!showReplies);
-  };
+  // Toggle replies visibility - メモ化
+  const toggleReplies = useCallback(() => {
+    setShowReplies(prev => !prev);
+  }, []);
 
-  // Handle reply button click
-  const handleReplyClick = () => {
+  // Handle reply button click - メモ化
+  const handleReplyClick = useCallback(() => {
     if (replyTo === comment.id) {
       onSetReplyTo(null);
     } else {
       onSetReplyTo(comment.id);
     }
-  };
+  }, [comment.id, replyTo, onSetReplyTo]);
+
+  // コールバック関数をメモ化
+  const handleCancelEditing = useCallback(() => {
+    onCancelEditing(comment.id);
+  }, [comment.id, onCancelEditing]);
+
+  const handleSaveEdit = useCallback(() => {
+    onSaveEdit(comment.id);
+  }, [comment.id, onSaveEdit]);
+
+  const handleSubmitReply = useCallback((content?: string, nickname?: string) => {
+    onSubmitReply(comment.id, content, nickname);
+  }, [comment.id, onSubmitReply]);
+
+  const handleCancelReply = useCallback(() => {
+    onSetReplyTo(null);
+  }, [onSetReplyTo]);
 
   // Check if this comment is being edited
   const isEditing = comment.isEditing || false;
@@ -64,8 +81,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
           id={comment.id}
           content={editContent[comment.id] || comment.content}
           onSetContent={onSetEditContent}
-          onCancel={() => onCancelEditing(comment.id)}
-          onSave={() => onSaveEdit(comment.id)}
+          onCancel={handleCancelEditing}
+          onSave={handleSaveEdit}
           isSubmitting={submitting}
         />
       ) : (
@@ -89,8 +106,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
           <ReplyForm
             parentId={comment.id}
             userName={comment.user.name}
-            onSubmit={(content, nickname) => onSubmitReply(comment.id, content, nickname)}
-            onCancel={() => onSetReplyTo(null)}
+            onSubmit={handleSubmitReply}
+            onCancel={handleCancelReply}
             isSubmitting={submitting}
           />
         </div>
@@ -114,4 +131,4 @@ const CommentItem: React.FC<CommentItemProps> = ({
   );
 };
 
-export default CommentItem;
+export default React.memo(CommentItem);

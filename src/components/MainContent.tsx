@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import LoadMoreButton from "@/components/LoadMoreButton";
+import EmptyPostsMessage from "@/components/main-content/EmptyPostsMessage";
 
 // タブ切り替え用のコンテキスト作成
 interface ActiveTabContextType {
@@ -247,13 +248,7 @@ const MainContent = ({
 
           {/* 投稿がない場合のメッセージ */}
           {!loading && !loadingMore && posts.length === 0 && (
-            <div className="text-center py-16 border rounded-lg border-dashed border-border">
-              <p className="text-2xl font-medium mb-2">投稿がありません</p>
-              <p className="text-muted-foreground mb-6">このチャンネルにはまだ投稿がありません。最初の投稿を作成しましょう！</p>
-              <Button onClick={() => document.querySelector('.create-post-button')?.dispatchEvent(new Event('click'))}>
-                新しい投稿を作成
-              </Button>
-            </div>
+            <EmptyPostsMessage channelId={selectedChannel} />
           )}
         </div>
       </main>

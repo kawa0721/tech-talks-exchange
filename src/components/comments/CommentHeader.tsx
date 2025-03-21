@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +27,15 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({
     return formatDistanceToNow(date, { addSuffix: true, locale: ja });
   };
 
+  // メモ化したコールバックを使用して不要な再レンダリングを防止
+  const handleToggleLike = useCallback(() => {
+    onToggleLike(comment.id);
+  }, [comment.id, onToggleLike]);
+
+  const handleReplyClick = useCallback(() => {
+    onReplyClick();
+  }, [onReplyClick]);
+
   return (
     <div className="flex justify-between items-start mb-2">
       <div className="flex items-center">
@@ -49,7 +58,7 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({
           variant="ghost" 
           size="sm" 
           className={`flex items-center space-x-1 px-2 h-8 ${comment.liked ? 'text-destructive' : ''}`}
-          onClick={() => onToggleLike(comment.id)}
+          onClick={handleToggleLike}
         >
           <Heart className="w-4 h-4" fill={comment.liked ? "currentColor" : "none"} />
           <span className="text-xs">{comment.likesCount > 0 ? comment.likesCount : ""}</span>
@@ -59,7 +68,7 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({
           variant="ghost" 
           size="sm" 
           className="flex items-center space-x-1 px-2 h-8"
-          onClick={onReplyClick}
+          onClick={handleReplyClick}
         >
           <MessageSquare className="w-4 h-4" />
           <span className="text-xs">返信</span>
@@ -75,4 +84,4 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({
   );
 };
 
-export default CommentHeader;
+export default React.memo(CommentHeader);

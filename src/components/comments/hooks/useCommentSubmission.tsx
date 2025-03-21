@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Comment } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,10 +83,10 @@ export function useCommentSubmission(
         updatedAt: newCommentData.updated_at ? new Date(newCommentData.updated_at) : undefined,
         likesCount: newCommentData.likes_count || 0,
         liked: false,
-        guestNickname: newCommentData.guest_nickname,
+        guestNickname: newCommentData.guest_nickname || nickname,
         user: {
           id: newCommentData.user_id || 'guest',
-          name: newCommentData.guest_nickname || 
+          name: newCommentData.guest_nickname || nickname ||
                 (profile ? profile.username : null) || 
                 `ユーザー_${(newCommentData.user_id || '').substring(0, 5)}`,
           avatar: (profile ? profile.avatar_url : null) || '/placeholder-avatar.png'

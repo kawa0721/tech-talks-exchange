@@ -15,14 +15,10 @@ export function useCommentSection(postId: string, onCommentCountChange?: (count:
   const [commentsState, setCommentsState] = useState<Comment[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  // Update local state when comments are fetched - 修正：無限ループを防ぐ
+  // Update local state when comments are fetched - 修正：常に最新のコメントを反映
   useEffect(() => {
-    // コメントIDの配列を比較することで実質的な変更があるか確認
-    const currentIds = commentsState.map(c => c.id).sort().join(',');
-    const newIds = comments.map(c => c.id).sort().join(',');
-    
-    // コメントの数やID配列が変更された場合のみ更新する
-    if (comments.length > 0 && (currentIds !== newIds || commentsState.length !== comments.length)) {
+    // commentsが空の場合は更新しない（初期状態のみ）
+    if (comments.length > 0) {
       setCommentsState(comments);
       
       // Update comment count
@@ -30,7 +26,7 @@ export function useCommentSection(postId: string, onCommentCountChange?: (count:
         onCommentCountChange(comments.length);
       }
     }
-  }, [comments, onCommentCountChange, commentsState]);
+  }, [comments]);
   
   // Update error state
   useEffect(() => {
