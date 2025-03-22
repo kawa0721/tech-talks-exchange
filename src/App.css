@@ -3,6 +3,10 @@
   margin: 0 auto;
   padding: 0rem 2rem 2rem 2rem;
   text-align: center;
+  @media (width < 48rem){
+    padding:0;
+    overflow: hidden;
+  }
 }
 
 .logo {
