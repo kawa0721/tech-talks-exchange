@@ -47,6 +47,15 @@ const Sidebar = ({
   
   return (
     <>
+      {/* Overlay for closing sidebar when clicking outside */}
+      {isOpen && !internalPinned && (
+        <div
+          className="fixed inset-0 bg-black/20 z-30"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      
       {/* Sidebar */}
       <aside className={`sidebar ${!isOpen ? "closed" : ""} ${internalPinned ? "pinned" : ""}`}>
         <div className="sidebar-content">
@@ -83,14 +92,6 @@ const Sidebar = ({
           />
         </div>
       </aside>
-
-      {/* Overlay for mobile */}
-      {isOpen && !internalPinned && (
-        <div
-          className="mobile-overlay"
-          onClick={onClose}
-        />
-      )}
     </>
   );
 };

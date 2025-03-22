@@ -85,11 +85,18 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
         
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
-            <div className={`rounded-md bg-primary p-1 min-w-10 min-h-10 flex items-center justify-center z-10 relative ${isSidebarOpen ? 'ml-12' : ''}`}>
+            <div className={`flex items-center justify-center z-10 relative ${isSidebarOpen ? 'ml-12' : ''}`}>
+              {/* Small screen logo (visible on small screens, hidden on medium and larger) */}
               <img 
-                src="/aiau_19.svg" 
+                src="/aiau_19_transparent.svg" 
                 alt="AIAU Logo" 
-                className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
+                className="h-8 w-8 sm:hidden object-contain"
+              />
+              {/* Larger screen banner (hidden on small screens, visible on medium and larger) */}
+              <img 
+                src="/aiau_banner_FCF3D6_02 trimmed.png" 
+                alt="AIAU Banner" 
+                className="hidden sm:block h-10 object-contain"
               />
             </div>
             {/* Removed テックトーク text as requested */}
