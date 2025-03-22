@@ -118,20 +118,17 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
           <>
             <p className="mt-1 text-xs text-left">{reply.content}</p>
             
-            {/* いいねと返信ボタンを配置 */}
-            <div className="flex items-center mt-2 px-2">
-              {/* いいねボタンを左側に配置 */}
-              <div className="flex justify-start">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className={`flex items-center space-x-1 px-2 h-6 ${reply.liked ? 'text-blue-500' : ''}`}
-                  onClick={handleToggleLike}
-                >
-                  <ThumbsUp className="w-3 h-3" />
-                  <span className="text-xs">{reply.likesCount > 0 ? reply.likesCount : ""}</span>
-                </Button>
-              </div>
+            {/* いいねボタンを配置 */}
+            <div className="flex items-center mt-2 pl-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center space-x-1 pl-0 h-6 ${reply.liked ? 'text-blue-500' : ''}`}
+                onClick={handleToggleLike}
+              >
+                <ThumbsUp className="w-3 h-3" />
+                <span className="text-xs">{reply.likesCount > 0 ? reply.likesCount : ""}</span>
+              </Button>
             </div>
             
             {/* 返信の返信があれば表示（3階層目以降は表示しない） */}

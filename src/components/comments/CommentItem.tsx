@@ -105,19 +105,18 @@ const CommentItem: React.FC<CommentItemProps> = ({
           
           {/* アクションボタン - コメント本文の下に配置 */}
           <div className="flex items-center justify-between mt-2 px-2">
-            {/* 返信ボタンを左側に配置 */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center space-x-1 px-2 h-8"
-              onClick={handleReplyClick}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span className="text-xs">返信</span>
-            </Button>
-            
-            {/* いいねボタンを真ん中に配置 */}
-            <div className="flex justify-center flex-1">
+            {/* 返信ボタンといいねボタンを左側に配置 */}
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center space-x-1 px-2 h-8"
+                onClick={handleReplyClick}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="text-xs">返信</span>
+              </Button>
+              
               <Button 
                 variant="ghost" 
                 size="sm" 
