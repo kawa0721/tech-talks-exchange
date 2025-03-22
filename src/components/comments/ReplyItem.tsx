@@ -1,12 +1,13 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Comment } from "@/types";
 import CommentActions from "./CommentActions";
 import EditCommentForm from "./EditCommentForm";
-import { ThumbsUp, MessageSquare } from "lucide-react";
+import { ThumbsUp, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ReplyForm from "./ReplyForm";
 
 interface ReplyItemProps {
   reply: Comment;
@@ -21,6 +22,8 @@ interface ReplyItemProps {
   isEditing?: boolean;
   submitting: boolean;
   onReplyClick?: (replyId: string) => void;
+  replyTo?: string | null;
+  onSubmitReply?: (parentId: string, content: string, nickname?: string) => void;
 }
 
 const ReplyItem: React.FC<ReplyItemProps> = ({
@@ -35,19 +38,44 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
   onSaveEdit,
   isEditing = false,
   submitting,
-  onReplyClick
+  onReplyClick,
+  replyTo,
+  onSubmitReply
 }) => {
+  // 返信の折りたたみ状態を管理
+  const [isExpanded, setIsExpanded] = useState(true);
+  
+  // 折りたたみを切り替える
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded(prev => !prev);
+  }, []);
+  
   // いいねボタンのハンドラーをメモ化
   const handleToggleLike = useCallback(() => {
     onToggleLike(reply.id);
   }, [reply.id, onToggleLike]);
 
-  // 返信ボタンのハンドラーをメモ化
+  // 返信ボタンのハンドラーをメモ化（ネスト深度に関わらず有効化）
   const handleReplyClick = useCallback(() => {
     if (onReplyClick) {
+      console.log(`返信ボタンがクリックされました: ID=${reply.id}`);
       onReplyClick(reply.id);
     }
   }, [reply.id, onReplyClick]);
+  
+  // 返信送信ハンドラー
+  const handleSubmitReply = useCallback((content: string, nickname?: string) => {
+    if (onSubmitReply) {
+      onSubmitReply(reply.id, content, nickname);
+    }
+  }, [reply.id, onSubmitReply]);
+  
+  // 返信キャンセルハンドラー
+  const handleCancelReply = useCallback(() => {
+    if (onReplyClick) {
+      onReplyClick(null);
+    }
+  }, [onReplyClick]);
 
   return (
     <div className="flex gap-3">
@@ -90,13 +118,13 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
             <p className="mt-1 text-xs text-left">{reply.content}</p>
             
             {/* いいねと返信ボタンを配置 */}
-            <div className="flex items-center justify-between mt-2 px-2">
+            <div className="flex items-center mt-2 px-2">
               {/* 返信ボタンを左側に配置 */}
               {onReplyClick && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="flex items-center space-x-1 px-2 h-6"
+                  className="flex items-center space-x-1 px-2 h-6 mr-2"
                   onClick={handleReplyClick}
                 >
                   <MessageSquare className="w-3 h-3" />
@@ -104,41 +132,76 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
                 </Button>
               )}
               
-              {/* いいねボタンを右側に配置 */}
-              <div className="flex justify-end flex-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className={`flex items-center space-x-1 px-2 h-6 ${reply.liked ? 'text-blue-500' : ''}`}
-                  onClick={handleToggleLike}
-                >
-                  <ThumbsUp className="w-3 h-3" />
-                  <span className="text-xs">{reply.likesCount > 0 ? reply.likesCount : ""}</span>
-                </Button>
-              </div>
+              {/* いいねボタンを返信ボタンの隣に配置 */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center space-x-1 px-2 h-6 ${reply.liked ? 'text-blue-500' : ''}`}
+                onClick={handleToggleLike}
+              >
+                <ThumbsUp className="w-3 h-3" />
+                <span className="text-xs">{reply.likesCount > 0 ? reply.likesCount : ""}</span>
+              </Button>
             </div>
-
-            {/* 返信の返信があれば表示 */}
-            {reply.replies && reply.replies.length > 0 && (
-              <div className="pl-4 border-l-2 border-muted space-y-4 mt-2">
-                {reply.replies.map((nestedReply) => (
-                  <ReplyItem
-                    key={nestedReply.id}
-                    reply={nestedReply}
-                    parentId={reply.id}
-                    editContent={editContent}
-                    onSetEditContent={onSetEditContent}
-                    onToggleLike={onToggleLike}
-                    onDeleteComment={onDeleteComment}
-                    onStartEditing={onStartEditing}
-                    onCancelEditing={onCancelEditing}
-                    onSaveEdit={onSaveEdit}
-                    isEditing={nestedReply.isEditing || false}
-                    submitting={submitting}
-                    onReplyClick={onReplyClick}
-                  />
-                ))}
+            
+            {/* 現在の返信への返信フォームを表示 */}
+            {replyTo === reply.id && onSubmitReply && (
+              <div className="mt-3 pl-2 border-l-2 border-primary">
+                <ReplyForm
+                  parentId={reply.id}
+                  userName={reply.user.name}
+                  onSubmit={handleSubmitReply}
+                  onCancel={handleCancelReply}
+                  isSubmitting={submitting}
+                />
               </div>
+            )}
+
+            {/* 返信の返信があれば表示（深いネスト層にも対応） */}
+            {reply.replies && reply.replies.length > 0 && (
+              <>
+                {/* 返信表示/非表示トグルボタン */}
+                <div className="flex items-center mt-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center space-x-1 px-2 h-6 text-xs"
+                    onClick={toggleExpanded}
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="w-3 h-3 mr-1" />
+                    ) : (
+                      <ChevronDown className="w-3 h-3 mr-1" />
+                    )}
+                    {isExpanded ? "返信を折りたたむ" : `返信を表示 (${reply.replies.length})`}
+                  </Button>
+                </div>
+                
+                {/* 返信内容（展開時のみ表示） */}
+                {isExpanded && (
+                  <div className="pl-4 border-l-2 border-muted space-y-4 mt-2">
+                    {reply.replies.map((nestedReply) => (
+                      <ReplyItem
+                        key={nestedReply.id}
+                        reply={nestedReply}
+                        parentId={reply.id}
+                        editContent={editContent}
+                        onSetEditContent={onSetEditContent}
+                        onToggleLike={onToggleLike}
+                        onDeleteComment={onDeleteComment}
+                        onStartEditing={onStartEditing}
+                        onCancelEditing={onCancelEditing}
+                        onSaveEdit={onSaveEdit}
+                        isEditing={nestedReply.isEditing || false}
+                        submitting={submitting}
+                        onReplyClick={onReplyClick}
+                        replyTo={replyTo}
+                        onSubmitReply={onSubmitReply}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

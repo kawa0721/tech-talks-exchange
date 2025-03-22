@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,16 +65,27 @@ const ReplyForm = ({
       return;
     }
 
-    // ログイン状態に応じて、ニックネームを渡すかどうか決定
-    if (user) {
-      // ログイン済みの場合はニックネームは不要
-      onSubmit(content);
-    } else {
-      // 未ログインの場合はニックネームを渡す
-      onSubmit(content, nickname);
+    // 親IDが有効かチェック
+    if (!parentId || parentId.trim() === '') {
+      toast.error("返信先のコメントIDが無効です");
+      return;
     }
-    
-    setContent("");
+
+    try {
+      // ログイン状態に応じて、ニックネームを渡すかどうか決定
+      if (user) {
+        // ログイン済みの場合はニックネームは不要
+        onSubmit(content);
+      } else {
+        // 未ログインの場合はニックネームを渡す
+        onSubmit(content, nickname);
+      }
+      
+      setContent("");
+    } catch (error) {
+      console.error("返信送信エラー:", error);
+      toast.error("返信の送信に失敗しました。しばらく待ってから再試行してください。");
+    }
   };
 
   return (

@@ -16,6 +16,7 @@ interface CommentRepliesProps {
   submitting: boolean;
   replyTo: string | null;
   onSetReplyTo: (id: string | null) => void;
+  onSubmitReply?: (parentId: string, content: string, nickname?: string) => void;
 }
 
 const CommentReplies: React.FC<CommentRepliesProps> = ({
@@ -31,7 +32,8 @@ const CommentReplies: React.FC<CommentRepliesProps> = ({
   onSaveEdit,
   submitting,
   replyTo,
-  onSetReplyTo
+  onSetReplyTo,
+  onSubmitReply
 }) => {
   if (!comment.replies || comment.replies.length === 0) {
     return null;
@@ -39,6 +41,7 @@ const CommentReplies: React.FC<CommentRepliesProps> = ({
 
   // 返信ボタンがクリックされた時の処理
   const handleReplyClick = (replyId: string) => {
+    console.log(`CommentReplies内の返信ボタンがクリックされました: ID=${replyId}`);
     if (replyTo === replyId) {
       onSetReplyTo(null);
     } else {
@@ -72,6 +75,8 @@ const CommentReplies: React.FC<CommentRepliesProps> = ({
               isEditing={reply.isEditing || false}
               submitting={submitting}
               onReplyClick={handleReplyClick}
+              replyTo={replyTo}
+              onSubmitReply={onSubmitReply}
             />
           ))}
         </div>

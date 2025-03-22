@@ -32,13 +32,53 @@ export function useCommentReply(
     }
   };
 
+  // Helper function to find a comment by ID (either top-level or reply)
+  const findCommentById = (comments: Comment[], commentId: string): Comment | undefined => {
+    // コメントIDが無効な場合は早期リターン
+    if (!commentId) return undefined;
+    
+    // 完全再帰的に検索する関数
+    const searchRecursively = (items: Comment[]): Comment | undefined => {
+      for (const item of items) {
+        // 現在のアイテムをチェック
+        if (item.id === commentId) {
+          return item;
+        }
+        
+        // 返信をチェック（存在する場合）
+        if (item.replies && item.replies.length > 0) {
+          const foundInReplies = searchRecursively(item.replies);
+          if (foundInReplies) {
+            return foundInReplies;
+          }
+        }
+      }
+      return undefined;
+    };
+    
+    return searchRecursively(comments);
+  };
+
   // Function to handle reply submission
   const handleSubmitReply = async (parentId: string, content?: string, nickname?: string) => {
     // Use the content parameter if provided, otherwise use the state
     const replyText = content || replyContent;
     
     if (!replyText.trim()) {
-      return;
+      return false;
+    }
+
+    // 親コメントIDが無効な場合は早期リターン
+    if (!parentId || parentId.trim() === '') {
+      setError("返信先のコメントIDが無効です");
+      toast.error("返信先の情報が不正です");
+      return false;
+    }
+
+    // すでに送信中なら処理をスキップ
+    if (submitting) {
+      console.log("すでに送信処理中です");
+      return false;
     }
 
     setSubmitting(true);
@@ -48,17 +88,28 @@ export function useCommentReply(
       const { data: { user } } = await supabase.auth.getUser();
       
       let userId = null;
+      
       if (user) {
+        // ログインユーザー
         userId = user.id;
       }
       
       // 親コメント情報を取得（トップレベルコメントか返信か）
+      // ローカルにキャッシュされたコメントから親を検索
       const parentInfo = findCommentById(comments, parentId);
       if (!parentInfo) {
+        console.error("親コメントが見つかりません:", {
+          parentId,
+          commentsCount: comments.length,
+          firstComment: comments[0]?.id
+        });
         throw new Error("親コメントが見つかりません");
       }
       
-      const postId = getPostIdFromParentComment(parentId);
+      const postId = parentInfo.postId || getPostIdFromParentComment(parentId);
+      if (!postId) {
+        throw new Error("投稿IDが取得できません");
+      }
       
       // Prepare reply data
       const replyData = {
@@ -66,8 +117,10 @@ export function useCommentReply(
         content: replyText,
         parent_id: parentId, // 常に直接の親を参照
         user_id: userId,
-        guest_nickname: nickname
+        guest_nickname: nickname || '匿名ユーザー'
       };
+      
+      console.log("返信データをデータベースに投稿中:", replyData);
       
       // Insert reply into database
       const { data: newReplyData, error: insertError } = await supabase
@@ -83,6 +136,8 @@ export function useCommentReply(
       if (!newReplyData) {
         throw new Error("Failed to create reply");
       }
+      
+      console.log("返信がデータベースに保存されました:", newReplyData.id);
       
       // Get profile information
       let profile = null;
@@ -112,56 +167,53 @@ export function useCommentReply(
         }
       };
       
-      // 親がトップレベルコメントか返信かに応じてコメントツリーを更新
-      let updatedComments;
+      console.log("コメントツリーを更新中...");
       
-      // 親の親IDが存在する場合（親が返信の場合）
-      if (parentInfo.parentId) {
-        // 親コメントを取得
-        const topLevelParentId = parentInfo.parentId;
-        
-        updatedComments = comments.map(comment => {
-          if (comment.id === topLevelParentId) {
-            // トップレベルコメントを見つけた
-            const updatedReplies = comment.replies ? 
-              comment.replies.map(reply => {
-                if (reply.id === parentId) {
-                  // 返信元の返信を見つけた
-                  const nestedReplies = reply.replies || [];
-                  return {
-                    ...reply,
-                    replies: [...nestedReplies, formattedReply]
-                  };
-                }
-                return reply;
-              }) : 
-              [];
-              
-            return { ...comment, replies: updatedReplies };
+      // コメントツリー内の特定のコメントに返信を追加する再帰関数
+      const addReplyToComment = (comments: Comment[], targetId: string, newReply: Comment): Comment[] => {
+        return comments.map(comment => {
+          // このコメントが対象の場合、直接返信を追加
+          if (comment.id === targetId) {
+            console.log(`コメント「${comment.id}」に返信を追加しました`);
+            return {
+              ...comment,
+              replies: comment.replies ? [...comment.replies, newReply] : [newReply]
+            };
           }
+          
+          // 返信がある場合は再帰的に検索
+          if (comment.replies && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: addReplyToComment(comment.replies, targetId, newReply)
+            };
+          }
+          
+          // 該当なしの場合はそのまま返す
           return comment;
         });
-      } else {
-        // 親がトップレベルコメントの場合
-        updatedComments = comments.map(comment => {
-          if (comment.id === parentId) {
-            const updatedReplies = comment.replies ? [...comment.replies, formattedReply] : [formattedReply];
-            return { ...comment, replies: updatedReplies };
-          }
-          return comment;
-        });
-      }
+      };
       
+      // 親の階層に関係なく、再帰的に処理する
+      const updatedComments = addReplyToComment(comments, parentId, formattedReply);
+      
+      // コメント状態を更新
+      console.log("新しい返信でコメント状態を更新します");
       setComments(updatedComments);
+      
+      // 返信フォームの状態をリセット
       setReplyTo(null);
       setReplyContent("");
       
       // ユーザーに成功を通知
       toast.success("返信が投稿されました");
+      
+      return true;
     } catch (err: any) {
       console.error("返信投稿エラー:", err);
       setError(err.message || "返信の投稿に失敗しました");
       toast.error("返信の投稿に失敗しました");
+      return false;
     } finally {
       setSubmitting(false);
     }
@@ -171,33 +223,6 @@ export function useCommentReply(
   const getPostIdFromParentComment = (parentId: string): string => {
     const comment = findCommentById(comments, parentId);
     return comment?.postId || '';
-  };
-  
-  // Helper function to find a comment by ID (either top-level or reply)
-  const findCommentById = (comments: Comment[], commentId: string): Comment | undefined => {
-    // トップレベルのコメントを検索
-    for (const comment of comments) {
-      if (comment.id === commentId) {
-        return comment;
-      }
-      
-      // 返信を検索
-      if (comment.replies) {
-        for (const reply of comment.replies) {
-          if (reply.id === commentId) {
-            return reply;
-          }
-          
-          // ネストした返信を検索
-          if (reply.replies) {
-            const nestedReply = reply.replies.find(r => r.id === commentId);
-            if (nestedReply) return nestedReply;
-          }
-        }
-      }
-    }
-    
-    return undefined;
   };
 
   return {

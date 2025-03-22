@@ -40,20 +40,26 @@ export function useCommentLikes(
   return { toggleLike };
 }
 
-// Helper function to find a comment by ID (either top-level or reply)
+// Helper function to find a comment by ID (recursively searching through all reply levels)
 function findCommentById(comments: Comment[], commentId: string): Comment | undefined {
-  for (const comment of comments) {
-    if (comment.id === commentId) {
-      return comment;
+  // 再帰的に任意の深さのコメントを検索する関数
+  const searchDeep = (items: Comment[]): Comment | undefined => {
+    for (const item of items) {
+      // 現在のコメントをチェック
+      if (item.id === commentId) {
+        return item;
+      }
+      
+      // 返信があれば再帰的に検索
+      if (item.replies && item.replies.length > 0) {
+        const found = searchDeep(item.replies);
+        if (found) return found;
+      }
     }
-    
-    if (comment.replies) {
-      const reply = comment.replies.find(r => r.id === commentId);
-      if (reply) return reply;
-    }
-  }
+    return undefined;
+  };
   
-  return undefined;
+  return searchDeep(comments);
 }
 
 // Helper function to check authentication
@@ -81,4 +87,3 @@ function updateCommentLikeState(
   
   setComments(updatedComments);
 }
-

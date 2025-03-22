@@ -1,4 +1,3 @@
-
 import { Comment } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,27 +9,28 @@ export function findAndUpdateComment(
   commentId: string,
   updateFn: (comment: Comment) => Comment
 ): Comment[] {
-  return comments.map(comment => {
-    // If this is the target comment, update it
-    if (comment.id === commentId) {
-      return updateFn(comment);
-    }
-    
-    // Check if the target is in the replies
-    if (comment.replies && comment.replies.length > 0) {
-      const updatedReplies = comment.replies.map(reply => {
-        if (reply.id === commentId) {
-          return updateFn(reply);
-        }
-        return reply;
-      });
+  // 再帰的に任意の深さのコメントを探して更新する
+  const updateRecursively = (items: Comment[]): Comment[] => {
+    return items.map(item => {
+      // このコメントが対象なら更新
+      if (item.id === commentId) {
+        return updateFn(item);
+      }
       
-      return { ...comment, replies: updatedReplies };
-    }
-    
-    // Return the comment unchanged
-    return comment;
-  });
+      // 返信があれば再帰的に検索・更新
+      if (item.replies && item.replies.length > 0) {
+        return {
+          ...item,
+          replies: updateRecursively(item.replies)
+        };
+      }
+      
+      // 変更なし
+      return item;
+    });
+  };
+  
+  return updateRecursively(comments);
 }
 
 /**
@@ -40,18 +40,24 @@ export function findCommentInTree(
   comments: Comment[],
   commentId: string
 ): Comment | undefined {
-  for (const comment of comments) {
-    if (comment.id === commentId) {
-      return comment;
+  // 再帰的に任意の深さのコメントを検索する関数
+  const searchDeep = (items: Comment[]): Comment | undefined => {
+    for (const item of items) {
+      // 現在のコメントをチェック
+      if (item.id === commentId) {
+        return item;
+      }
+      
+      // 返信があれば再帰的に検索
+      if (item.replies && item.replies.length > 0) {
+        const found = searchDeep(item.replies);
+        if (found) return found;
+      }
     }
-    
-    if (comment.replies) {
-      const foundInReplies = comment.replies.find(reply => reply.id === commentId);
-      if (foundInReplies) return foundInReplies;
-    }
-  }
+    return undefined;
+  };
   
-  return undefined;
+  return searchDeep(comments);
 }
 
 /**

@@ -42,6 +42,25 @@ const CommentList: React.FC<CommentListProps> = ({
   onCancelEditing,
   onSaveEdit
 }) => {
+  // デバッグ用：コメント階層構造をログに出力
+  React.useEffect(() => {
+    if (comments.length > 0) {
+      console.log("コメント階層構造:", 
+        comments.map(c => ({
+          id: c.id,
+          replies: c.replies?.map(r => ({
+            id: r.id,
+            parentId: r.parentId,
+            hasNestedReplies: !!r.replies?.length,
+            nestedReplies: r.replies?.map(nr => ({
+              id: nr.id,
+              parentId: nr.parentId
+            }))
+          }))
+        }))
+      );
+    }
+  }, [comments]);
   if (loading) {
     return (
       <div>

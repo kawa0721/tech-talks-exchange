@@ -138,6 +138,9 @@ export async function toggleCommentLike(commentId: string, userId: string | null
       }
     }
     
+    // ゲストIDを取得（ゲストユーザーの場合）
+    const guestId = !userId ? getOrCreateGuestId() : null;
+    
     if (isLiked) {
       // いいねを削除
       let query = supabase
@@ -149,7 +152,6 @@ export async function toggleCommentLike(commentId: string, userId: string | null
         query = query.match({ user_id: userId, comment_id: commentId });
       } else {
         // 未ログインユーザーの場合
-        const guestId = getOrCreateGuestId();
         query = query.match({ guest_id: guestId, comment_id: commentId });
       }
       
@@ -157,11 +159,31 @@ export async function toggleCommentLike(commentId: string, userId: string | null
 
       if (error) {
         console.error("いいね削除エラー:", error);
-        throw error;
+        // 404エラーは無視（既に削除されている場合）
+        if (error.code !== "404" && error.code !== "PGRST116") {
+          throw error;
+        }
       }
       
       return false;
     } else {
+      // 既存のいいねをチェック
+      const checkCondition = userId 
+        ? { user_id: userId, comment_id: commentId }
+        : { guest_id: guestId, comment_id: commentId };
+      
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('id')
+        .match(checkCondition)
+        .maybeSingle();
+      
+      // 既にいいねがある場合は何もしない
+      if (existingLike) {
+        console.log("既にいいねが存在します:", existingLike);
+        return true;
+      }
+      
       // いいねを追加
       let likeData = {};
       
@@ -170,15 +192,21 @@ export async function toggleCommentLike(commentId: string, userId: string | null
         likeData = { user_id: userId, comment_id: commentId };
       } else {
         // 未ログインユーザーの場合
-        const guestId = getOrCreateGuestId();
         likeData = { guest_id: guestId, comment_id: commentId };
       }
       
       const { error } = await supabase
         .from('likes')
-        .insert([likeData]);
+        .insert([likeData])
+        .select('id');
 
       if (error) {
+        // 重複キーエラーの場合は無視する（レースコンディション対策）
+        if (error.code === "23505") {
+          console.log("いいねが既に存在します（重複）");
+          return true;
+        }
+        
         console.error("いいね追加エラー:", error);
         throw error;
       }

@@ -163,6 +163,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         submitting={submitting}
         replyTo={replyTo}
         onSetReplyTo={onSetReplyTo}
+        onSubmitReply={onSubmitReply}
       />
       
       {/* 返信の返信フォームを表示 */}
@@ -171,7 +172,10 @@ const CommentItem: React.FC<CommentItemProps> = ({
           <ReplyForm
             parentId={replyTo}
             userName={comment.replies.find(r => r.id === replyTo)?.user.name || ''}
-            onSubmit={onSubmitReply}
+            onSubmit={(content, nickname) => {
+              console.log("コメントに対する返信を送信: ", { parentId: replyTo });
+              onSubmitReply(replyTo, content, nickname);
+            }}
             onCancel={handleCancelReply}
             isSubmitting={submitting}
           />
