@@ -79,7 +79,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
       <header 
         className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-1 navbar-bottom-border"
       >
-      <div className="container flex h-12 items-center">
+      <div className="px-4 w-full md:px-8 flex h-12 items-center">
         <Button
           variant="ghost"
           size="icon"
