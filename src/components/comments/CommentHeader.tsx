@@ -35,6 +35,7 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({
             {comment.updatedAt && comment.updatedAt.getTime() !== comment.createdAt.getTime() && (
               <span className="ml-1">(編集済み)</span>
             )}
+            <span className="ml-2 text-xs text-slate-500">ID: {comment.id}</span>
           </div>
         </div>
       </div>

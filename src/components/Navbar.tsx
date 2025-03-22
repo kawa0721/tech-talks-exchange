@@ -1,4 +1,4 @@
-import { Menu, Search, Bell, X } from "lucide-react";
+import { Menu, Search, Bell, X, FileText } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -130,6 +130,12 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
 
         {/* 右側にユーザーコントロールを配置 */}
         <div className="flex items-center gap-2">
+          {/* 追加：すべての投稿ページへのリンク */}
+          <Link to="/posts" className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md">
+            <FileText className="h-4 w-4" />
+            <span>すべての投稿</span>
+          </Link>
+          
           <ThemeToggle />
 
           {user ? (

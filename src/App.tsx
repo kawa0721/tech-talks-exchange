@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import PostDetail from "./pages/PostDetail";
 import AllPosts from "./pages/AllPosts";
+import AllPostsPage from "./pages/AllPostsPage";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./pages/UserProfile";
@@ -29,18 +30,17 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/post/:postId" element={<PostDetail />} />
-            <Route path="/channel/:channelId" element={<AllPosts />} />
-            <Route path="/posts" element={<AllPosts />} />
+            <Route path="/posts" element={<AllPostsPage />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/profile" element={<ProfileRedirect />} />
-            <Route path="/settings" element={<ProfileRedirect />} />
-            <Route path="/create-post" element={<CreatePost />} />
+            <Route path="/profile/:userId" element={<UserProfile />} />
+            <Route path="/create" element={<CreatePost />} />
+            <Route path="/channels/:channelId/:type?" element={<AllPosts />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toaster richColors />
         </BrowserRouter>
-        <Toaster position="top-center" richColors closeButton />
       </AuthProvider>
     </ThemeProvider>
   );

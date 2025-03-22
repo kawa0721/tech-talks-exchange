@@ -1,8 +1,7 @@
-
+import React, { memo } from "react";
 import { Post } from "@/types";
 import { Loader2 } from "lucide-react";
 import PostCard from "@/components/PostCard";
-import { useEffect } from "react";
 import InfiniteScroll from "@/components/InfiniteScroll";
 
 interface PostsListProps {
@@ -17,6 +16,9 @@ interface PostsListProps {
   isUserPosts?: boolean;
 }
 
+// メモ化したPostCardコンポーネント
+const MemoizedPostCard = memo(PostCard);
+
 const PostsList = ({
   posts,
   loading,
@@ -28,16 +30,6 @@ const PostsList = ({
   emptyMessage = "投稿はまだありません",
   isUserPosts = false,
 }: PostsListProps) => {
-  // Add detailed console logs for debugging
-  useEffect(() => {
-    console.log('PostsList rendered with posts:', {
-      postsCount: posts.length,
-      loading,
-      showChannel,
-      postIds: posts.map(post => post.id)
-    });
-  }, [posts, loading, showChannel]);
-
   if (loading && posts.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -54,34 +46,60 @@ const PostsList = ({
     );
   }
 
+  // ロード中のコンポーネント
+  const loadingComponent = (
+    <div className="flex justify-center py-4">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  );
+
+  // 終了テキストコンポーネント
+  const endTextComponent = (
+    <div className="text-center py-4 text-sm text-muted-foreground">
+      すべての投稿を表示しています (計{posts.length}件)
+    </div>
+  );
+
   return (
-    <InfiniteScroll
-      onLoadMore={onLoadMore}
-      hasMore={hasMore}
-      isLoading={loadingMore}
-      loadingComponent={
-        <div className="flex justify-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    <div className="space-y-6">
+      {hasMore ? (
+        <InfiniteScroll
+          onLoadMore={onLoadMore}
+          hasMore={hasMore}
+          isLoading={loadingMore}
+          loadingComponent={loadingComponent}
+          endTextComponent={endTextComponent}
+          threshold={200}
+        >
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <MemoizedPostCard
+                key={post.id}
+                post={post}
+                channelName={getChannelName(post.channelId)}
+                showChannel={showChannel}
+                isPopular={post.likesCount > 10}
+              />
+            ))}
+          </div>
+        </InfiniteScroll>
+      ) : (
+        <div className="space-y-6">
+          {posts.map((post) => (
+            <MemoizedPostCard
+              key={post.id}
+              post={post}
+              channelName={getChannelName(post.channelId)}
+              showChannel={showChannel}
+              isPopular={post.likesCount > 10}
+            />
+          ))}
+          {endTextComponent}
         </div>
-      }
-      endTextComponent={
-        <div className="text-center py-4 text-sm text-muted-foreground">
-          すべての投稿を表示しています (計{posts.length}件)
-        </div>
-      }
-    >
-      <div className="space-y-6">
-        {posts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            channelName={getChannelName(post.channelId)}
-            showChannel={showChannel}
-          />
-        ))}
-      </div>
-    </InfiniteScroll>
+      )}
+    </div>
   );
 };
 
-export default PostsList;
+// コンポーネント全体もメモ化してエクスポート
+export default memo(PostsList);

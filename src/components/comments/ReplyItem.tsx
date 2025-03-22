@@ -94,6 +94,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
               {formatDistanceToNow(reply.createdAt, { addSuffix: true })}
               {reply.updatedAt && reply.updatedAt > reply.createdAt && 
                 " (編集済み)"}
+              <span className="ml-2 text-slate-500">ID: {reply.id}</span>
             </span>
           </div>
           
