@@ -79,7 +79,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
       <header 
         className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-1 navbar-bottom-border"
       >
-      <div className="container flex h-12 items-center">
+      <div className="pl-0 pr-4 w-full md:px-8 flex h-12 items-center">
         <Button
           variant="ghost"
           size="icon"
@@ -103,7 +103,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
               <img 
                 src="/aiau_19_transparent.svg" 
                 alt="AIAU Logo" 
-                className="h-7 w-7 sm:hidden object-contain"
+                className="h-6 w-6 md:h-7 md:w-7 sm:hidden object-contain"
               />
               {/* Larger screen banner (hidden on small screens, visible on medium and larger) */}
               <img 
@@ -118,12 +118,12 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
 
         {/* 検索フォームを中央に配置 */}
         <div className="flex-1 flex justify-center">
-          <form className="relative w-full max-w-md">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <form className="relative w-full max-w-[9rem] md:max-w-md">
+            <Search className="absolute left-1.5 md:left-2.5 top-3 md:top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="トピックを検索..."
-              className="pl-8 sm:w-[350px] md:w-[300px] lg:w-[400px]"
+              className="pl-6 md:pl-8 sm:w-[350px] md:w-[300px] lg:w-[400px] text-[0.8rem] md:text-[1rem]"
             />
           </form>
         </div>
@@ -142,8 +142,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="relative h-6 w-6 md:h-8 md:w-8 rounded-full">
+                    <Avatar className="h-6 w-6 md:h-8 md:w-8">
                       <AvatarImage src={user.user_metadata?.avatar_url} alt="ユーザーアバター" />
                       <AvatarFallback>{getUserInitials()}</AvatarFallback>
                     </Avatar>
@@ -151,11 +151,11 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-sm font-medium leading-[1.2] break-words ">
                         {user.user_metadata?.name || user.email}
                       </p>
-                      <p className="text-xs leading-none text-muted-foreground">
+                      <p className="text-xs leading-none text-muted-foreground leading-[1.2] break-words">
                         {user.email}
                       </p>
                     </div>
@@ -176,7 +176,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="login-button-border" onClick={() => navigate("/auth")}>
+              <Button variant="outline" className="login-button-border max-md:px-1.5" onClick={() => navigate("/auth")}>
                 ログイン
               </Button>
             </div>

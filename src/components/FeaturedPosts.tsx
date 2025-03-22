@@ -77,8 +77,8 @@ const FeaturedPosts = ({
       onValueChange={handleTabChange}
       className="w-full"
     >
-      <div className="flex items-center justify-between mb-4">
-        <TabsList>
+      <div className="flex items-end md:items-center justify-between mb-4 max-md:flex-wrap max-md:gap-2 max-md:flex-col">
+        <TabsList className="max-md:w-full max-md:grid max-md:grid-cols-3">
           <TabsTrigger value="trending" className="flex items-center gap-1">
             <TrendingUp className="h-4 w-4" />
             トレンド

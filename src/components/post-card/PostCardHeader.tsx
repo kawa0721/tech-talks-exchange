@@ -79,31 +79,35 @@ const PostCardHeader = ({
             <AvatarImage src={post.user.avatar} alt={post.user.name} />
             <AvatarFallback>{post.user.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
-          <div className="grid gap-0.5">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">
+          <div className="grid gap-2 md:gap-0.5">
+            <div className="flex items-center gap-1 max-md:flex-col max-md:items-start">
+              <div  className="flex items-center gap-2">
+              <span className="text-sm font-medium text-left">
                 {post.user.name}
               </span>
               {showChannel && channelName && (
                 <>
-                  <span className="text-muted-foreground">in</span>
-                  <Badge variant="outline" className="px-2 py-0 text-xs">
+                  <span className="text-muted-foreground flex-shrink-0">in</span>
+                  <Badge variant="outline" className="px-2 py-0 text-xs flex-shrink-0">
                     {channelName}
                   </Badge>
                 </>
               )}
-              {isTrending && (
-                <Badge className="ml-1 bg-blue-500 hover:bg-blue-600">
-                  <TrendingUp className="mr-1 h-3 w-3" />
-                  トレンド
-                </Badge>
-              )}
-              {isPopular && (
-                <Badge className="ml-1 bg-amber-500 hover:bg-amber-600">
-                  <Star className="mr-1 h-3 w-3" />
-                  人気
-                </Badge>
-              )}
+              </div>
+              <div className="flex-shrink-0 flex gap-1 flex-wrap">
+                {isTrending && (
+                  <Badge className="bg-blue-500 hover:bg-blue-600">
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                    トレンド
+                  </Badge>
+                )}
+                {isPopular && (
+                  <Badge className="bg-amber-500 hover:bg-amber-600">
+                    <Star className="mr-1 h-3 w-3" />
+                    人気
+                  </Badge>
+                )}
+              </div>
             </div>
             <div className="text-xs text-muted-foreground text-left">
               {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: ja })}

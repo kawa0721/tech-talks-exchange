@@ -131,16 +131,18 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
             </Button>
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            テックコミュニティに参加して、学び、共有しましょう
+            テックコミュニティに参加して、
+            <br className="md:hidden" />
+            学び、共有しましょう
           </p>
         </div>
       </div>
       <Separator className="my-2" />
       <ScrollArea className="flex-1 px-1">
-        <div className="space-y-0.5 p-1">
+        <div className="space-y-0.5 pt-1 pb-1 pl-4 pr-4 md:p-1 ">
           <Button
             variant={!selectedChannel ? "secondary" : "ghost"}
-            className="w-full justify-start font-normal text-base py-1 h-8"
+            className="w-full justify-start font-normal text-base pl-[0.3rem] py-2 md:py-1 h-8 "
             onClick={() => onSelectChannel(null)}
           >
             <Hash className="mr-2 h-5 w-5" />
@@ -158,7 +160,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between font-medium text-base pl-1 py-0.5 h-7 hover:bg-secondary/50"
+                    className="w-full justify-between font-medium text-base pl-1 py-2 md:py-0.5 h-auto md:h-7 hover:bg-secondary/50"
                   >
                     <div className="flex items-center min-w-0">
                       {expandedCategories[category.id] ? (
