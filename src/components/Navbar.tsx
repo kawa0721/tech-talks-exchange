@@ -151,11 +151,11 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-sm font-medium leading-[1.2] break-words ">
                         {user.user_metadata?.name || user.email}
                       </p>
-                      <p className="text-xs leading-none text-muted-foreground">
+                      <p className="text-xs leading-none text-muted-foreground leading-[1.2] break-words">
                         {user.email}
                       </p>
                     </div>
