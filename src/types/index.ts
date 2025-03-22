@@ -1,4 +1,3 @@
-
 export type User = {
   id: string;
   name: string;
@@ -18,6 +17,7 @@ export type Channel = {
   description: string;
   icon?: string;
   categoryId: string;
+  displayOrder?: number;
 };
 
 export type Comment = {

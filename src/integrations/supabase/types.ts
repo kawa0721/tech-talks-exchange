@@ -13,14 +13,17 @@ export type Database = {
         Row: {
           id: string
           name: string
+          display_order: number
         }
         Insert: {
           id: string
           name: string
+          display_order?: number
         }
         Update: {
           id?: string
           name?: string
+          display_order?: number
         }
         Relationships: []
       }
@@ -31,6 +34,7 @@ export type Database = {
           icon: string | null
           id: string
           name: string
+          display_order: number
         }
         Insert: {
           category_id: string
@@ -38,6 +42,7 @@ export type Database = {
           icon?: string | null
           id: string
           name: string
+          display_order?: number
         }
         Update: {
           category_id?: string
@@ -45,6 +50,7 @@ export type Database = {
           icon?: string | null
           id?: string
           name?: string
+          display_order?: number
         }
         Relationships: [
           {

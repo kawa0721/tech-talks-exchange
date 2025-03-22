@@ -30,7 +30,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('channel_categories')
           .select('*')
-          .order('name');
+          .order('display_order', { ascending: true });
           
         if (categoriesError) {
           console.error("カテゴリー取得エラー:", categoriesError);
@@ -41,7 +41,7 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
         const { data: channelsData, error: channelsError } = await supabase
           .from('channels')
           .select('*')
-          .order('name');
+          .order('display_order', { ascending: true });
           
         if (channelsError) {
           console.error("チャンネル取得エラー:", channelsError);
@@ -54,7 +54,8 @@ const ChannelList = ({ selectedChannel, onSelectChannel }: ChannelListProps) => 
           name: String(channel.name),
           description: String(channel.description),
           icon: channel.icon ? String(channel.icon) : undefined,
-          categoryId: String(channel.category_id)
+          categoryId: String(channel.category_id),
+          displayOrder: channel.display_order
         })) : [];
         
         // Format categories - check that data exists and is not an error
