@@ -105,7 +105,7 @@ const PostCardHeader = ({
                 </Badge>
               )}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground text-left">
               {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: ja })}
             </div>
           </div>
