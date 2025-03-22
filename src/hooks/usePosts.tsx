@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Post, Channel } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export function usePosts(type: string = "trending") {
+export function usePosts(type: string = "trending", channelId?: string) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -17,6 +16,11 @@ export function usePosts(type: string = "trending") {
         let query = supabase
           .from('posts')
           .select('*');
+        
+        // チャンネルIDが指定されている場合はフィルタリング
+        if (channelId) {
+          query = query.eq('channel_id', channelId);
+        }
         
         if (type === "popular") {
           // 人気の投稿（いいね数で並び替え）
@@ -105,7 +109,7 @@ export function usePosts(type: string = "trending") {
     };
     
     fetchPosts();
-  }, [type, toast]);
+  }, [type, channelId, toast]);
 
   return { posts, loading };
 }

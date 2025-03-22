@@ -27,6 +27,33 @@ const isDeepEqual = (obj1: any, obj2: any): boolean => {
   });
 };
 
+/**
+ * コメントツリーを最大2階層に制限する関数
+ * 1階層目: 親コメント
+ * 2階層目: 返信
+ * 3階層目以降: 削除
+ */
+const limitCommentTreeDepth = (comments: Comment[]): Comment[] => {
+  return comments.map(comment => {
+    // 最初の階層の返信だけを保持し、それ以降の返信は削除
+    if (comment.replies && comment.replies.length > 0) {
+      // 返信の返信（replies.replies）プロパティを削除
+      const limitedReplies = comment.replies.map(reply => {
+        // repliesプロパティを除外した新しいオブジェクトを作成
+        const { replies, ...replyWithoutNestedReplies } = reply;
+        return replyWithoutNestedReplies;
+      });
+      
+      return {
+        ...comment,
+        replies: limitedReplies
+      };
+    }
+    
+    return comment;
+  });
+};
+
 // コメントとプロフィール情報を取得するカスタムフック
 export function useCommentsWithProfiles(postId: string) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -231,9 +258,13 @@ export function useCommentsWithProfiles(postId: string) {
           if (!isSameComments) {
             // 実際に変化がある場合のみコメントを更新
             console.log("新しいコメントデータをセット:", formattedComments.length, "件");
-            setComments(formattedComments);
+            
+            // コメントを最大2階層に制限
+            const limitedComments = limitCommentTreeDepth(formattedComments);
+            
+            setComments(limitedComments);
             // 最後に取得したコメントを保存
-            lastFetchedCommentsRef.current = formattedComments;
+            lastFetchedCommentsRef.current = limitedComments;
           } else {
             console.log("コメントデータに変更なし - 更新をスキップ");
           }

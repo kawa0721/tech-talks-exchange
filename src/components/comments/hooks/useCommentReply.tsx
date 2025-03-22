@@ -106,6 +106,14 @@ export function useCommentReply(
         throw new Error("親コメントが見つかりません");
       }
       
+      // 階層制限: parentInfoがすでに返信（parentIdがある）であれば制限する
+      if (parentInfo.parentId) {
+        console.error("返信の返信はできません（最大2階層まで）");
+        toast.error("返信の返信はできません。最大2階層までのコメントしか投稿できません。");
+        setSubmitting(false);
+        return false;
+      }
+      
       const postId = parentInfo.postId || getPostIdFromParentComment(parentId);
       if (!postId) {
         throw new Error("投稿IDが取得できません");

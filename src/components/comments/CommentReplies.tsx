@@ -74,7 +74,6 @@ const CommentReplies: React.FC<CommentRepliesProps> = ({
               onSaveEdit={onSaveEdit}
               isEditing={reply.isEditing || false}
               submitting={submitting}
-              onReplyClick={handleReplyClick}
               replyTo={replyTo}
               onSubmitReply={onSubmitReply}
             />

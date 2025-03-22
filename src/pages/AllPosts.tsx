@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -9,9 +8,9 @@ import { PostsPageHeader } from "@/components/posts/PostsPageHeader";
 import { PostsTabContent } from "@/components/posts/PostsTabContent";
 
 const AllPosts = () => {
-  const { type } = useParams<{ type: string }>();
+  const { channelId, type } = useParams<{ channelId?: string; type?: string }>();
   const [activeTab, setActiveTab] = useState<string>(type || "trending");
-  const { posts, loading } = usePosts(activeTab);
+  const { posts, loading } = usePosts(activeTab, channelId);
   const { channels, loading: channelLoading } = useChannels();
 
   useEffect(() => {
@@ -27,13 +26,18 @@ const AllPosts = () => {
     return channel ? channel.name : "不明なチャンネル";
   };
 
+  // ページのタイトルを決定
+  const pageTitle = channelId 
+    ? `${getChannelName(channelId)}の投稿` 
+    : "すべての投稿";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar onToggleSidebar={() => {}} />
       
       <main className="flex-1 px-6 pb-12 pt-20">
         <div className="mx-auto max-w-4xl fade-in">
-          <PostsPageHeader activeTab={activeTab} />
+          <PostsPageHeader activeTab={activeTab} channelName={pageTitle} />
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-6">

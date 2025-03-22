@@ -30,6 +30,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/post/:postId" element={<PostDetail />} />
             <Route path="/channel/:channelId" element={<AllPosts />} />
+            <Route path="/posts" element={<AllPosts />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/user/:userId" element={<UserProfile />} />

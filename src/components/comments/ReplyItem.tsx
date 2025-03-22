@@ -119,30 +119,22 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
             
             {/* いいねと返信ボタンを配置 */}
             <div className="flex items-center mt-2 px-2">
-              {/* 返信ボタンを左側に配置 */}
-              {onReplyClick && (
+              {/* いいねボタンを左側に配置 */}
+              <div className="flex justify-start">
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="flex items-center space-x-1 px-2 h-6 mr-2"
-                  onClick={handleReplyClick}
+                  className={`flex items-center space-x-1 px-2 h-6 ${reply.liked ? 'text-blue-500' : ''}`}
+                  onClick={handleToggleLike}
                 >
-                  <MessageSquare className="w-3 h-3" />
-                  <span className="text-xs">返信</span>
+                  <ThumbsUp className="w-3 h-3" />
+                  <span className="text-xs">{reply.likesCount > 0 ? reply.likesCount : ""}</span>
                 </Button>
-              )}
-              
-              {/* いいねボタンを返信ボタンの隣に配置 */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={`flex items-center space-x-1 px-2 h-6 ${reply.liked ? 'text-blue-500' : ''}`}
-                onClick={handleToggleLike}
-              >
-                <ThumbsUp className="w-3 h-3" />
-                <span className="text-xs">{reply.likesCount > 0 ? reply.likesCount : ""}</span>
-              </Button>
+              </div>
             </div>
+            
+            {/* 返信の返信があれば表示（3階層目以降は表示しない） */}
+            {/* 深くネストされた返信は表示しないように変更 */}
             
             {/* 現在の返信への返信フォームを表示 */}
             {replyTo === reply.id && onSubmitReply && (
@@ -155,53 +147,6 @@ const ReplyItem: React.FC<ReplyItemProps> = ({
                   isSubmitting={submitting}
                 />
               </div>
-            )}
-
-            {/* 返信の返信があれば表示（深いネスト層にも対応） */}
-            {reply.replies && reply.replies.length > 0 && (
-              <>
-                {/* 返信表示/非表示トグルボタン */}
-                <div className="flex items-center mt-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex items-center space-x-1 px-2 h-6 text-xs"
-                    onClick={toggleExpanded}
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="w-3 h-3 mr-1" />
-                    ) : (
-                      <ChevronDown className="w-3 h-3 mr-1" />
-                    )}
-                    {isExpanded ? "返信を折りたたむ" : `返信を表示 (${reply.replies.length})`}
-                  </Button>
-                </div>
-                
-                {/* 返信内容（展開時のみ表示） */}
-                {isExpanded && (
-                  <div className="pl-4 border-l-2 border-muted space-y-4 mt-2">
-                    {reply.replies.map((nestedReply) => (
-                      <ReplyItem
-                        key={nestedReply.id}
-                        reply={nestedReply}
-                        parentId={reply.id}
-                        editContent={editContent}
-                        onSetEditContent={onSetEditContent}
-                        onToggleLike={onToggleLike}
-                        onDeleteComment={onDeleteComment}
-                        onStartEditing={onStartEditing}
-                        onCancelEditing={onCancelEditing}
-                        onSaveEdit={onSaveEdit}
-                        isEditing={nestedReply.isEditing || false}
-                        submitting={submitting}
-                        onReplyClick={onReplyClick}
-                        replyTo={replyTo}
-                        onSubmitReply={onSubmitReply}
-                      />
-                    ))}
-                  </div>
-                )}
-              </>
             )}
           </>
         )}
