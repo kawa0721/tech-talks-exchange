@@ -151,7 +151,7 @@ const MainContent = ({
       <main className="main-content w-full">
         <div className="px-4 md:px-6 py-4 mx-auto max-w-4xl fade-in">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-2xl md:text-3xl font-bold">
               {selectedChannel
                 ? `${getChannelName(selectedChannel)} ディスカッション`
                 : "すべてのディスカッション"}
@@ -159,7 +159,7 @@ const MainContent = ({
             <p className="text-muted-foreground mt-2">
               {selectedChannel
                 ? channels.find(c => c.id === selectedChannel)?.description
-                : "全てのテックチャンネルでの会話に参加しましょう"}
+                : <>全てのテックチャンネルでの<br className="md:hidden" />会話に参加しましょう</>}
             </p>
           </div>
 
