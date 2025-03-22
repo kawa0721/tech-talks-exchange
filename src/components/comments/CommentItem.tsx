@@ -81,7 +81,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const isEditing = comment.isEditing || false;
 
   return (
-    <div className="comment-item border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-card">
+    <div className="comment-item border border-gray-200 dark:border-input rounded-lg p-4 bg-card">
       {/* Content section */}
       {isEditing ? (
         <EditCommentForm

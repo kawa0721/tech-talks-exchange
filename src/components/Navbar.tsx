@@ -65,21 +65,34 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
+    <>
+      <style>
+        {`
+        .navbar-bottom-border {
+          border-bottom-color: #909294 !important;
+        }
+        .login-button-border {
+          border-color: #909294 !important;
+        }
+        `}
+      </style>
+      <header 
+        className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-1 navbar-bottom-border"
+      >
+      <div className="container flex h-12 items-center">
         <Button
           variant="ghost"
           size="icon"
-          className="relative z-1000 mr-2 sidebar-toggle"
+          className="relative z-1000 mr-2 sidebar-toggle h-8 w-8"
           onClick={onToggleSidebar}
           aria-label="サイドバーを切り替え"
         >
           {/* デバッグ用コメント */}
           {/* サイドバーの状態: {isSidebarOpen ? 'Open' : 'Closed'} */}
           {isSidebarOpen ? (
-            <X className="h-6 w-6 text-primary" />
+            <X className="h-5 w-5 text-primary" />
           ) : (
-            <Menu className="h-6 w-6 text-primary" />
+            <Menu className="h-5 w-5 text-primary" />
           )}
         </Button>
         
@@ -90,13 +103,13 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
               <img 
                 src="/aiau_19_transparent.svg" 
                 alt="AIAU Logo" 
-                className="h-8 w-8 sm:hidden object-contain"
+                className="h-7 w-7 sm:hidden object-contain"
               />
               {/* Larger screen banner (hidden on small screens, visible on medium and larger) */}
               <img 
                 src="/aiau_banner_FCF3D6_02 trimmed.png" 
                 alt="AIAU Banner" 
-                className="hidden sm:block h-10 object-contain"
+                className="hidden sm:block h-8 object-contain"
               />
             </div>
             {/* Removed テックトーク text as requested */}
@@ -163,7 +176,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => navigate("/auth")}>
+              <Button variant="outline" className="login-button-border" onClick={() => navigate("/auth")}>
                 ログイン
               </Button>
             </div>
@@ -171,6 +184,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
         </div>
       </div>
     </header>
+    </>
   );
 };
 
