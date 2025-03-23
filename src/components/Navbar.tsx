@@ -14,6 +14,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface NavbarProps {
   onToggleSidebar: () => void;
@@ -24,6 +26,11 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
+  // デバッグ用：テーマ状態をコンソールに表示
+  console.log('Current theme state:', { theme, isDarkMode });
 
   const handleSignOut = async () => {
     try {
@@ -63,6 +70,15 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
       navigate("/profile");
     }
   };
+
+  // 強制的にコンポーネントを再レンダリングするためのステート
+  const [forceRender, setForceRender] = useState(0);
+
+  // テーマが変更されたときに強制的に再レンダリングする
+  useEffect(() => {
+    console.log('Theme changed to:', theme);
+    setForceRender(prev => prev + 1);
+  }, [theme]);
 
   return (
     <>
@@ -107,9 +123,11 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
               />
               {/* Larger screen banner (hidden on small screens, visible on medium and larger) */}
               <img 
-                src="/aiau_banner_FCF3D6_02 trimmed.png" 
+                key={`banner-${isDarkMode}-${forceRender}`}
+                src={isDarkMode ? "/aiau_banner_FCF3D6_02_trimmed.png" : "/aiau_banner_light_02_trimmed.png"} 
                 alt="AIAU Banner" 
                 className="hidden sm:block h-8 object-contain"
+                onError={(e) => console.error("画像読み込みエラー:", e.currentTarget.src)}
               />
             </div>
             {/* Removed テックトーク text as requested */}

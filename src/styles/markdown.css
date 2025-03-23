@@ -45,15 +45,16 @@
     @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-2 my-4 text-gray-500 dark:text-gray-400;
   }
 
-  .markdown-content pre {
+  /* 通常のpre/codeのスタイル（コードブロックラッパー以外に適用） */
+  .markdown-content pre:not(.code-block-wrapper pre) {
     @apply bg-slate-50 dark:bg-gray-800 p-3 rounded-md my-4 overflow-x-auto border border-slate-200 dark:border-gray-700;
   }
 
-  .markdown-content code {
+  .markdown-content code:not(.code-block-wrapper code) {
     @apply bg-slate-50 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-slate-300;
   }
 
-  .markdown-content pre code {
+  .markdown-content pre:not(.code-block-wrapper pre) code:not(.code-block-wrapper code) {
     @apply bg-transparent p-0 text-sm border-0 text-slate-700 dark:text-slate-300;
   }
 
@@ -81,70 +82,117 @@
     @apply border-t border-gray-300 dark:border-gray-600 my-6;
   }
 
-  /* シンタックスハイライト用のスタイル */
+  /* コードブロックのスタイル - 修正版 */
   .code-block-wrapper {
     @apply my-4 overflow-hidden rounded-md;
   }
-
-  /* シンタックスハイライターのスタイルを上書き */
-  .code-block-wrapper pre {
-    @apply my-0 !important;
-    margin: 0 !important;
+  
+  /* シンタックスハイライターのための明示的なスタイル */
+  .dark .code-block-wrapper pre {
+    background-color: #1a1a1a !important;
+  }
+  
+  .dark .code-block-wrapper code {
+    background-color: transparent !important;
+    color: #f0f0f0 !important;
+  }
+  
+  /* コードブロック内のテキストが見やすいように */
+  .dark .code-block-wrapper span {
+    color: inherit;
   }
 
-  /* コードトークンのカラーを強制的に適用 */
-  .token.comment,
-  .token.prolog,
-  .token.doctype,
-  .token.cdata {
-    @apply text-gray-500 dark:text-gray-400 !important;
+  /* 行番号のシングルクオート問題対策 - 最終強化版 */
+  .code-block-wrapper .linenumber,
+  .code-block-wrapper [class*="line-number"],
+  .code-block-wrapper [class*="linenumber"],
+  .code-block-wrapper span[style*="user-select: none"],
+  .code-block-wrapper span[style*="min-width"],
+  .code-block-wrapper [class*="token-line"] > span:first-child,
+  .code-block-wrapper div[style*="user-select: none"] {
+    /* 行番号には固定幅フォントを強制的に使用、リガチャ無効化 */
+    font-family: Consolas, "Courier New", monospace !important;
+    font-variant-ligatures: none !important;
+    font-variant: normal !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    -webkit-font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    -moz-font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    text-rendering: optimizeLegibility !important;
+    font-synthesis: none !important;
+    unicode-range: U+0030-0039; /* 数字のみに適用 */
   }
-
-  .token.punctuation {
-    @apply text-gray-700 dark:text-gray-300 !important;
+  
+  /* react-syntax-highlighterが生成する特定のセレクタ */
+  .code-block-wrapper [data-linenumber], 
+  .code-block-wrapper [style*="display:inline-block"] {
+    /* 行番号には固定幅フォントを強制的に使用、リガチャ無効化 */
+    font-family: Consolas, "Courier New", monospace !important;
+    font-variant-ligatures: none !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    -webkit-font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    -moz-font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
   }
-
-  .token.property,
-  .token.tag,
-  .token.boolean,
-  .token.number,
-  .token.constant,
-  .token.symbol,
-  .token.deleted {
-    @apply text-purple-600 dark:text-purple-400 !important;
+  
+  /* シンタックスハイライター全体のフォント設定 - 最終強化版 */
+  .code-block-wrapper,
+  .code-block-wrapper div,
+  .code-block-wrapper pre,
+  .code-block-wrapper pre span,
+  .code-block-wrapper pre div,
+  .code-block-wrapper code,
+  .code-block-wrapper code span,
+  .code-block-wrapper span {
+    font-variant-ligatures: none !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    -webkit-font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    -moz-font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    font-family: Consolas, "Courier New", monospace !important;
+    text-rendering: optimizeLegibility !important;
   }
-
-  .token.selector,
-  .token.attr-name,
-  .token.string,
-  .token.char,
-  .token.builtin,
-  .token.inserted {
-    @apply text-green-600 dark:text-green-400 !important;
+  
+  /* コードブロック全体に適用 - ラップ要素追加 */
+  .code-wrapper-inner {
+    font-variant-ligatures: none !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "liga" 0, "calt" 0, "tnum" 1 !important;
+    font-family: Consolas, "Courier New", monospace !important;
   }
-
-  .token.operator,
-  .token.entity,
-  .token.url,
-  .language-css .token.string,
-  .style .token.string {
-    @apply text-yellow-600 dark:text-yellow-400 !important;
+  
+  /* 行番号のバグがどうしても直らない場合はカスタム版を使用 */
+  .custom-solution .custom-line-numbers {
+    font-family: Consolas, "Courier New", monospace !important;
+    font-variant-ligatures: none !important;
+    font-variant-numeric: tabular-nums !important;
   }
-
-  .token.atrule,
-  .token.attr-value,
-  .token.keyword {
-    @apply text-blue-600 dark:text-blue-400 !important;
-  }
-
-  .token.function,
-  .token.class-name {
-    @apply text-red-600 dark:text-red-400 !important;
-  }
-
-  .token.regex,
-  .token.important,
-  .token.variable {
-    @apply text-orange-600 dark:text-orange-400 !important;
-  }
+  
+  /* カスタム実装版のライトモードスタイル */
+  .custom-solution.light-theme .token.comment,
+  .custom-solution.light-theme .token.prolog,
+  .custom-solution.light-theme .token.doctype,
+  .custom-solution.light-theme .token.cdata { color: #008000; }
+  
+  .custom-solution.light-theme .token.punctuation { color: #393a34; }
+  
+  .custom-solution.light-theme .token.property,
+  .custom-solution.light-theme .token.tag,
+  .custom-solution.light-theme .token.boolean,
+  .custom-solution.light-theme .token.number,
+  .custom-solution.light-theme .token.constant,
+  .custom-solution.light-theme .token.symbol,
+  .custom-solution.light-theme .token.deleted { color: #0000ff; }
+  
+  .custom-solution.light-theme .token.selector,
+  .custom-solution.light-theme .token.attr-name,
+  .custom-solution.light-theme .token.string,
+  .custom-solution.light-theme .token.char,
+  .custom-solution.light-theme .token.builtin,
+  .custom-solution.light-theme .token.inserted { color: #a31515; }
+  
+  .custom-solution.light-theme .token.function,
+  .custom-solution.light-theme .token.class-name { color: #795e26; }
+  
+  .custom-solution.light-theme .token.keyword { color: #0000ff; }
 }

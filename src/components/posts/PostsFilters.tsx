@@ -70,7 +70,7 @@ const PostsFilters = ({
   const popularityCount = (filters.minLikes > 0 ? 1 : 0) + (filters.minComments > 0 ? 1 : 0);
   
   return (
-    <div className="flex flex-wrap gap-2 w-full">
+    <div className="flex flex-wrap gap-2 w-full mb-8">
       {/* キーワード検索フィールド */}
       <div className="flex items-center w-full mb-2 sm:mb-0 sm:w-auto sm:flex-1 max-w-xs">
         <Input

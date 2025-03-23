@@ -1,0 +1,10 @@
+/* シンタックスハイライト用の行番号スタイル修正 */
+.code-block-wrapper .linenumber,
+.code-block-wrapper [class*="line-number"],
+.code-block-wrapper [class*="linenumber"] {
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "calt" 0 !important;
+  -webkit-font-feature-settings: "liga" 0, "calt" 0 !important;
+  -moz-font-feature-settings: "liga" 0, "calt" 0 !important;
+  font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Courier New', monospace !important;
+} 

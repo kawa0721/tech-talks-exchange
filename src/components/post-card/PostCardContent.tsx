@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import CodeBlock from "@/components/markdown/CodeBlock";
 import { Components } from 'react-markdown';
 import { useEffect } from "react";
+import React from "react";
+import remarkGfm from 'remark-gfm';
 
 interface PostCardContentProps {
   post: Post;
@@ -40,18 +42,34 @@ const PostCardContent = ({ post, showFullContent, contentPreview }: PostCardCont
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : 'javascript';
       
-      console.log('Markdown code block detected:', { language, contentLength: String(children).length });
+      // コードブロック内容を文字列として取得
+      let value = String(children);
+      
+      console.log('Markdown code block in ReactMarkdown:', { 
+        language, 
+        contentStart: value.substring(0, 20),
+        contentEnd: value.substring(value.length - 20)
+      });
+      
+      // 改行コードの正規化
+      value = value.replace(/\n$/, '');
       
       return (
         <CodeBlock
           language={language}
-          value={String(children).replace(/\n$/, '')}
+          value={value}
         />
       );
     },
     // コードブロックのラッパーとなるpreタグ
-    pre({ children }) {
-      return <>{children}</>;
+    pre({ children, ...props }) {
+      // preタグの中にcodeタグがある場合は、そのままchildren（コード要素）を返す
+      // これにより、reactMarkdown内部で不要なバッククオートを含めずに済む
+      if (React.isValidElement(children) && 
+          /code/i.test(String(children.type))) {
+        return children;
+      }
+      return <pre {...props}>{children}</pre>;
     }
   };
 
@@ -61,7 +79,10 @@ const PostCardContent = ({ post, showFullContent, contentPreview }: PostCardCont
       <div className="prose prose-sm dark:prose-invert max-w-none text-left mb-4 overflow-hidden">
         {/* カスタムスタイルを適用してマークダウンレンダリングを改善 */}
         <div className="markdown-content">
-          <ReactMarkdown components={components}>
+          <ReactMarkdown 
+            components={components}
+            remarkPlugins={[remarkGfm]}
+          >
             {showFullContent ? post.content : contentPreview}
           </ReactMarkdown>
         </div>
