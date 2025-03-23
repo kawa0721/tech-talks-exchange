@@ -1032,7 +1032,7 @@ const PostFormEditor = ({
         onValueChange={(value) => setActiveTab(value as "write" | "richtext" | "html" | "preview")}
         className="w-full"
       >
-      <TabsList className="mb-2 w-full grid grid-cols-4">
+      <TabsList className="h-auto mb-2 w-full grid gap-1 grid-cols-2 md:grid-cols-4">
         <TabsTrigger value="write">マークダウン</TabsTrigger>
         <TabsTrigger value="richtext">リッチテキスト</TabsTrigger>
         <TabsTrigger value="html">HTMLコード</TabsTrigger>
