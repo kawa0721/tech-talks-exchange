@@ -13,6 +13,7 @@ import { useFeaturePosts } from "@/hooks/posts/useFeaturePosts";
 const Index = () => {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("trending"); // 現在のアクティブタブ
   const { toast } = useToast();
@@ -151,8 +152,14 @@ const Index = () => {
 
   // サイドバーの状態変化を追跡
   useEffect(() => {
-    console.log('Sidebar state changed:', sidebarOpen);
-  }, [sidebarOpen]);
+    console.log('Sidebar state changed:', { open: sidebarOpen, pinned: sidebarPinned });
+  }, [sidebarOpen, sidebarPinned]);
+
+  // サイドバーのピン状態が変更されたときの処理
+  const handlePinChange = (isPinned: boolean) => {
+    console.log('Sidebar pin state changed:', isPinned);
+    setSidebarPinned(isPinned);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,6 +176,8 @@ const Index = () => {
           onSelectChannel={setSelectedChannel}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          isPinned={sidebarPinned}
+          onPinChange={handlePinChange}
         />
 
         {/* Main Content Component */}
@@ -189,6 +198,7 @@ const Index = () => {
           onLoadMoreTrending={handleLoadMoreTrending}
           onLoadMorePopular={handleLoadMorePopular}
           defaultTab={activeTab}
+          sidebarPinned={sidebarPinned}
         />
       </div>
 

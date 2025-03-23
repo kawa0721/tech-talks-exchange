@@ -1,7 +1,5 @@
-
 import { CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { MessageSquare, ThumbsUp, Share, X } from "lucide-react";
 import { 
   DropdownMenu,
@@ -129,22 +127,19 @@ const PostCardFooter = ({
   };
 
   return (
-    <CardFooter className="flex justify-between border-t p-3">
+    <CardFooter className="flex justify-between border-t p-3 relative z-20">
       <Button 
         variant="ghost" 
         size="sm" 
-        className="flex gap-1"
-        asChild
+        className="flex gap-1 relative z-20"
       >
-        <Link to={`/post/${postId}`}>
-          <MessageSquare className="h-4 w-4" /> 
-          <span>{commentsCount}</span>
-        </Link>
+        <MessageSquare className="h-4 w-4" /> 
+        <span>{commentsCount}</span>
       </Button>
       <Button 
         variant="ghost" 
         size="sm" 
-        className={`flex gap-1 ${liked ? "text-blue-500" : ""}`}
+        className={`flex gap-1 relative z-20 ${liked ? "text-blue-500" : ""}`}
         onClick={handleToggleLike}
         disabled={isLoading}
       >
@@ -153,12 +148,12 @@ const PostCardFooter = ({
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="flex gap-1">
+          <Button variant="ghost" size="sm" className="flex gap-1 relative z-20">
             <Share className="h-4 w-4" /> 
             <span>共有</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 z-30">
           <DropdownMenuItem onClick={shareToX} className="flex items-center gap-2 cursor-pointer">
             <X className="h-4 w-4 text-black dark:text-white" />
             <span>Xでシェア</span>

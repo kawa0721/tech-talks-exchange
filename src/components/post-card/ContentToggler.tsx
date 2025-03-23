@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
@@ -9,11 +8,11 @@ interface ContentTogglerProps {
 
 const ContentToggler = ({ showFullContent, onToggle }: ContentTogglerProps) => {
   return (
-    <div className="px-6 pb-2">
+    <div className="px-6 pb-2 relative z-20">
       <Button 
         variant="ghost" 
         size="sm" 
-        className="w-full text-muted-foreground" 
+        className="w-full text-muted-foreground relative z-20" 
         onClick={onToggle}
       >
         {showFullContent ? (

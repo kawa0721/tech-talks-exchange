@@ -126,14 +126,14 @@ const PostCard = ({
   return (
     <>
       <Card className={`mb-4 overflow-hidden hover:shadow-md transition-shadow relative ${isTrending ? 'border-blue-400 dark:border-blue-600 shadow-md' : ''} ${isPopular ? 'border-amber-400 dark:border-amber-600 shadow-md' : ''}`}>
-        {/* PostCardMenuはPostCardHeaderに統合したため削除
-        <PostCardMenu 
-          postId={post.id} 
-          postUserId={post.userId} 
-          onEditPost={handleEditPost}
-          onPostDeleted={handlePostDeleted}
-        />
-        */}
+        {/* カード全体をクリック可能にするための絶対配置のリンク */}
+        <Link 
+          to={`/post/${post.id}`}
+          className="absolute inset-0 z-10 cursor-pointer"
+          aria-label={`${post.title || '投稿'}の詳細を見る`}
+        >
+          <span className="sr-only">{post.title || '投稿'}の詳細を見る</span>
+        </Link>
         
         <PostCardHeader 
           post={post} 
@@ -145,13 +145,12 @@ const PostCard = ({
           onPostDeleted={handlePostDeleted}
         />
         
-        <Link to={`/post/${post.id}`}>
-          <PostCardContent 
-            post={post} 
-            showFullContent={showFullContent} 
-            contentPreview={contentPreview} 
-          />
-        </Link>
+        {/* 個別のリンクは不要になるため、単純なコンポーネントとして使用 */}
+        <PostCardContent 
+          post={post} 
+          showFullContent={showFullContent} 
+          contentPreview={contentPreview} 
+        />
         
         {hasLongContent && (
           <ContentToggler 

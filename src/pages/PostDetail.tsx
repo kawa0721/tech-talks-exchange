@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
 import { Post, User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -20,6 +20,8 @@ const PostDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+  const [sidebarPinned, setSidebarPinned] = useState(false);
   const [commentsCount, setCommentsCount] = useState(0);
   const { toast } = useToast();
 
@@ -229,7 +231,7 @@ const PostDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} isSidebarOpen={sidebarOpen} />
         <div className="container flex justify-center items-center min-h-[80vh]">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -240,7 +242,7 @@ const PostDetail = () => {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} isSidebarOpen={sidebarOpen} />
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4 text-destructive">{error}</h1>
           <p className="mb-6">お探しの投稿は存在しないか、削除されました。</p>
@@ -252,30 +254,48 @@ const PostDetail = () => {
     );
   }
 
+  // サイドバーのピン状態が変更されたときの処理
+  const handlePinChange = (isPinned: boolean) => {
+    console.log('Sidebar pin state changed:', isPinned);
+    setSidebarPinned(isPinned);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="container py-8 fade-in">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-6">
-            <Button variant="ghost" asChild className="mb-4">
-              <Link to="/" className="flex items-center">
-                <ChevronLeft className="mr-1 h-4 w-4" />
-                ディスカッションに戻る
-              </Link>
-            </Button>
-            
-            <PostCard 
-              post={post} 
-              channelName={channelName}
-              showChannel={true} 
-            />
-            
-            <CommentSection 
-              postId={post?.id || ""} 
-              postOwnerId={post?.userId}
-              onCommentCountChange={handleCommentCountChange}
-            />
+      <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} isSidebarOpen={sidebarOpen} />
+      
+      <div className="flex overflow-hidden">
+        <Sidebar
+          selectedChannel={selectedChannel}
+          onSelectChannel={setSelectedChannel}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isPinned={sidebarPinned}
+          onPinChange={handlePinChange}
+        />
+        
+        <div className={`container py-8 fade-in transition-all duration-300 ${sidebarPinned ? 'lg:ml-72' : ''}`}>
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-6">
+              <Button variant="ghost" asChild className="mb-4">
+                <Link to="/" className="flex items-center">
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  ディスカッションに戻る
+                </Link>
+              </Button>
+              
+              <PostCard 
+                post={post} 
+                channelName={channelName}
+                showChannel={true} 
+              />
+              
+              <CommentSection 
+                postId={post?.id || ""} 
+                postOwnerId={post?.userId}
+                onCommentCountChange={handleCommentCountChange}
+              />
+            </div>
           </div>
         </div>
       </div>

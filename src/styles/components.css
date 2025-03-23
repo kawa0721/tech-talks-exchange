@@ -5,6 +5,8 @@
     @apply bg-background border-r border-border h-screen fixed left-0 top-0 z-40 w-full md:w-72 transition-transform duration-300 ease-in-out;
     box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
     transform: translateX(0);
+    margin-top: 3rem; /* Navbarの高さ分下げる */
+    height: calc(100vh - 3rem); /* Navbarの高さを考慮 */
   }
   
   /* 閉じた状態のサイドバー */
@@ -14,8 +16,9 @@
   
   /* ピン留め状態のサイドバー - 常に表示 */
   .sidebar.pinned {
-    @apply lg:transform-none;
+    @apply lg:transform-none lg:shadow-md;
     transform: translateX(0) !important; /* 確実に表示されるよう強制 */
+    z-index: 30; /* Navbarの下、コンテンツの上 */
   }
   
   .sidebar-content {
@@ -35,6 +38,13 @@
     .sidebar:not(.closed) + .main-content,
     .main-content.with-sidebar {
       @apply ml-72;
+    }
+    
+    /* サイドバーが固定されているときの追加スタイル */
+    .sidebar.pinned + .main-content,
+    .main-content.with-pinned-sidebar {
+      @apply ml-72;
+      width: calc(100% - 18rem); /* 72px = 18rem */
     }
     
     /* サイドバーが開いているときのみマージンを適用 */

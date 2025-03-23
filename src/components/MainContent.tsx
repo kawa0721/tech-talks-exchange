@@ -43,6 +43,8 @@ interface MainContentProps {
   onLoadMorePopular?: () => void;
   // 投稿作成後のタブ切り替え用の状態（新規追加）
   defaultTab?: string;
+  // サイドバーのピン留め状態
+  sidebarPinned?: boolean;
 }
 
 const MainContent = ({
@@ -61,7 +63,8 @@ const MainContent = ({
   popularLoading = false,
   onLoadMoreTrending = () => {},
   onLoadMorePopular = () => {},
-  defaultTab = "trending"
+  defaultTab = "trending",
+  sidebarPinned = false
 }: MainContentProps) => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelLoading, setChannelLoading] = useState(true);
@@ -148,7 +151,11 @@ const MainContent = ({
 
   return (
     <ActiveTabContext.Provider value={tabContextValue}>
-      <main className="main-content w-full">
+      <div 
+        className={`main-content pt-16 px-4 md:px-8 ${
+          sidebarPinned ? 'lg:ml-72 transition-all duration-300' : ''
+        }`}
+      >
         <div className="px-4 md:px-6 py-4 mx-auto max-w-4xl fade-in">
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-bold">
@@ -251,7 +258,7 @@ const MainContent = ({
             <EmptyPostsMessage channelId={selectedChannel} />
           )}
         </div>
-      </main>
+      </div>
     </ActiveTabContext.Provider>
   );
 };

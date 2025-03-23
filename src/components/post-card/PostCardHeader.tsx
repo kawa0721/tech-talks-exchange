@@ -75,24 +75,24 @@ const PostCardHeader = ({
     <CardHeader className="pb-3 pt-4">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
+          <Avatar className="h-9 w-9 z-20 relative">
             <AvatarImage src={post.user.avatar} alt={post.user.name} />
             <AvatarFallback>{post.user.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
           <div className="grid gap-2 md:gap-0.5">
             <div className="flex items-center gap-1 max-md:flex-col max-md:items-start">
-              <div  className="flex items-center gap-2">
-              <span className="text-sm font-medium text-left">
-                {post.user.name}
-              </span>
-              {showChannel && channelName && (
-                <>
-                  <span className="text-muted-foreground flex-shrink-0">in</span>
-                  <Badge variant="outline" className="px-2 py-0 text-xs flex-shrink-0">
-                    {channelName}
-                  </Badge>
-                </>
-              )}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-left relative z-20">
+                  {post.user.name}
+                </span>
+                {showChannel && channelName && (
+                  <>
+                    <span className="text-muted-foreground flex-shrink-0">in</span>
+                    <Badge variant="outline" className="px-2 py-0 text-xs flex-shrink-0">
+                      {channelName}
+                    </Badge>
+                  </>
+                )}
               </div>
               <div className="flex-shrink-0 flex gap-1 flex-wrap">
                 {isTrending && (
@@ -116,7 +116,7 @@ const PostCardHeader = ({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0 relative z-20">
               <span className="sr-only">メニューを開く</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -134,7 +134,7 @@ const PostCardHeader = ({
               </svg>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="relative z-20">
             {isOwnPost === true ? (
               <>
                 <DropdownMenuItem onClick={onEditPost}>
