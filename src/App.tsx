@@ -35,6 +35,8 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/profile" element={<ProfileRedirect />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
+            <Route path="/user/:userId" element={<UserProfile />} />
+            <Route path="/settings" element={<UserProfile />} />
             <Route path="/create" element={<CreatePost />} />
             <Route path="/channels/:channelId/:type?" element={<AllPosts />} />
             <Route path="*" element={<NotFound />} />
