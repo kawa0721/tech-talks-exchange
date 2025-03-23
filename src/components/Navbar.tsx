@@ -114,7 +114,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen = false }: NavbarProps) => {
         
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
-            <div className={`flex items-center justify-center z-10 relative ${isSidebarOpen ? 'ml-12' : ''}`}>
+            <div className={`flex items-center justify-center z-10 relative`}>
               {/* Small screen logo (visible on small screens, hidden on medium and larger) */}
               <img 
                 src="/aiau_19_transparent.svg" 

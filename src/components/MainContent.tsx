@@ -152,7 +152,7 @@ const MainContent = ({
   return (
     <ActiveTabContext.Provider value={tabContextValue}>
       <div 
-        className={`main-content pt-16 px-4 md:px-8 ${
+        className={`main-content pt-16 md:px-8 ${
           sidebarPinned ? 'lg:ml-72 transition-all duration-300' : ''
         }`}
       >

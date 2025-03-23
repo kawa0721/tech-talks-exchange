@@ -169,7 +169,7 @@ const Index = () => {
         isSidebarOpen={sidebarOpen} 
       />
 
-      <div className="flex overflow-hidden">
+      <div className="flex overflow-hidden relative z-[2]">
         {/* Sidebar Component */}
         <Sidebar
           selectedChannel={selectedChannel}

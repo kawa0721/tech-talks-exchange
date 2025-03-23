@@ -29,7 +29,7 @@ const CreatePostButton = ({ channelId }: CreatePostButtonProps) => {
   return (
     <Button
       onClick={handleClick}
-      className="create-post-button fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg"
+      className="create-post-button fixed bottom-6 right-6 rounded-full h-14 w-14 shadow-lg z-[99]"
       size="icon"
     >
       <Plus className="h-6 w-6" />

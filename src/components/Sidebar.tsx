@@ -59,9 +59,9 @@ const Sidebar = ({
       {/* Sidebar */}
       <aside className={`sidebar ${!isOpen ? "closed" : ""} ${internalPinned ? "pinned" : ""}`}>
         <div className="sidebar-content">
-          <div className="flex justify-between pt-1 px-2">
+          <div className="flex justify-end md:justify-between pt-1 px-2">
             <button 
-              className={`p-1 rounded-full ${internalPinned 
+              className={`max-md:hidden p-1 rounded-full ${internalPinned 
                 ? 'bg-primary text-primary-foreground' 
                 : 'bg-secondary/60 text-muted-foreground'} 
                 hover:bg-primary/80 hover:text-primary-foreground z-50 shadow-sm flex items-center`}
