@@ -643,10 +643,27 @@ const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
+      // コードブロックのバックティックを保護
+      let processedValue = value;
+      
+      // コードブロックが含まれているかチェック
+      const hasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(value);
+      
+      if (hasCodeBlock) {
+        console.log("NotionLikeEditor: コードブロックを検出");
+        // コードブロック内のコンテンツを特別処理
+        processedValue = value.replace(/```(\w*)\n([\s\S]*?)\n```/g, 
+          (match, lang, code) => {
+            // コードブロックを維持するようにマークアップ
+            return `<pre class="code-block"><code class="language-${lang}">${code}</code></pre>`;
+          }
+        );
+      }
+      
       // 強制的に内容を更新することで、
       // リッチテキストモードからマークダウンモードに切り替えたときの
       // 表示問題を解決
-      editor.commands.setContent(value, false);
+      editor.commands.setContent(processedValue, false);
     }
   }, [editor, value]);
 

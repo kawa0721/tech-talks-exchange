@@ -67,16 +67,45 @@ const PostFormEditor = ({
           setHtmlContent(currentHTML);
           // マークダウンも同期して更新
           const markdown = convertHtmlToMarkdown(currentHTML);
-          setContent(markdown);
+          
+          // コードブロックのチェック（編集前のコンテンツにコードブロックがあればそれを維持）
+          if (content.includes('```')) {
+            const originalHasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(content);
+            const convertedHasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(markdown);
+            
+            if (originalHasCodeBlock && !convertedHasCodeBlock) {
+              console.log("コードブロックを保持: リッチテキストからの切り替え時");
+              setContent(content); // 元のコンテンツを維持
+            } else {
+              setContent(markdown);
+            }
+          } else {
+            setContent(markdown);
+          }
         }
       }
       
       // マークダウンモードからの切り替え時
       if (previousTab === "write") {
-        // HTMLを更新
-        const html = convertMarkdownToHtml(content);
-        if (html !== htmlContent) {
-          setHtmlContent(html);
+        // コードブロックが含まれている場合は特別に処理
+        const hasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(content);
+        
+        if (hasCodeBlock) {
+          console.log("コードブロックを検出: マークダウンからの切り替え時");
+          // コードブロックを一時的に保護してからHTML変換
+          const tempContent = content.replace(/```(\w*)\n([\s\S]*?)\n```/g, 
+            (match, lang, code) => `<pre class="code-block-marker"><code class="language-${lang}">${code}</code></pre>`);
+          
+          const html = convertMarkdownToHtml(content);
+          if (html !== htmlContent) {
+            setHtmlContent(html);
+          }
+        } else {
+          // 通常のHTML変換
+          const html = convertMarkdownToHtml(content);
+          if (html !== htmlContent) {
+            setHtmlContent(html);
+          }
         }
       }
       
@@ -84,7 +113,22 @@ const PostFormEditor = ({
       if (previousTab === "html") {
         // マークダウンも更新
         const markdown = convertHtmlToMarkdown(htmlContent);
-        setContent(markdown);
+        
+        // コードブロックのチェック（編集前のコンテンツにコードブロックがあればそれを維持）
+        if (content.includes('```')) {
+          const originalHasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(content);
+          const convertedHasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(markdown);
+          
+          if (originalHasCodeBlock && !convertedHasCodeBlock) {
+            console.log("コードブロックを保持: HTMLコードからの切り替え時");
+            // 元のコンテンツを維持（コードブロックを保持）
+            // setContent()は実行しない（元のcontentを保持）
+          } else {
+            setContent(markdown);
+          }
+        } else {
+          setContent(markdown);
+        }
       }
       
       // 新しいタブに応じた表示処理

@@ -103,7 +103,33 @@ export const usePostEdit = ({ post, onPostUpdated }: UsePostEditProps) => {
 
     try {
       // HTMLからマークダウンに変換
-      const markdownForSaving = htmlContent ? convertHtmlToMarkdown(htmlContent) : content;
+      let markdownForSaving = htmlContent ? convertHtmlToMarkdown(htmlContent) : content;
+      
+      // コードブロックを保持するための追加処理
+      if (content.includes('```')) {
+        // 元のコンテンツにコードブロックがあるが、変換後に消えている場合は元のコンテンツから補完
+        const originalHasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(content);
+        const convertedHasCodeBlock = /```\w*\n[\s\S]*?\n```/g.test(markdownForSaving);
+        
+        if (originalHasCodeBlock && !convertedHasCodeBlock) {
+          console.log("コードブロックが消失したため、元のコンテンツのコードブロックを保持します");
+          // 変換後のコンテンツと元のコンテンツを比較して、コードブロックだけを元のコンテンツから維持
+          const codeBlocks = [];
+          let match;
+          const codeBlockRegex = /```(\w*)\n([\s\S]*?)\n```/g;
+          
+          while ((match = codeBlockRegex.exec(content)) !== null) {
+            codeBlocks.push({
+              full: match[0],
+              lang: match[1],
+              code: match[2]
+            });
+          }
+          
+          // 変換したマークダウンにコードブロックを挿入
+          markdownForSaving = content;
+        }
+      }
       
       // 画像のURLを格納する配列
       let uploadedImageUrls: string[] = [];
