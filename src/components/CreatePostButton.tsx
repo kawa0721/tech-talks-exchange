@@ -20,9 +20,9 @@ const CreatePostButton = ({ channelId }: CreatePostButtonProps) => {
     
     // チャンネルIDがある場合はクエリパラメータとして渡す
     if (channelId) {
-      navigate(`/create-post?channelId=${channelId}`);
+      navigate(`/create?channelId=${channelId}`);
     } else {
-      navigate("/create-post");
+      navigate("/create");
     }
   };
 

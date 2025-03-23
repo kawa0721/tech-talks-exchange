@@ -7,7 +7,7 @@ import CreatePostFormContainer from "@/components/post-form/CreatePostFormContai
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-const CreatePostPage = () => {
+const CreatePost = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const channelId = searchParams.get("channelId");
@@ -29,7 +29,7 @@ const CreatePostPage = () => {
     
     // 元のチャンネルに戻るか、ホームに戻る
     if (channelId) {
-      navigate(`/channel/${channelId}`);
+      navigate(`/channels/${channelId}`);
     } else {
       navigate("/");
     }
@@ -69,4 +69,4 @@ const CreatePostPage = () => {
   );
 };
 
-export default CreatePostPage; 
+export default CreatePost; 
