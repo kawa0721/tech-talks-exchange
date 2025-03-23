@@ -161,7 +161,7 @@ const AllPostsPage = () => {
     <>
       <Navbar onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
       
-      <div className="container py-4 sm:py-6 space-y-4">
+      <div className="container max-md:px-4 pt-20 md:py-4 sm:py-6 space-y-4 fade-in">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold">すべての投稿</h1>
           <PostsSorting sortOption={sortOption} onSortChange={handleSortChange} />

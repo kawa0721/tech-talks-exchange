@@ -77,7 +77,7 @@ const UserProfile = () => {
   }
   
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="container max-w-4xl py-8 max-md:px-4">
       {/* Back to home button */}
       <div className="mb-4">
         <Button variant="ghost" asChild className="flex items-center gap-2 mb-4">
