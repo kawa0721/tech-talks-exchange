@@ -80,4 +80,71 @@
   .markdown-content hr {
     @apply border-t border-gray-300 dark:border-gray-600 my-6;
   }
+
+  /* シンタックスハイライト用のスタイル */
+  .code-block-wrapper {
+    @apply my-4 overflow-hidden rounded-md;
+  }
+
+  /* シンタックスハイライターのスタイルを上書き */
+  .code-block-wrapper pre {
+    @apply my-0 !important;
+    margin: 0 !important;
+  }
+
+  /* コードトークンのカラーを強制的に適用 */
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    @apply text-gray-500 dark:text-gray-400 !important;
+  }
+
+  .token.punctuation {
+    @apply text-gray-700 dark:text-gray-300 !important;
+  }
+
+  .token.property,
+  .token.tag,
+  .token.boolean,
+  .token.number,
+  .token.constant,
+  .token.symbol,
+  .token.deleted {
+    @apply text-purple-600 dark:text-purple-400 !important;
+  }
+
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted {
+    @apply text-green-600 dark:text-green-400 !important;
+  }
+
+  .token.operator,
+  .token.entity,
+  .token.url,
+  .language-css .token.string,
+  .style .token.string {
+    @apply text-yellow-600 dark:text-yellow-400 !important;
+  }
+
+  .token.atrule,
+  .token.attr-value,
+  .token.keyword {
+    @apply text-blue-600 dark:text-blue-400 !important;
+  }
+
+  .token.function,
+  .token.class-name {
+    @apply text-red-600 dark:text-red-400 !important;
+  }
+
+  .token.regex,
+  .token.important,
+  .token.variable {
+    @apply text-orange-600 dark:text-orange-400 !important;
+  }
 }

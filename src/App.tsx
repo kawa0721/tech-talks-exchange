@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import PostDetail from "./pages/PostDetail";
+import EditPostPage from "./pages/EditPostPage";
 import AllPosts from "./pages/AllPosts";
 import AllPostsPage from "./pages/AllPostsPage";
 import Auth from "./pages/Auth";
@@ -30,6 +31,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/post/:postId" element={<PostDetail />} />
+            <Route path="/edit-post/:postId" element={<EditPostPage />} />
             <Route path="/posts" element={<AllPostsPage />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />

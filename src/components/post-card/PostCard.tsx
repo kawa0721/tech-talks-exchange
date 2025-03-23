@@ -31,7 +31,6 @@ const PostCard = ({
   const [likesCount, setLikesCount] = useState(post.likesCount || 0);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
   const [showFullContent, setShowFullContent] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   // 投稿の詳細情報を取得する
@@ -107,11 +106,10 @@ const PostCard = ({
   };
 
   const handleEditPost = () => {
-    setIsEditDialogOpen(true);
+    navigate(`/edit-post/${post.id}`);
   };
 
   const handlePostUpdated = () => {
-    setIsEditDialogOpen(false);
     navigate(0);
   };
 
@@ -167,16 +165,6 @@ const PostCard = ({
           onToggleLike={toggleLike}
         />
       </Card>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-          <DialogTitle className="text-xl font-semibold">投稿を編集</DialogTitle>
-          <EditPostForm
-            post={post}
-            onPostUpdated={handlePostUpdated}
-          />
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

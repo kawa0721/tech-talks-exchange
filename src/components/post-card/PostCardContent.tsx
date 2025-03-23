@@ -3,6 +3,7 @@ import { Post } from "@/types";
 import ReactMarkdown from "react-markdown";
 import CodeBlock from "@/components/markdown/CodeBlock";
 import { Components } from 'react-markdown';
+import { useEffect } from "react";
 
 interface PostCardContentProps {
   post: Post;
@@ -10,13 +11,24 @@ interface PostCardContentProps {
   contentPreview: string;
 }
 
+interface CodeProps {
+  className?: string;
+  children: React.ReactNode;
+  inline?: boolean;
+  [key: string]: any;
+}
+
 const PostCardContent = ({ post, showFullContent, contentPreview }: PostCardContentProps) => {
+  useEffect(() => {
+    console.log('PostCardContent rendered with content:', 
+      showFullContent ? post.content.substring(0, 100) + '...' : contentPreview.substring(0, 100) + '...');
+  }, [post, showFullContent, contentPreview]);
+
   // Define custom components for ReactMarkdown
   const components: Components = {
-    code({ className, children, ...props }) {
-      const match = /language-(\w+)/.exec(className || '');
-      
-      if (!match) {
+    // インラインコード
+    code({ inline, className, children, ...props }: CodeProps) {
+      if (inline) {
         return (
           <code className={className} {...props}>
             {children}
@@ -24,12 +36,22 @@ const PostCardContent = ({ post, showFullContent, contentPreview }: PostCardCont
         );
       }
       
+      // コードブロック処理
+      const match = /language-(\w+)/.exec(className || '');
+      const language = match ? match[1] : 'javascript';
+      
+      console.log('Markdown code block detected:', { language, contentLength: String(children).length });
+      
       return (
         <CodeBlock
-          language={match[1]}
+          language={language}
           value={String(children).replace(/\n$/, '')}
         />
       );
+    },
+    // コードブロックのラッパーとなるpreタグ
+    pre({ children }) {
+      return <>{children}</>;
     }
   };
 

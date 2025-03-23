@@ -1,7 +1,6 @@
-
 import { useState, ChangeEvent, useEffect } from "react";
 import { toast } from "sonner";
-import { convertHtmlToMarkdown } from "@/lib/markdownUtils";
+import { convertHtmlToMarkdown, convertMarkdownToHtml } from "@/lib/markdownUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Post } from "@/types";
@@ -26,9 +25,15 @@ export const usePostEdit = ({ post, onPostUpdated }: UsePostEditProps) => {
 
   // 初期表示時にHTMLコンテンツを設定
   useEffect(() => {
-    // Post content is in markdown, so we'll handle this in the editor component
-    // Just initialize with the content
+    // マークダウンからHTMLに変換して初期化
+    const initialHtml = convertMarkdownToHtml(post.content || "");
     setContent(post.content || "");
+    setHtmlContent(initialHtml);
+    
+    console.log("投稿編集初期化:", { 
+      content: post.content, 
+      htmlContent: initialHtml 
+    });
   }, [post]);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +87,9 @@ export const usePostEdit = ({ post, onPostUpdated }: UsePostEditProps) => {
       return;
     }
 
-    if (!htmlContent.trim() && !content.trim()) {
+    // 空のコンテンツをチェック - HTMLとマークダウンのどちらかが入力されていればOK
+    const contentExists = htmlContent.trim() || content.trim();
+    if (!contentExists) {
       toast.error("内容を入力してください");
       return;
     }
